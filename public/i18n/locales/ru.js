@@ -5751,3 +5751,4 @@ window.I18N_LOCALES.ru.atlas.materialExport.working = "Готовим и про�
 window.I18N_LOCALES.ru.room.hub.atlas97001rc32 = {"title": "Инженерный атлас 97001 · RC3.2", "desc": "Полная нативная редакция · 203 страницы · отдельный прогресс · ограничения обучения отмечены"};
 
 window.I18N_LOCALES.ru.atlas.word.inspection = "Словарный просмотр: корень и формы не подтверждают чтение и значение слова в этой строке. Учебные оценки здесь не записываются.";
+Object.assign(window.I18N_LOCALES.ru.atlas,{"crossedOut":"В книге зачёркнуто (отрицательный корень отброшен):"});

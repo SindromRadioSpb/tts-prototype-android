@@ -1,0 +1,167 @@
+{
+  "schema": "linguistpro.atlas-tts-inventory.1",
+  "atlas_id": "a97001rc32",
+  "profile_id": "atlas-he-standard-a-0.8-pitch-2.5-v1",
+  "profile": {
+    "language": "he-IL",
+    "voiceName": "he-IL-Standard-A",
+    "speakingRate": 0.8,
+    "pitch": 2.5
+  },
+  "speech_contract": "atlas-speech/1",
+  "lexicon_sha256": "e7048ba2008e7c4cb0c91e36d72ec925066a91feb541c7203d1f657f5cab6214",
+  "lexicon_review": "needs_review",
+  "blocks": {
+    "voiced": 1308,
+    "total": 1364
+  },
+  "formulas": {
+    "voiced": 339,
+    "total": 344
+  },
+  "not_shown_or_nothing_to_read": 3,
+  "not_voiced_reasons": {
+    "EXCLUDED:NUMBER_ONLY": 3,
+    "EXCLUDED:UNRESOLVED_READING": 48,
+    "EXCLUDED:AUDIT_UNRESOLVED": 5,
+    "EXCLUDED:REVERSIBLE_ARROW_NEEDS_OWNER_READING": 2,
+    "EXCLUDED:NO_NIQQUD_IN_EDITION": 1,
+    "EXCLUDED:ENGLISH_ONLY": 2
+  },
+  "unique_recordings": 1480,
+  "billed_characters": 158440,
+  "character_ceiling": 600000,
+  "estimated_usd_standard": 0.63,
+  "estimated_megabytes": 111,
+  "longest_input_bytes": 1714,
+  "max_input_bytes": 4800,
+  "gate_cost": "PASS",
+  "sections": [
+    {
+      "section": "s00-front",
+      "items": 7,
+      "voiced": 7,
+      "billed_characters": 202
+    },
+    {
+      "section": "s01-units",
+      "items": 5,
+      "voiced": 5,
+      "billed_characters": 152
+    },
+    {
+      "section": "s02-statics-basics",
+      "items": 85,
+      "voiced": 85,
+      "billed_characters": 7400
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "items": 100,
+      "voiced": 100,
+      "billed_characters": 6323
+    },
+    {
+      "section": "s04-parallel-forces",
+      "items": 117,
+      "voiced": 111,
+      "billed_characters": 6914
+    },
+    {
+      "section": "s05-planar-forces",
+      "items": 63,
+      "voiced": 63,
+      "billed_characters": 3341
+    },
+    {
+      "section": "s06-trusses",
+      "items": 116,
+      "voiced": 116,
+      "billed_characters": 7378
+    },
+    {
+      "section": "s07-centroid",
+      "items": 52,
+      "voiced": 51,
+      "billed_characters": 4672
+    },
+    {
+      "section": "s08-friction",
+      "items": 81,
+      "voiced": 81,
+      "billed_characters": 7019
+    },
+    {
+      "section": "s09-linear-motion",
+      "items": 125,
+      "voiced": 121,
+      "billed_characters": 12935
+    },
+    {
+      "section": "s10-projectile-motion",
+      "items": 94,
+      "voiced": 93,
+      "billed_characters": 8277
+    },
+    {
+      "section": "s11-circular-motion",
+      "items": 35,
+      "voiced": 35,
+      "billed_characters": 2323
+    },
+    {
+      "section": "s12-sections",
+      "items": 25,
+      "voiced": 25,
+      "billed_characters": 2193
+    },
+    {
+      "section": "s13-dimensions",
+      "items": 36,
+      "voiced": 34,
+      "billed_characters": 3616
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "items": 32,
+      "voiced": 27,
+      "billed_characters": 2823
+    },
+    {
+      "section": "s15-materials-basics",
+      "items": 84,
+      "voiced": 83,
+      "billed_characters": 11861
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "items": 247,
+      "voiced": 238,
+      "billed_characters": 23951
+    },
+    {
+      "section": "s17-steels",
+      "items": 316,
+      "voiced": 287,
+      "billed_characters": 34301
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "items": 22,
+      "voiced": 21,
+      "billed_characters": 2524
+    },
+    {
+      "section": "s19-aluminium",
+      "items": 57,
+      "voiced": 55,
+      "billed_characters": 9174
+    },
+    {
+      "section": "s20-composites",
+      "items": 9,
+      "voiced": 9,
+      "billed_characters": 1061
+    }
+  ]
+}

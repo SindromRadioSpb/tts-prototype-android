@@ -16,7 +16,7 @@ test('all 263 addressed rows retain strict guards, offsets, and unknown-row reje
   }
   const r=answer(e);if(r)for(let i=0;i<e.source_words.length;i++){assert(a.lookup(e.guard,r,'he',i).gloss);lookups++;}
  }
- assert.equal(mutations,1841);assert.equal(lookups,3797);
+ assert.equal(mutations,1841);assert.equal(lookups,3782); // RC3.3: 7 rows with corrected source text carry no prepared reading
  const e=map.entries[0],bad=clone(e.guard);bad.id='a97001rc32:p999:unknown';assert.throws(()=>a.describe([bad]),/UNKNOWN_ROW/);
  const arow=answer(e);assert.throws(()=>a.lookup(e.guard,arow,'he',9999),/RANGE/);assert.throws(()=>a.lookup(e.guard,arow,'niqqud',-1),/INDEX/);
 });

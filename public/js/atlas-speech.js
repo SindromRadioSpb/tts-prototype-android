@@ -16,10 +16,11 @@
   function str(s) { return String(s == null ? '' : s); }
   function squash(s) { return str(s).normalize('NFC').replace(/\s+/g, ' ').trim(); }
 
-  function readable(item) {
+  // kinds: the block kinds this book reads aloud (97001 names its kinds differently); default = 97002
+  function readable(item, kinds) {
     if (!item) return false;
     if (item.type === 'formula') return !!str(item.latex).trim();
-    return item.type === 'block' && READ_KINDS.indexOf(item.kind) >= 0 && !!str(item.he_niqqud).trim();
+    return item.type === 'block' && (kinds || READ_KINDS).indexOf(item.kind) >= 0 && !!str(item.he_niqqud).trim();
   }
   // The fields a recording depends on. Changing any of them changes the fingerprint.
   function sourceOf(item) {
@@ -48,6 +49,8 @@
     while (i < s.length) {
       var rest = s.slice(i), c = s[i], m;
       if (c === '\\') {
+        // a vector arrow is read as the letter itself, as the reader shows it (97001: \vec{F}, \overrightarrow{AB})
+        if ((m = /^\\(?:vec|overrightarrow)(?![A-Za-z])/.exec(rest))) { i += m[0].length; continue; }
         if ((m = /^\\([A-Za-z]+)/.exec(rest))) { out.push({ t: 'cmd', v: m[1], r: m[0] }); i += m[0].length; continue; }
         var n = s[i + 1] || '';
         if (n === '\\') { out.push({ t: 'nl', r: '\\\\' }); i += 2; continue; }
@@ -684,6 +687,7 @@
       .replace(/[​-‏‪-‮⁦-⁩]/g, '')
       .replace(/[֑-֯]/g, '')                                   // cantillation
       .replace(/[\u{1D400}-\u{1D7FF}]/gu, function (c) { return c.normalize('NFKC'); })
+      .replace(/⃗/g, '')                                  // combining vector arrow: the letter is read
       .replace(DECOR, ' ')
       .replace(/[①-⑳]/g, function (c) { return ' ' + (CIRCLED.indexOf(c) + 1) + ' '; })
       .replace(/[|]/g, ', ')
@@ -743,11 +747,12 @@
   }
 
   // The text the voice reads, or the reason there is none. overrides: { items: { <id>: { exclude, text, reason } } }
-  function speak(item, lex, overrides) {
+  function speak(item, lex, overrides, opts) {
+    var kinds = opts && opts.readKinds || READ_KINDS;
     var o = overrides && overrides.items && overrides.items[item.id];
     if (o && o.exclude) return { ok: false, reason: 'EXCLUDED' + (o.reason ? ':' + o.reason : '') };
     if (o && o.text) return { ok: true, text: squash(o.text), override: true };
-    if (!readable(item)) return { ok: false, reason: item.type === 'block' && READ_KINDS.indexOf(item.kind) >= 0 ? 'NO_NIQQUD' : 'NOT_READ' };
+    if (!readable(item, kinds)) return { ok: false, reason: item.type === 'block' && kinds.indexOf(item.kind) >= 0 ? 'NO_NIQQUD' : 'NOT_READ' };
     try {
       return { ok: true, text: item.type === 'formula' ? formulaSpeech(item, lex) : blockSpeech(item, lex) };
     } catch (e) {

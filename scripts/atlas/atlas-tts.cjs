@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Engineering atlas listening (plan P3 §4.6): what is read, what it costs, and the recordings.
 //
-//   node scripts/atlas/atlas-tts.cjs inventory   [--data data/atlas/a97002] [--sections s09-belt,…] [--out report.json]
+//   node scripts/atlas/atlas-tts.cjs inventory   [--atlas a97002|a97001rc32] [--data data/atlas/a97002] [--sections s09-belt,…] [--out report.json]
 //   node scripts/atlas/atlas-tts.cjs review-pack [--data …] --out speech-review-pack.md      (40 formulas, D4)
 //   node scripts/atlas/atlas-tts.cjs bake        --sections s09-belt[,…|all] [--out .tmp/atlas-tts] [--concurrency 2]
 //   node scripts/atlas/atlas-tts.cjs verify      [--out .tmp/atlas-tts]
@@ -21,8 +21,22 @@ const Speech = require("../../public/js/atlas-speech.js");
 const Reader = require("../../public/js/atlas-reader.js");
 
 const ROOT = path.resolve(__dirname, "..", "..");
-const ATLAS = path.join(ROOT, "atlas", "a97002");
-const DEFAULT_DATA = path.join(ROOT, "data", "atlas", "a97002");
+// One tool for both books. a97002 is the default and its output is unchanged; a97001rc32 reads its own block kinds
+// and is projected to the corpus IDs the reader uses (atlas-edition.js), so recordings key to the shown rows.
+const BOOKS = {
+  a97002: { dir: path.join(ROOT, "atlas", "a97002"), data: path.join(ROOT, "data", "atlas", "a97002"), readKinds: null, project: false },
+  a97001rc32: { dir: path.join(ROOT, "atlas", "a97001rc32"), data: path.join(ROOT, ".tmp", "rc33", "candidate"), project: true,
+    readKinds: ["heading", "subheading", "subtitle", "prose", "paragraph", "intro", "list_item", "definition", "definition_heading",
+      "symbol_definition", "legend", "footnote", "note", "warning", "rule", "purpose", "properties", "result", "equilibrium_condition",
+      "question", "problem", "problem_instruction", "exercise", "solution", "solution_heading", "solution_conclusion",
+      "example", "examples", "example_heading", "example_statement", "example_text", "caption", "figure_caption",
+      "table_label", "table_heading", "formula_label", "continuation", "source_note"] },
+};
+let ATLAS_ID = "a97002", ATLAS = BOOKS.a97002.dir, DEFAULT_DATA = BOOKS.a97002.data;
+function selectAtlas(id) {
+  invariant(BOOKS[id], `UNKNOWN_ATLAS:${id}`);
+  ATLAS_ID = id; ATLAS = BOOKS[id].dir; DEFAULT_DATA = BOOKS[id].data;
+}
 const DEFAULT_OUT = path.join(ROOT, ".tmp", "atlas-tts");
 // The Room's Hebrew voice, the same as Materials Science (owner D3, 2026-11-02).
 const PROFILE = Object.freeze({ language: "he-IL", voiceName: "he-IL-Standard-A", speakingRate: 0.8, pitch: 2.5 });
@@ -57,18 +71,21 @@ function sectionIds(data, wanted) {
 function sectionPlan(data, sid, lexicon, overrides) {
   const file = path.join(data, "sections", sid + ".json");
   const bytes = fs.readFileSync(file);
-  const section = JSON.parse(bytes.toString("utf8"));
+  const book = BOOKS[ATLAS_ID];
+  let section = JSON.parse(bytes.toString("utf8"));
+  if (book.project) section = require("../../public/js/atlas-edition.js").projectCorpus(section, "");
+  const kinds = book.readKinds || Speech.READ_KINDS;
   const R = Reader.factory(null);
   const items = [];
   for (const page of section.pages || []) {
     const lay = R.layoutPage(page);
     (page.items || []).forEach((item, i) => {
-      const candidate = item.type === "formula" || Speech.READ_KINDS.includes(item.kind);
+      const candidate = item.type === "formula" || kinds.includes(item.kind);
       if (!candidate) return;
       const kind = item.type === "formula" ? "formula" : "block";
       // a line the reader shows as its table (layoutPage().tableFor) is a table: tables are not read (plan §4.2)
       if (lay.duplicate[i] || lay.tableFor[i]) { items.push({ id: item.id, page: page.page, kind, ok: false, skip: true, reason: "HIDDEN_IN_READER" }); return; }
-      const said = Speech.speak(item, lexicon, overrides);
+      const said = Speech.speak(item, lexicon, overrides, { readKinds: kinds });
       items.push({ id: item.id, page: page.page, kind, ok: said.ok, skip: !!said.skip, reason: said.reason || null,
         override: !!said.override, text: said.text || null, src: sha256(Buffer.from(Speech.sourceOf(item), "utf8")),
         latex: item.type === "formula" ? item.latex : undefined, he: item.type === "formula" ? undefined : item.he_niqqud });
@@ -103,7 +120,7 @@ function inventory({ data = DEFAULT_DATA, sections } = {}) {
   const total = [...keys.values()].reduce((a, b) => a + b, 0);
   // PB2 measured ≈ 0.7 KB of MP3 per billed character at 0.8 speed (270k characters → 180–210 MB)
   return {
-    schema: "linguistpro.atlas-tts-inventory.1", atlas_id: "a97002", profile_id: PROFILE_ID, profile: PROFILE,
+    schema: "linguistpro.atlas-tts-inventory.1", atlas_id: ATLAS_ID, profile_id: PROFILE_ID, profile: PROFILE,
     speech_contract: Speech.CONTRACT, lexicon_sha256: fileSha(path.join(ATLAS, "speech-lexicon.json")),
     lexicon_review: loadLexicon().review.status,
     blocks: { voiced: blocks[0], total: blocks[1] }, formulas: { voiced: formulas[0], total: formulas[1] },
@@ -148,8 +165,8 @@ function reviewPack({ data = DEFAULT_DATA } = {}) {
     "# Атлас 97002: проверка чтения формул на иврите (D4)", "",
     "Что проверить: 1) словарь — как голос называет буквы, греческие символы, знаки, функции, индексы и единицы;",
     "2) 40 формул разной сложности — так ли их прочитает преподаватель. Пометка «отклонено» по формуле попадает в",
-    "`atlas/a97002/speech-overrides.json` (исключить или задать точный текст); ошибка словаря исправляется в",
-    "`atlas/a97002/speech-lexicon.json` и сразу действует на всю книгу. Перевыпекаются только изменившиеся записи.", "",
+    "`atlas/" + ATLAS_ID + "/speech-overrides.json` (исключить или задать точный текст); ошибка словаря исправляется в",
+    "`atlas/" + ATLAS_ID + "/speech-lexicon.json` и сразу действует на всю книгу. Перевыпекаются только изменившиеся записи.", "",
     `Голос: ${PROFILE.voiceName}, скорость ${PROFILE.speakingRate}, высота +${PROFILE.pitch} (как Материаловедение).`, "",
     "## Словарь", "",
   ];
@@ -173,7 +190,7 @@ function validateRights() {
   const file = path.join(ATLAS, "rights", "tts-attestation.json");
   invariant(fs.existsSync(file), "TTS_RIGHTS_ATTESTATION_MISSING (D1)");
   const rights = readJson(file);
-  invariant(rights.schema === "linguistpro.atlas-tts-rights.1" && rights.atlas_id === "a97002" && rights.owner_attested === true
+  invariant(rights.schema === "linguistpro.atlas-tts-rights.1" && rights.atlas_id === ATLAS_ID && rights.owner_attested === true
     && rights.public_audio === true && String(rights.asserted_at || "").trim() && String(rights.owner_words || "").trim(), "TTS_RIGHTS_ATTESTATION_INVALID");
   return { rights, sha: fileSha(file) };
 }
@@ -257,7 +274,7 @@ async function bake({ data = DEFAULT_DATA, sections, out = DEFAULT_OUT, concurre
       items[it.id] = { key, src: it.src, bytes: bytes.length, audio_sha256: sha256(bytes), ms: durationMs(file), text_sha256: sha256(Buffer.from(it.text, "utf8")) };
     }
     const manifest = {
-      schema: SCHEMA, atlas_id: "a97002", section: sid, section_sha256: plan.section_sha256,
+      schema: SCHEMA, atlas_id: ATLAS_ID, section: sid, section_sha256: plan.section_sha256,
       speech_contract: Speech.CONTRACT, lexicon_sha256: fileSha(path.join(ATLAS, "speech-lexicon.json")),
       overrides_sha256: fileSha(path.join(ATLAS, "speech-overrides.json")), rights_sha256: rightsSha,
       language: "he", profile: { id: PROFILE_ID, ...PROFILE },
@@ -276,7 +293,7 @@ function verify({ out = DEFAULT_OUT, data = DEFAULT_DATA } = {}) {
   const counted = new Set();
   for (const name of fs.readdirSync(manifestDir).filter((f) => f.endsWith(".json") && f !== "index.json")) {
     const m = readJson(path.join(manifestDir, name));
-    invariant(m.schema === SCHEMA && m.atlas_id === "a97002", `MANIFEST_INVALID:${name}`);
+    invariant(m.schema === SCHEMA && m.atlas_id === ATLAS_ID, `MANIFEST_INVALID:${name}`);
     const sectionFile = path.join(data, "sections", m.section + ".json");
     if (fileSha(sectionFile) !== m.section_sha256) result.stale_source.push(m.section);
     result.sections++;
@@ -315,6 +332,7 @@ function parseArgs(argv) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2)), command = args._[0] || "inventory";
+  if (args.atlas) selectAtlas(args.atlas);
   const data = args.data ? path.resolve(args.data) : DEFAULT_DATA, out = args.out ? path.resolve(args.out) : DEFAULT_OUT;
   const write = (file, text) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text); };
   if (command === "inventory") {
@@ -354,4 +372,4 @@ async function main() {
 
 if (require.main === module) main().catch((error) => { process.stderr.write(`atlas-tts: ${error.stack || error.message}\n`); process.exitCode = 1; });
 
-module.exports = { PROFILE, PROFILE_ID, CHARACTER_CEILING, SCHEMA, sectionPlan, inventory, reviewPack, bake, verify, indexWithAudio, assetKeyFor, validateRights };
+module.exports = { selectAtlas, PROFILE, PROFILE_ID, CHARACTER_CEILING, SCHEMA, sectionPlan, inventory, reviewPack, bake, verify, indexWithAudio, assetKeyFor, validateRights };

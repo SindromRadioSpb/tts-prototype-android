@@ -580,3 +580,14 @@ body.theme-dark .rm-sheet .rm-surface-top { --rm-surface-rule: #E0A458; }
 .atlas-material-export { margin: .75rem 0; padding: .75rem 1rem; border: 1px solid var(--border, #d6dce4); border-radius: .65rem; }
 .atlas-material-export p { margin: 0 0 .5rem; overflow-wrap: anywhere; }
 .atlas-material-export a { display: inline-block; box-sizing: border-box; padding: .65rem 0; min-height: 44px; overflow-wrap: anywhere; scroll-margin-block: 96px; }
+
+/* Audit 97001 (p43/55/62): circled numbers and the vector arrow are drawn by CSS; the characters stay in the text. */
+.atlas-root .atlas-circled { position: relative; display: inline-block; min-width: 1.25em; color: transparent; text-align: center; }
+.atlas-root .atlas-circled::after { content: attr(data-n); position: absolute; left: 50%; top: 50%; width: 1.25em; height: 1.25em; transform: translate(-50%, -50%);
+  border: 1px solid var(--atlas-ink); border-radius: 50%; color: var(--atlas-ink); font-size: .8em; line-height: 1.2em; text-align: center; font-variant-numeric: tabular-nums; }
+.atlas-root .atlas-vec { position: relative; display: inline-block; }
+.atlas-root .atlas-vec-mark { font-size: 0; }
+.atlas-root .atlas-vec::before { content: "→"; position: absolute; left: 0; right: 0; top: -.62em; font-size: .7em; line-height: 1; text-align: center; color: var(--atlas-ink); }
+/* Rejected root crossed out in the book (p81, p85). */
+.atlas-root .atlas-crossed { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--atlas-muted); }
+.atlas-root .atlas-crossed-note { margin-top: .35rem; font-size: .85rem; color: var(--atlas-muted); }

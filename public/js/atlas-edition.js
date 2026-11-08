@@ -1,13 +1,15 @@
 /* Code-pinned editions. Never select mutable "latest", mix roots or fall back to the legacy edition. */
 (function(root,factory){'use strict';var api=factory(root);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.AtlasEdition=api;})(typeof globalThis==='undefined'?null:globalThis,function(root){
   'use strict';
-  var NATIVE_PIN={"atlas_id":"a97001","revision":"841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc","manifest_sha256":"17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d"};
+  var NATIVE_PIN={"atlas_id":"a97001","revision":"b9f017d92e769a9c97cc30ca59f9ee2cfd9acc74b17e24704c09e68dc79d89c8","manifest_sha256":"261ffd7b12824b74a45da0c223bbb74a3cb723c0426061e7c42efddac6dd00da"};
   var PIN={atlas_id:'a97001',revision:'50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc',manifest_sha256:'085d33fddbd04a1eaaa4a9e625273591683cdcf9ff19d0b16899d503132ada7a'};
   var CONTEXT_PIN='ca40870e123fd81e1388918f8bf3babc3c1acbe1ef1daca6fb5059b3ad9384f4';
   var NATIVE_ID='a97001rc32';
   // Technical reading candidate; this pin does not confer editorial/scientific acceptance.
-  var RC32_CONTEXT_PIN='eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19';
-  var RC32_SOURCE=Object.freeze({"edition_revision":"841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc","edition_manifest_sha256":"17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d","source_pdf_sha256":"eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c","ai_dependencies_sha256":"afbcc17988b98a553f052c5859e7bb893c71c0a1829f592c2cd23addcf3d2722","source_overlay_manifest_sha256":"e746d12b32d13d69177cce6dc2a25002d595b4026f1fd4e7cfaf8889e197b765"});
+  var RC32_CONTEXT_PIN='e8c53a0c3813741dafaf46133dc1d290d5a7062f5eb15c3f48a67be990f956a4';
+  var RC32_SOURCE=Object.freeze({"edition_revision":"b9f017d92e769a9c97cc30ca59f9ee2cfd9acc74b17e24704c09e68dc79d89c8","edition_manifest_sha256":"261ffd7b12824b74a45da0c223bbb74a3cb723c0426061e7c42efddac6dd00da","source_pdf_sha256":"eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c","ai_dependencies_sha256":"7e38e65cea159228bf1bb84b5b09a92db1cd8f3938d35a12a4d5c1fa83aaf8e4","source_overlay_manifest_sha256":"0ba7bbdf164c8e47d5a9014fd2156c7b85679eaf0a689ed444fe09544ed8c479"});
+  // Retained addendum release (3.11.879): rollback target, never a fallback.
+  var ADDENDUM_RELEASE=Object.freeze({"pin":Object.freeze({"atlas_id":"a97001","revision":"841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc","manifest_sha256":"17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d"}),"contextPin":"eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19","sourceBinding":Object.freeze({"edition_revision":"841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc","edition_manifest_sha256":"17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d","source_pdf_sha256":"eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c","ai_dependencies_sha256":"afbcc17988b98a553f052c5859e7bb893c71c0a1829f592c2cd23addcf3d2722","source_overlay_manifest_sha256":"e746d12b32d13d69177cce6dc2a25002d595b4026f1fd4e7cfaf8889e197b765"})});
   // Retained immutable rollback release. Selection is explicit, never a fallback.
   var PREVIOUS_NATIVE_PIN=Object.freeze({atlas_id:'a97001',revision:'cea369d48494fcf58e78e0567fb82477abe7bb21ba02112707c3d7ba31fc4fd7',manifest_sha256:'0211488a36ef6a03c6f277c6c913fb18165ab19430d13a4e623c95fc640ba332'});
   var PREVIOUS_RC32_SOURCE=Object.freeze({edition_revision:PREVIOUS_NATIVE_PIN.revision,edition_manifest_sha256:PREVIOUS_NATIVE_PIN.manifest_sha256,source_pdf_sha256:'eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c',ai_dependencies_sha256:'40a1394203c35f94a81fa03b78f2f395fc26c112a4e079d0f9586c541d21cb00'});
@@ -15,6 +17,7 @@
   Object.freeze(V2_RELEASE.pin);Object.freeze(V2_RELEASE.sourceBinding);
   function nativeReleaseFor(revision){
     if(revision===V2_RELEASE.pin.revision)return V2_RELEASE;
+    if(revision===ADDENDUM_RELEASE.pin.revision)return ADDENDUM_RELEASE;
     if(revision===NATIVE_PIN.revision)return Object.freeze({pin:Object.freeze({...NATIVE_PIN}),contextPin:RC32_CONTEXT_PIN,sourceBinding:RC32_SOURCE});
     if(revision===PREVIOUS_NATIVE_PIN.revision)return Object.freeze({pin:PREVIOUS_NATIVE_PIN,contextPin:'2f782372d533cbbe47fff439683f84d7fbb23bf44edc5486629f0dd1cb3b0dfd',sourceBinding:PREVIOUS_RC32_SOURCE});
     return null;

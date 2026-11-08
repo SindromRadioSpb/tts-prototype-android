@@ -5745,3 +5745,4 @@ window.I18N_LOCALES.he.atlas.materialExport.working = "מכינים ומאמתי
 window.I18N_LOCALES.he.room.hub.atlas97001rc32 = {"title": "אטלס הנדסי 97001 · RC3.2", "desc": "מהדורה מלאה · 203 עמודים · התקדמות נפרדת · מגבלות הלמידה מסומנות"};
 
 window.I18N_LOCALES.he.atlas.word.inspection = "תצוגת מילון: השורש והנטיות אינם מאשרים את הקריאה או את המשמעות בהקשר הזה. לא נשמרים כאן ציוני למידה.";
+Object.assign(window.I18N_LOCALES.he.atlas,{"crossedOut":"מחוק בספר (השורש השלילי נפסל):"});

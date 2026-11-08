@@ -41,6 +41,39 @@
 
   var Editions = typeof module === 'object' && module.exports ? require('./atlas-edition.js') : root.AtlasEdition;
   function factory(doc) {
+    // Circled numbers ①–⑳ and the combining vector arrow U+20D7 have no glyph in many system fonts (audit 97001:
+    // squares on p43/55/62). The characters stay in the text; CSS draws what they mean (atlas-reader.css).
+    var GLYPH = /[\u2460-\u2473]|[^\s]\u20D7/;
+    function glyphSpans(s) {
+      var re = /([\u2460-\u2473])|([^\s])\u20D7/g, last = 0, m, span, mark, frag = doc.createDocumentFragment();
+      while ((m = re.exec(s))) {
+        if (m.index > last) frag.appendChild(doc.createTextNode(s.slice(last, m.index)));
+        span = doc.createElement('span');
+        if (m[1]) { span.className = 'atlas-circled'; span.setAttribute('data-n', String(m[1].charCodeAt(0) - 0x245F)); span.textContent = m[1]; }
+        else {
+          span.className = 'atlas-vec'; span.appendChild(doc.createTextNode(m[2]));
+          mark = doc.createElement('span'); mark.className = 'atlas-vec-mark'; mark.textContent = '\u20D7'; span.appendChild(mark);
+        }
+        frag.appendChild(span);
+        last = re.lastIndex;
+      }
+      if (last < s.length) frag.appendChild(doc.createTextNode(s.slice(last)));
+      return frag;
+    }
+    function glyphText(node, s) { if (GLYPH.test(s)) node.appendChild(glyphSpans(s)); else node.textContent = s; }
+    // The word layer re-wraps Hebrew cells after rendering and leaves the glyphs bare. Idempotent: a wrapped glyph
+    // sits inside .atlas-circled/.atlas-vec and is skipped, so the observer below settles after one pass.
+    function wrapGlyphs(rootEl) {
+      if (!rootEl || !doc.createTreeWalker) return;
+      var walker = doc.createTreeWalker(rootEl, 4), list = [], tn, p;
+      while ((tn = walker.nextNode())) {
+        if (!GLYPH.test(tn.nodeValue)) continue;
+        p = tn.parentNode;
+        if (p && p.closest && p.closest('.atlas-circled, .atlas-vec, script, style, textarea')) continue;
+        list.push(tn);
+      }
+      list.forEach(function (n) { if (n.parentNode) n.parentNode.replaceChild(glyphSpans(n.nodeValue), n); });
+    }
     function h(tag, attrs, kids) {
       var node = doc.createElement(tag);
       attrs = attrs || {};
@@ -48,7 +81,7 @@
         var v = attrs[k];
         if (Editions && (k === 'src' || k === 'href' || k === 'data-image')) v = Editions.assetUrl(v);
         if (v == null || v === false) return;
-        if (k === 'text') node.textContent = String(v);
+        if (k === 'text') glyphText(node, String(v));
         else if (k === 'html') node.innerHTML = v;   // only for build-time MathML
         else if (k === 'on') Object.keys(v).forEach(function (ev) { node.addEventListener(ev, v[ev]); });
         else node.setAttribute(k === 'cls' ? 'class' : k, v === true ? '' : String(v));
@@ -451,6 +484,28 @@
       return head;
     }
 
+    // The book crosses out a rejected root (p81, p85: t₂ < 0). source_annotations keep it; show it struck through
+    // in the study line and say why, so the voice and the reader never present it as an answer (audit A51-100-005/006).
+    function crossedOut(T, item, card) {
+      var marks = (item.source_annotations || []).filter(function (a) { return a && a.type === 'crossed_out' && a.source_fragment; })
+        .map(function (a) { return String(a.source_fragment); })
+        .concat((item.source_marks || []).filter(function (m) { return m && /^crossed_out/.test(String(m.mark || '')) && m.text; })
+          .map(function (m) { return String(m.text); }));
+      marks.forEach(function (frag) {
+        var done = false;
+        var walker = doc.createTreeWalker ? doc.createTreeWalker(card, 4) : null, tn;
+        while (walker && !done && (tn = walker.nextNode())) {
+          var i = tn.nodeValue.indexOf(frag);
+          if (i < 0) continue;
+          var rest = tn.splitText(i); rest.splitText(frag.length);
+          var s = doc.createElement('s'); s.className = 'atlas-crossed'; rest.parentNode.replaceChild(s, rest); s.appendChild(rest);
+          done = true;
+        }
+        card.appendChild(h('div', { cls: 'atlas-crossed-note atlas-l-ru' }, [
+          doc.createTextNode(T('atlas.crossedOut', 'В книге зачёркнуто (отрицательный корень отброшен):') + ' '),
+          h('span', { dir: 'ltr', text: frag })]));
+      });
+    }
     function renderFormula(T, item) {
       // a calculation the extraction cut after «=»: the piece that starts with «=» continues the card above it
       var cont = /^\s*(=|\\approx|\\cong)/.test(String(item.latex || item.source_text || ''));
@@ -467,6 +522,7 @@
       }
       else if (item.source_text) card.appendChild(h('code', { cls: 'atlas-latex', text: item.source_text }));
       else if (nativeFormulaSource(item)) card.appendChild(h('div', { cls: 'atlas-math atlas-math-plain', dir: 'ltr', text: nativeFormulaSource(item) }));
+      crossedOut(T, item, card);
       if (item.vars && item.vars.length) {
         var table = h('table', { cls: 'atlas-vars' });
         item.vars.forEach(function (v) {
@@ -1069,7 +1125,7 @@
       return rootEl;
     }
 
-    return { h: h, renderHome: renderHome, renderSection: renderSection, renderPage: renderPage, renderTable: renderTable, renderPrint: renderPrint, dirOf: dirOf,
+    return { h: h, wrapGlyphs: wrapGlyphs, renderHome: renderHome, renderSection: renderSection, renderPage: renderPage, renderTable: renderTable, renderPrint: renderPrint, dirOf: dirOf,
       layoutPage: layoutPage, sourceLayoutTable: sourceLayoutTable, nativeFormulaSource: nativeFormulaSource, paintReview: paintReview, pageReviewedInData: pageReviewedInData, markKindOf: markKind,
       cleanMeta: cleanMeta, isChipFigure: isChipFigure, noteParts: noteParts };
   }
@@ -1137,6 +1193,7 @@
         img.setAttribute('width', img.naturalWidth);
         img.setAttribute('height', img.naturalHeight);
       }
+      img.style.minHeight = '';
     }
     var observer = new win.IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -1145,6 +1202,10 @@
           if (!img.hasAttribute('src')) img.setAttribute('src', sources.get(img));
           img.style.visibility = '';
         } else {
+          // Unload only an image whose size is known (width/height set on load): its box stays. An unsized one
+          // collapsed, moved every page below it and the view bounced between two positions (97001 p51 → p52/53, UI53).
+          if (img.hasAttribute('src') && !(img.getAttribute('width') && img.getAttribute('height'))) return;
+          if (img.hasAttribute('src') && img.offsetHeight) img.style.minHeight = img.offsetHeight + 'px';   // table cells collapse without src
           img.removeAttribute('src');
           img.style.visibility = 'hidden';
         }
@@ -1173,6 +1234,14 @@
     var view = doc.createElement('div');
     view.className = 'atlas-root';
     container.appendChild(view);
+    if (doc.defaultView && doc.defaultView.MutationObserver) {
+      var glyphQueued = false;
+      new doc.defaultView.MutationObserver(function () {
+        if (glyphQueued) return;
+        glyphQueued = true;
+        (doc.defaultView.requestAnimationFrame || setTimeout)(function () { glyphQueued = false; R.wrapGlyphs(view); });
+      }).observe(view, { childList: true, subtree: true });
+    }
     var index = null;
     var layers = normLayers(opts.layers, doc.defaultView);
     var onLayers = typeof opts.onLayers === 'function' ? opts.onLayers : function () {};
@@ -1289,8 +1358,22 @@
         else if (el.scrollIntoView) el.scrollIntoView();
       }
       place();
-      // formulas and fonts settle after the first paint: place the page again unless the reader has moved on
-      setTimeout(function () { if (el.isConnected && Date.now() < track.quietUntil && track.last === n) place(); }, 500);
+      // Formulas, fonts and figure tables above the page settle after the first paint (97001 p52–53 moved by
+      // ~1950px once the p51 diagram table loaded). Keep the page under the bars while the layout settles,
+      // for at most 6 s, and let go at the reader's first own scroll gesture.
+      var until = Date.now() + 6000, gestures = ['wheel', 'touchstart', 'keydown', 'mousedown'];
+      track.quietUntil = until;
+      var scroller = doc.scrollingElement || doc.documentElement, anchorWas = scroller && scroller.style.overflowAnchor;
+      if (scroller) scroller.style.overflowAnchor = 'none';   // the browser's own scroll anchoring fights the placement
+      function release() { if (scroller && until) scroller.style.overflowAnchor = anchorWas || ''; until = 0; track.quietUntil = 0; gestures.forEach(function (g) { win && win.removeEventListener && win.removeEventListener(g, release, true); }); }
+      if (win && win.addEventListener) gestures.forEach(function (g) { win.addEventListener(g, release, { capture: true, passive: true }); });
+      (function hold() {
+        // the section may be re-rendered after the jump (columns, word layer): follow the page's new node
+        if (!el.isConnected && !objectRef) el = doc.getElementById('atlas-p' + n) || el;
+        if (!el.isConnected || track.last !== n || Date.now() > until) { if (until) release(); return; }
+        if (el.getBoundingClientRect && Math.abs(el.getBoundingClientRect().top - barBottom() - 6) > 4) place();
+        setTimeout(hold, 250);
+      })();
       return true;
     }
     function trackPages(id, section) {
