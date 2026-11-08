@@ -1,7 +1,7 @@
-/* Worlds boot: one-time Memorial trial defaults, then preserve the learner choice. */
+/* Worlds boot: Classic by default; load the engine only for a world the learner chose. */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=856"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=882"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;
@@ -21,17 +21,19 @@
     current: function () { return null; }
   };
   window.LPWorld = stub;
-  var wanted = true;
+  var wanted = false;
+  function storedId() {
+    try { var raw = localStorage.getItem("lp_world_v1"); return raw ? JSON.parse(raw).id : null; } catch (_) { return null; }
+  }
   try {
-    // One-time owner-requested trial rollout. Later user choices remain authoritative.
-    if (localStorage.getItem("lp_world_memorial_trial_v1") !== "1") {
-      localStorage.setItem("lp_world_v1", JSON.stringify({ id: "memorial-three-scenes", mode: "live", paused: false, lighting: "day" }));
-      localStorage.setItem("lp_world_memorial_trial_v1", "1");
+    // Owner decision 2026-11-08: Classic is the default (weak phones during public testing).
+    // Once per device, undo the 2026-10-06 Memorial trial, which stored Memorial everywhere.
+    if (localStorage.getItem("lp_world_classic_default_v1") !== "1") {
+      if (storedId() === "memorial-three-scenes") localStorage.setItem("lp_world_v1", JSON.stringify({ id: "classic" }));
+      localStorage.setItem("lp_world_classic_default_v1", "1");
     }
-    var raw = localStorage.getItem("lp_world_v1");
-    var classic = false;
-    try { classic = !!raw && JSON.parse(raw).id === "classic"; } catch (_) {}
-    wanted = !classic || /[?&]world=off\b/.test(location.search);
+    var id = storedId();
+    wanted = (!!id && id !== "classic") || /[?&]world=off\b/.test(location.search);
   } catch (_) {}
   if (wanted) load().catch(function () {});
 })();

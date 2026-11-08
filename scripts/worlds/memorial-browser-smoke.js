@@ -13,7 +13,7 @@ const captions={ru:'7 октября. Помним.',he:'7 באוקטובר. ז�
  try {
   for(const width of [320,380,1280]) {
    const ctx=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
-   await ctx.addInitScript(()=>localStorage.setItem('onboardingSeen_v1','1'));
+   await ctx.addInitScript(()=>{localStorage.setItem('onboardingSeen_v1','1');if(!localStorage.getItem('lp_world_v1'))localStorage.setItem('lp_world_v1',JSON.stringify({id:'memorial-three-scenes',mode:'live',paused:false,lighting:'day'}));localStorage.setItem('lp_world_classic_default_v1','1')});
    const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(String(e)));
    for(const route of ['/', '/library.html','/mediatheque.html']) {
     await page.goto(base+route,{waitUntil:'load'});

@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.881";
+const CACHE_VERSION = "v3.11.882";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -338,9 +338,9 @@ const PRECACHE_URLS = [
   "/js/table-presets.js?v=782",
   "/js/world-activity.js?v=799",
   "/js/memorial-adapter.js?v=856",
-  "/js/world-boot.js?v=856",
+  "/js/world-boot.js?v=882",
   "/js/ulpan-world.js?v=856",
-  "/js/world-engine.js?v=856",
+  "/js/world-engine.js?v=882",
   "/js/world-render.js?v=856",
   "/css/world-skin.css?v=799",
   "/js/app-nav.js?v=747",

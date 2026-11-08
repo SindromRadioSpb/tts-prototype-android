@@ -4,7 +4,7 @@ const base=process.env.AUDIT_BASE||'http://127.0.0.1:62907',out=process.env.AUDI
 fs.mkdirSync(out,{recursive:true});const results=[];function pass(name){results.push(name);console.log('PASS',name)}
 (async()=>{const b=await chromium.launch();try{
  const ctx=await b.newContext({viewport:{width:380,height:900},serviceWorkers:'block'}),p=await ctx.newPage();
- await ctx.addInitScript(()=>localStorage.setItem('onboardingSeen_v1','1'));
+ await ctx.addInitScript(()=>{localStorage.setItem('onboardingSeen_v1','1');if(!localStorage.getItem('lp_world_v1'))localStorage.setItem('lp_world_v1',JSON.stringify({id:'memorial-three-scenes',mode:'live',paused:false,lighting:'day'}));localStorage.setItem('lp_world_classic_default_v1','1')});
  await p.goto(base+'/');await p.waitForFunction(()=>window.LPMemorialAdapter?.debug().active);
  await p.evaluate(()=>LPMemorialAdapter.setAuto());
  await p.locator('#inputText').focus();await p.waitForFunction(()=>!LPMemorialAdapter.debug().scheduled);

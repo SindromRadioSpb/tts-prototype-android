@@ -7,7 +7,7 @@ test('native Ulpan pack validates and all seven stops exist on each surface',()=
  const pack=read('manifest.json'),atlas=read('atlas.json');assert.deepEqual(core.validatePack(pack,atlas,pack.id),{ok:true,errors:[]});
  const route=pack.ulpan.story.map(s=>s.id);assert.equal(route.length,7);
  for(const surface of Object.values(pack.surfaces))assert.deepEqual(surface.route,route);
- assert.equal(core.readChoice(null).id,'memorial-three-scenes');
+ assert.equal(core.readChoice(null),null);
  const bad=structuredClone(pack);bad.locations.reading.symbol='<script>';assert.equal(core.validatePack(bad,atlas,bad.id).ok,false);
 });
 test('runtime pack is data and PNG only; decoded atlas bounds and exact hashes match',()=>{

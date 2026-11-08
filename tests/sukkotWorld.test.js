@@ -11,7 +11,7 @@ const atlas = JSON.parse(read("public/worlds/sukkot/atlas.json"));
 test("Sukkot satisfies the shared contract and remains an additional choice", () => {
   assert.deepEqual(core.validatePack(manifest, atlas, "sukkot").errors, []);
   assert.equal(core.REGISTRY.sukkot.pack, manifest.version);
-  assert.equal(core.DEFAULT_WORLD, "memorial-three-scenes");
+  assert.equal(core.DEFAULT_WORLD, null);
   assert.equal(core.REGISTRY.sukkot.category, "events");
   assert.equal(core.REGISTRY["israel-elections-2026"].category, "current-events");
   assert.equal(core.readChoice(JSON.stringify({ id: "sukkot" })).id, "sukkot");
@@ -51,17 +51,26 @@ test("Sukkot Mediatheque reuses all four Studio stories and ends at the fixed ev
   assert.equal(election.scenery.walkers[0].lane, 6);
   assert.deepEqual(core.routeLocations(election, election.surfaces.studio), Object.keys(election.locations).filter(id => election.locations[id].phase));
 });
-test("trial defaults replace old settings once and preserve subsequent choices, including Classic", () => {
+test("Classic default: Memorial from the trial becomes Classic once; every other choice is kept", () => {
   const vm = require("node:vm");
-  for (const old of [null, {id:"classic"}, {id:"israel-elections-2026",mode:"calm",lighting:"night",paused:true}]) {
+  const memorial = {id:"memorial-three-scenes",mode:"live",paused:false,lighting:"day"};
+  const cases = [
+    [null, null, false],
+    [{id:"classic"}, {id:"classic"}, false],
+    [memorial, {id:"classic"}, false],
+    [{id:"israel-elections-2026",mode:"calm",lighting:"night",paused:true}, {id:"israel-elections-2026",mode:"calm",lighting:"night",paused:true}, true],
+  ];
+  for (const [old, expected, loads] of cases) {
     const values = new Map(old ? [["lp_world_v1",JSON.stringify(old)]] : []);
+    let appended = 0;
     const run = () => vm.runInNewContext(read("public/js/world-boot.js").toString(), {
       window: {}, location: {search:""}, localStorage: { getItem: k => values.get(k), setItem: (k,v) => values.set(k,v) },
-      document: {createElement: () => ({setAttribute(){}}), head:{appendChild(){}}}
+      document: {createElement: () => ({setAttribute(){}}), head:{appendChild(){ appended++; }}}
     });
     run();
-    assert.deepEqual(JSON.parse(values.get("lp_world_v1")), {id:"memorial-three-scenes",mode:"live",paused:false,lighting:"day"});
-    const custom = JSON.stringify(old || {id:"classic"});
-    values.set("lp_world_v1",custom);run();assert.equal(values.get("lp_world_v1"),custom);
+    assert.deepEqual(values.has("lp_world_v1") ? JSON.parse(values.get("lp_world_v1")) : null, expected);
+    assert.equal(appended > 0, loads, "the engine loads only for a chosen world");
+    values.set("lp_world_v1",JSON.stringify(memorial));run();
+    assert.deepEqual(JSON.parse(values.get("lp_world_v1")), memorial, "Memorial chosen after the switch is kept");
   }
 });

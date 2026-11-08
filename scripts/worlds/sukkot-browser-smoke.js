@@ -25,13 +25,12 @@ function pass(name, details) { evidence.push({ name, details }); console.log("PA
     const ctx = await browser.newContext({ serviceWorkers:"block" });
     const page = await ctx.newPage();
     await page.goto(base + "/mediatheque.html", {waitUntil:"load"});
-    await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.debugState().lighting === "day");
-    assert.equal(await page.evaluate(() => LPWorld.current().id), "memorial-three-scenes");
-    await page.evaluate(() => LPWorld.set("israel-elections-2026", "calm", "night"));
+    assert.equal(await page.evaluate(() => LPWorld.stub === true && LPWorld.current() === null), true, "first boot is Classic: no engine");
+    await page.evaluate(() => localStorage.setItem("lp_world_v1", JSON.stringify({ id: "israel-elections-2026", mode: "calm", lighting: "night" })));
     await page.reload({waitUntil:"load"});
     await page.waitForFunction(() => LPWorld.current()?.active && LPWorld.current().id === "israel-elections-2026");
     assert.equal(await page.locator('.lp-world-route').isVisible(), false);
-    pass("first boot Memorial defaults and subsequent Elections choice survive reload");
+    pass("first boot is Classic and a later Elections choice survives reload");
     await ctx.close();
   }
   // Remount while the old stage is outside the viewport, then return without reloading.

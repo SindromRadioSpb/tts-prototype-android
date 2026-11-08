@@ -51,10 +51,10 @@
     literature: { ru: "Литература", en: "Literature", he: "ספרות" },
     other: { ru: "Другие миры", en: "Other worlds", he: "עולמות נוספים" }
   };
-  // Owner decision 2026-10-06: Memorial is ON by default (live, day); a learner switches to
-  // Classic by hand and that explicit choice ({id:"classic"}) is kept. Retiring the default world
-  // in REGISTRY sends everyone without an explicit choice back to Classic.
-  var DEFAULT_WORLD = "memorial-three-scenes";
+  // Owner decision 2026-11-08: Classic is the default again (the 2026-10-06 Memorial default was
+  // too heavy for weak phones). Setting a registry id here makes that world the default; an
+  // explicit choice ({id:"classic"} or a world) is always kept.
+  var DEFAULT_WORLD = null;
   var CLASSIC = "classic";
   var MODES = ["calm", "live"];
   var LOCALES = ["ru", "en", "he"];
@@ -73,7 +73,7 @@
   // ── pure core ──────────────────────────────────────────────────────────────
 
   function defaultChoice() {
-    var reg = REGISTRY[DEFAULT_WORLD];
+    var reg = DEFAULT_WORLD ? REGISTRY[DEFAULT_WORLD] : null;
     return reg && !reg.retired ? { id: DEFAULT_WORLD, mode: "live", paused: false, lighting: "day", implicit: true } : null;
   }
   function readChoice(raw) {
