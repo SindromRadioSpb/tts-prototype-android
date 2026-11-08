@@ -2,7 +2,7 @@
  "schema": "linguistpro.atlas-speech-overrides.1",
  "atlas_id": "a97001rc32",
  "basis": "RC3.3 speaker text: abbreviations, slash alternatives, plain formulas and rejected roots; unresolved readings are not voiced.",
- "edition_revision": "b9f017d92e769a9c97cc30ca59f9ee2cfd9acc74b17e24704c09e68dc79d89c8",
+ "edition_revision": "a54d251c67a70e4fa4a8653472827ff4a94ced7e62db77054d6b86717e1f10cc",
  "review": {
   "status": "needs_review",
   "reviewed_by": null

@@ -56,7 +56,7 @@ def verify_sources(root):
     return m
 
 
-def install(root, archive, expected, phase):
+def install(root, archive, expected, phase, version='3.11.879'):
     assert root.exists() and root.is_dir() and not root.is_symlink()
     assert sha(archive) == expected, 'Release archive SHA'
     with tarfile.open(archive, 'r:gz') as tar:
@@ -65,13 +65,13 @@ def install(root, archive, expected, phase):
         names = [m.name for m in members]
         assert len(names) == len(set(names))
         meta = json.load(tar.extractfile('release-data.json'))
-        assert meta['version'] == '3.11.879' and meta['corpus_id'] == 'a97001rc32'
+        assert meta['version'] == version and meta['corpus_id'] == 'a97001rc32'
         assert set(names) == {'release-data.json', *meta['files']}
         pins = meta['native_pins']
-        assert len(pins) == 2
+        assert 1 <= len(pins) <= 2
         prefixes = ['atlas-editions/a97001/' + p['revision'] + '/' for p in pins] + ['atlas-sources/a97001rc32/']
         assert all(any(n.startswith(prefix) for prefix in prefixes) for n in meta['files'])
-        stage = inside(root, 'atlas-release-staging/3.11.879')
+        stage = inside(root, 'atlas-release-staging/' + version)
         if phase == 'stage':
             stage.mkdir(parents=True, exist_ok=True)
             for member in members:
@@ -109,7 +109,7 @@ def install(root, archive, expected, phase):
     assert phase == 'activate'
     current = inside(root, 'atlas-sources/a97001rc32')
     candidate = inside(stage, 'atlas-sources/a97001rc32')
-    backup = inside(root, 'atlas-sources/a97001rc32-backup-3.11.879')
+    backup = inside(root, 'atlas-sources/a97001rc32-backup-' + version)
     if verify_sources(current)['edition_revision'] == meta['active_revision']:
         assert backup.exists()
         return {'phase': phase, 'unchanged': True, 'backup': str(backup)}
@@ -135,5 +135,6 @@ if __name__ == '__main__':
     p.add_argument('--archive', type=Path, required=True)
     p.add_argument('--sha256', required=True)
     p.add_argument('--phase', choices=['stage', 'activate'], required=True)
+    p.add_argument('--version', default='3.11.879', help='release version the archive must declare')
     a = p.parse_args()
-    print(json.dumps(install(a.data_root.resolve(), a.archive.resolve(), a.sha256, a.phase)))
+    print(json.dumps(install(a.data_root.resolve(), a.archive.resolve(), a.sha256, a.phase, a.version)))

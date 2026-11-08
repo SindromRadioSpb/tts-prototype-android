@@ -335,5 +335,5 @@ code('UI53-PAGE-POSITION', 'U', 'Direct page opening re-anchors after late layou
 hold('UI40-SOURCE-UNDERLINE', 'U', 'Author underline spans are not encoded in the data yet (same span model as A191-203-S002). Separate pass.')
 hold('UI42-SOURCE-COLOR', 'U', 'Colour-coded result spans are not encoded in the data yet (same span model as A191-203-S002). Separate pass.')
 hold('UI50-SOURCE-CALLOUT', 'U', 'Callout box styling is not encoded in the data yet. Text is present. Separate pass.')
-code('UI124-LEXICAL-SPECIMEN', 'U', 'Card disambiguation follows the corrected pointing דֶּגֶם (noun); verified on p124 after the rebuild.')
-code('UI124-MORPH-METIKHA', 'U', 'Verified on p124 after the rebuild; context layer already names the noun.')
+code('UI124-LEXICAL-SPECIMEN', 'U', 'The card follows the corrected pointing דֶּגֶם: dictionary form «образец», noun (checked on p124 in the browser).')
+hold('UI124-MORPH-METIKHA', 'U', 'Noun מְתִיחָה and the feminine adjective have identical pointing, so the dictionary card still picks the adjective. The term above and the AI context line already say «растяжение». Needs a place-level reading (the Д10 place store) for atlas rows; separate step.')

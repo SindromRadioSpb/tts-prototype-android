@@ -1,13 +1,13 @@
 /* Code-pinned editions. Never select mutable "latest", mix roots or fall back to the legacy edition. */
 (function(root,factory){'use strict';var api=factory(root);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.AtlasEdition=api;})(typeof globalThis==='undefined'?null:globalThis,function(root){
   'use strict';
-  var NATIVE_PIN={"atlas_id":"a97001","revision":"b9f017d92e769a9c97cc30ca59f9ee2cfd9acc74b17e24704c09e68dc79d89c8","manifest_sha256":"261ffd7b12824b74a45da0c223bbb74a3cb723c0426061e7c42efddac6dd00da"};
+  var NATIVE_PIN={"atlas_id":"a97001","revision":"a54d251c67a70e4fa4a8653472827ff4a94ced7e62db77054d6b86717e1f10cc","manifest_sha256":"6ece8bbb091cde0a38e50dc37d80d6e9b60cf03823f7496b7c2d4e9595613fe6"};
   var PIN={atlas_id:'a97001',revision:'50253381cb255822678b07e0ed41a608a3a701a661527eb796837b2f3ee64edc',manifest_sha256:'085d33fddbd04a1eaaa4a9e625273591683cdcf9ff19d0b16899d503132ada7a'};
   var CONTEXT_PIN='ca40870e123fd81e1388918f8bf3babc3c1acbe1ef1daca6fb5059b3ad9384f4';
   var NATIVE_ID='a97001rc32';
   // Technical reading candidate; this pin does not confer editorial/scientific acceptance.
-  var RC32_CONTEXT_PIN='e8c53a0c3813741dafaf46133dc1d290d5a7062f5eb15c3f48a67be990f956a4';
-  var RC32_SOURCE=Object.freeze({"edition_revision":"b9f017d92e769a9c97cc30ca59f9ee2cfd9acc74b17e24704c09e68dc79d89c8","edition_manifest_sha256":"261ffd7b12824b74a45da0c223bbb74a3cb723c0426061e7c42efddac6dd00da","source_pdf_sha256":"eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c","ai_dependencies_sha256":"7e38e65cea159228bf1bb84b5b09a92db1cd8f3938d35a12a4d5c1fa83aaf8e4","source_overlay_manifest_sha256":"0ba7bbdf164c8e47d5a9014fd2156c7b85679eaf0a689ed444fe09544ed8c479"});
+  var RC32_CONTEXT_PIN='0c536665f54bd87bfc59e87f47a032a389cdddea031510eeb1a3eff6b4e43c4d';
+  var RC32_SOURCE=Object.freeze({"edition_revision":"a54d251c67a70e4fa4a8653472827ff4a94ced7e62db77054d6b86717e1f10cc","edition_manifest_sha256":"6ece8bbb091cde0a38e50dc37d80d6e9b60cf03823f7496b7c2d4e9595613fe6","source_pdf_sha256":"eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c","ai_dependencies_sha256":"d8d6a01cb09c32231d70dc008e5ab28c3c44e43af4bb617356682cafd0e2c174","source_overlay_manifest_sha256":"510f95fa7a36065c1597041160f9310d4003c2d8a7f8e3fd35bfc61b0b2e8519"});
   // Retained addendum release (3.11.879): rollback target, never a fallback.
   var ADDENDUM_RELEASE=Object.freeze({"pin":Object.freeze({"atlas_id":"a97001","revision":"841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc","manifest_sha256":"17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d"}),"contextPin":"eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19","sourceBinding":Object.freeze({"edition_revision":"841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc","edition_manifest_sha256":"17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d","source_pdf_sha256":"eb4e4ee7f154bce30dbd61b094d6a42a9925af909bd7ecb2f80bce4639af0e0c","ai_dependencies_sha256":"afbcc17988b98a553f052c5859e7bb893c71c0a1829f592c2cd23addcf3d2722","source_overlay_manifest_sha256":"e746d12b32d13d69177cce6dc2a25002d595b4026f1fd4e7cfaf8889e197b765"})});
   // Retained immutable rollback release. Selection is explicit, never a fallback.

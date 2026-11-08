@@ -1437,11 +1437,11 @@ const SHELL_INTEGRITY_PATHS = [
   "/library.html",
   "/js/library-ui.js?v=879",
   "/js/atlas-progress-export.js?v=876",
-  "/js/atlas-edition.js?v=879",
+  "/js/atlas-edition.js?v=880",
   "/js/atlas-train-ui.js?v=876",
   "/js/atlas-train.js?v=876",
   "/js/atlas-search.js?v=879",
-  "/js/atlas-reader.js?v=879",
+  "/js/atlas-reader.js?v=880",
   "/js/corpus-registry.js?v=876",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -1519,9 +1519,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=876",
-  "/i18n/locales/en.js?v=876",
-  "/i18n/locales/he.js?v=876",
+  "/i18n/locales/ru.js?v=880",
+  "/i18n/locales/en.js?v=880",
+  "/i18n/locales/he.js?v=880",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

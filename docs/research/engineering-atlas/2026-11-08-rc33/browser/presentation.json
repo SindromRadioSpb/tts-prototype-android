@@ -1,0 +1,11 @@
+{
+  "origin": "http://127.0.0.1:3401",
+  "scope": "fresh anonymous profile; GET/HEAD only; no owner or cloud learner writes",
+  "checks": [
+    "reference-only tables keep exact source rows once, no empty duplicate grid",
+    "populated semantic table and wheel source still render",
+    "native source formula is visible literally on 380px without page overflow",
+    "RTL retains readable literal formula and source row"
+  ],
+  "status": "passed"
+}
