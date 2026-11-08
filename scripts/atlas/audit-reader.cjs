@@ -34,7 +34,7 @@ for (const file of files) {
     const seen = {};
     p.items.forEach((it, i) => {
       if (it.type === 'formula') {
-        if (!it.mathml && !it.latex && !it.source_text) add('A', '1.4', d.id, p.page, 'formula without content ' + where(it));
+        if (!it.mathml && !it.latex && !it.source_text && !R.nativeFormulaSource(it)) add('A', '1.4', d.id, p.page, 'formula without content ' + where(it));
         return;
       }
       const he = it.he || it.he_raw || '';
@@ -42,7 +42,8 @@ for (const file of files) {
       // and explicitly held rows. They remain visible, but are not promised as
       // parallel learning translations. Keep their omissions in the report.
       const group = (p.legacy_groups || []).find(g => g.id === it.structure?.parent_ref);
-      const disclosed = it.structure && !words.learningItem(it) &&
+      const printedNumber = it.kind === 'printed_page_number' && /^[0-9]+$/.test(he) && it.field_states?.ru === 'not_applicable' && !words.learningItem(it) && !words.learningItem(it, 'source_find');
+      const disclosed = printedNumber || it.structure && !words.learningItem(it) &&
         (it.kind === 'editor_note' || it.kind === 'shared_source_context' ||
           group?.review_status === 'needs_review' || it.concept_review_note);
       if (disclosed && (!he.trim() || (!it.ru && d.translated)))
@@ -70,7 +71,10 @@ for (const file of files) {
       if (f.number != null && !(f.caption_he || f.caption_ru)) add('B', '1.2', d.id, p.page, 'numbered figure ' + f.number + ' without caption');
     });
     (p.tables || []).forEach((t) => {
-      const filled = (t.cells || []).filter((c) => (c.ru || c.he || '').trim());
+      if (R.sourceLayoutTable(t, p)) { dispositions.push({ sec:d.id, page:p.page, ref:t.id, kind:'layout_grid_represented_by_exact_source_rows', source_refs:t.cells.map(c=>c.unit_ref) }); return; }
+      const filled = (t.cells || []).filter((c) => (c.ru || c.he || '').trim() ||
+        (c.parts || []).some(part => String(part.he || part.ru || '').trim()) ||
+        (c.figure_images || []).some(image => typeof image.crop === 'string' && image.crop.trim()));
       if (!filled.length) add('A', '1.3', d.id, p.page, 'empty table ' + where(t));
     });
     // ---- page as the reader builds it ----

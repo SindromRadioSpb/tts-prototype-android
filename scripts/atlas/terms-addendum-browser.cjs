@@ -9,9 +9,12 @@ function nativeItems(revision){const dir=path.join(path.resolve(dataArg),'atlas-
 proof.v2_items=nativeItems('420c34275a26fe37cae12a41e77a77dde173de207164f6b5421c5a5dcf1c92bc');proof.all_items=nativeItems(LocalEdition.pinFor('a97001rc32').revision);
 const report={scope:'actual local server, new synthetic persistent Chromium; no production or owner profile',checks:[],cards:[],errors:[]};let child,browser,page;
 const stage=text=>{report.stage=text;fs.writeFileSync(path.join(out,'stage.json'),JSON.stringify({stage:text}));};
+const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remoteBase&&remoteBase!=='https://linguistpro.kolosei.com')throw Error('Unexpected production origin');
 (async()=>{try{
+ let base=remoteBase;if(!base){
  child=fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(path.resolve(dataArg),0),silent:true,windowsHide:true});child.stdout.pipe(fs.createWriteStream(path.join(out,'server.log')));child.stderr.pipe(fs.createWriteStream(path.join(out,'server-error.log')));
- const base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);report.origin=base;await waitForSmokeHealth(base,{timeoutMs:60000});
+ base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);
+ }report.origin=base;if(remoteBase)report.scope='actual production, new synthetic Chromium profile; only GET/HEAD network; no owner profile or cloud learner writes';await waitForSmokeHealth(base,{timeoutMs:60000});
  browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,viewport:{width:1280,height:1000},serviceWorkers:'block'});
  await browser.route('**/*',route=>{const u=route.request().url();if(useV2&&u.startsWith(base+'/js/atlas-edition.js'))return route.fulfill({contentType:'application/javascript',body:oldEdition});return u.startsWith(base)&&['GET','HEAD'].includes(route.request().method())?route.continue():route.abort();});
  page=await browser.newPage();page.setDefaultTimeout(60000);page.on('pageerror',e=>report.errors.push(e.message));

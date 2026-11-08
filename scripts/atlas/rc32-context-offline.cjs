@@ -4,9 +4,12 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const E=require('../../public/js/atlas-edition'),{smokeServerEnv,SMOKE_SERVER_BOOTSTRAP,waitForSmokeServer,waitForSmokeHealth}=require('../smoke-server-env');
 const [dataArg,outArg]=process.argv.slice(2),out=path.resolve(outArg),root=path.resolve(__dirname,'../..');fs.mkdirSync(out,{recursive:true});let child,browser;
 const report={scope:'actual local SW, fresh disposable profile; no production or owner data',checks:[],errors:[]};
+const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remoteBase&&remoteBase!=='https://linguistpro.kolosei.com')throw Error('Unexpected production origin');
 (async()=>{try{
+ let base=remoteBase;if(!base){
  child=fork('-e',[SMOKE_SERVER_BOOTSTRAP],{cwd:root,env:smokeServerEnv(path.resolve(dataArg),0),silent:true,windowsHide:true});child.stdout.pipe(fs.createWriteStream(path.join(out,'server.log')));child.stderr.pipe(fs.createWriteStream(path.join(out,'server-error.log')));
- const base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);await waitForSmokeHealth(base,{timeoutMs:60000});report.origin=base;
+ base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);
+ }await waitForSmokeHealth(base,{timeoutMs:60000});report.origin=base;if(remoteBase)report.scope='actual production SW, new disposable profile; no owner data; cache corruption only in this local profile';
  browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,serviceWorkers:'allow',viewport:{width:380,height:900}});
  const page=await browser.newPage();page.setDefaultTimeout(60000);page.on('pageerror',e=>report.errors.push(e.message));
  await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32&sec=s00-front&pg=1');

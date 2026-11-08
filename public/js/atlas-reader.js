@@ -395,12 +395,25 @@
       return a >= 0 && b >= 0 && b < a;
     }
 
+    // Native layout cells can point to source rows already displayed in order.
+    // Keep those exact rows and anchors; do not append an empty duplicate grid.
+    function sourceLayoutTable(table, page) {
+      var cells = table && table.cells || [], rows = new Map((page.items || []).map(function (it) { return [it.id, it]; }));
+      return /^a97001(?:rc32)?:/.test(table && table.id || '') && cells.length > 0 && cells.every(function (cell) {
+        var row = cell.unit_ref && rows.get(cell.unit_ref);
+        return row && String(row.he || '').trim() && !String(cell.he || cell.ru || '').trim() && !(cell.parts || []).length && !(cell.figure_images || []).length;
+      });
+    }
+    function nativeFormulaSource(item) {
+      return item && item.kind === 'formula' && /^a97001(?:rc32)?:/.test(item.id || '') && /^[a-f0-9]{64}$/.test(item.structure && item.structure.source_pdf_sha256 || '') ? String(item.he || '').trim() : '';
+    }
     function placeTables(page, items) {
       var out = { after: {}, replace: {}, figure: {}, end: [], mirror: {} };
       var figIds = {};
       (page.figures || []).forEach(function (f) { if (!markKind(f)) figIds[f.id] = true; });
       var texts = items.map(function (it) { return it.type === 'formula' ? '' : plain(it.he || it.he_raw); });
       (page.tables || []).forEach(function (t) {
+        if (sourceLayoutTable(t, page)) return;
         if (t.parent && figIds[t.parent]) { (out.figure[t.parent] = out.figure[t.parent] || []).push(t); return; }
         var cells = [], seen = {};
         (t.cells || []).forEach(function (c) {
@@ -453,6 +466,7 @@
         card.appendChild(box);
       }
       else if (item.source_text) card.appendChild(h('code', { cls: 'atlas-latex', text: item.source_text }));
+      else if (nativeFormulaSource(item)) card.appendChild(h('div', { cls: 'atlas-math atlas-math-plain', dir: 'ltr', text: nativeFormulaSource(item) }));
       if (item.vars && item.vars.length) {
         var table = h('table', { cls: 'atlas-vars' });
         item.vars.forEach(function (v) {
@@ -978,7 +992,7 @@
       wrap.appendChild(h('p', { cls: 'atlas-sub' }, [T('atlas.pages', 'страницы') + ' ' + data.first + '–' + data.last +
         (data.translated ? '' : ' · ' + T('atlas.noTranslationShort', 'без перевода')),
         data.translated ? h('span', { cls: 'atlas-review-count' }) : null]));
-      if (data.activation && (data.activation.environment === 'isolated_staging' || data.activation.release_gate === 'blocked')) wrap.appendChild(h('aside', {cls:'atlas-release-blocked atlas-review-hold', role:'note', lang:'ru', dir:'ltr', text:data.activation.release_gate === 'blocked' ? 'Проверочный выпуск. Полнота источника и тренажёр ещё не приняты; публикация заблокирована.' : 'Проверочный выпуск. Неразборчивые места отмечены. Упражнения используют только допущенные данные; публикация не выполнена.'}));
+      if (data.activation && (data.activation.environment === 'isolated_staging' || data.activation.release_gate === 'blocked')) wrap.appendChild(h('aside', {cls:'atlas-release-blocked atlas-review-hold', role:'note', lang:'ru', dir:'ltr', text:data.activation.release_gate === 'blocked' ? 'Проверочный выпуск. Полнота источника и тренажёр ещё не приняты; публикация заблокирована.' : 'Технический кандидат. Неразборчивые места отмечены. Упражнения используют только допущенные данные; содержание ожидает приёмки.'}));
       var terms = renderTerms(T, data.terms);
       if (terms) wrap.appendChild(terms);
       data.pages.forEach(function (p) { wrap.appendChild(renderPage(T, p, opts)); });
@@ -1056,7 +1070,7 @@
     }
 
     return { h: h, renderHome: renderHome, renderSection: renderSection, renderPage: renderPage, renderTable: renderTable, renderPrint: renderPrint, dirOf: dirOf,
-      layoutPage: layoutPage, paintReview: paintReview, pageReviewedInData: pageReviewedInData, markKindOf: markKind,
+      layoutPage: layoutPage, sourceLayoutTable: sourceLayoutTable, nativeFormulaSource: nativeFormulaSource, paintReview: paintReview, pageReviewedInData: pageReviewedInData, markKindOf: markKind,
       cleanMeta: cleanMeta, isChipFigure: isChipFigure, noteParts: noteParts };
   }
 

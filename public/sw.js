@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.878";
+const CACHE_VERSION = "v3.11.879";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -152,7 +152,7 @@ const PRECACHE_URLS = [
   "/js/pronunciation-entry.js",
   "/js/library-ui.js?v=879",
   "/js/atlas-progress-export.js?v=876",
-  "/js/atlas-edition.js?v=876022",
+  "/js/atlas-edition.js?v=879",
   "/js/corpus-registry.js?v=876",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",
@@ -179,7 +179,7 @@ const PRECACHE_URLS = [
   "/js/reader-core.js?v=817",
   "/js/reader-row-work.js?v=1",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=876022",
+  "/css/reader-morph.css?v=879",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -200,12 +200,12 @@ const PRECACHE_URLS = [
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
   "/js/atlas-speech.js?v=1",
-  "/js/atlas-reader.js?v=876",
-  "/js/atlas-search.js?v=876022",
-  "/js/atlas-words.js?v=876022",
-  "/js/atlas-context-contract.js?v=rc32-context-1",
-  "/js/atlas-context-addressed.js?v=1",
-  "/js/atlas-context-rc32-loader.js?v=1",
+  "/js/atlas-reader.js?v=879",
+  "/js/atlas-search.js?v=879",
+  "/js/atlas-words.js?v=879",
+  "/js/atlas-context-contract.js?v=879",
+  "/js/atlas-context-addressed.js?v=879",
+  "/js/atlas-context-rc32-loader.js?v=879",
   "/js/atlas-train.js?v=876",
   "/js/atlas-train-ui.js?v=876",
   "/css/atlas-reader.css?v=872",
@@ -238,10 +238,10 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=876022",
+  "/js/reader-morph.js?v=879",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=819",
-  "/js/word-gloss-ai.js?v=rc32-context-1",
+  "/js/word-gloss-ai.js?v=879",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",
