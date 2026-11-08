@@ -34,7 +34,8 @@ case "${1:-}" in
     echo "pushed; wait for Coolify, then: curl -s https://linguistpro.kolosei.com/sw.js | grep CACHE_VERSION"
     ;;
   activate)
-    curl -s https://linguistpro.kolosei.com/sw.js | grep -q 'v3.11.880' || { echo "3.11.880 is not live yet"; exit 1; }
+    sw=$(curl -s https://linguistpro.kolosei.com/sw.js)   # captured first: «curl | grep -q» fails under pipefail
+    [[ "$sw" == *v3.11.880* ]] || { echo "3.11.880 is not live yet"; exit 1; }
     run_installer activate
     ssh "$H" "rm -f /tmp/atlas-release-880.tar.gz /tmp/install-release-data-880.py"
     curl -s https://linguistpro.kolosei.com/healthz | head -c 300; echo
