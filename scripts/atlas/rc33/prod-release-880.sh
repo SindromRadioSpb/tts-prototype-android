@@ -6,6 +6,9 @@
 # Never touches the database, learner data or old atlas namespaces. Rollback: previous image + ADDENDUM_RELEASE pin.
 set -euo pipefail
 H=peter@167.235.200.19
+SSH_OPTS="-i $HOME/.ssh/hetzner_kolosei -o BatchMode=yes"
+ssh() { command ssh $SSH_OPTS "$@"; }
+scp() { command scp $SSH_OPTS "$@"; }
 V=/var/lib/docker/volumes/glmw0wjd6nm70fntxgjy6fkp-linguistpro-data/_data
 ARCH="E:/projects/tts-prototype-android/Архив/atlas97001-rc33-880/atlas-release-880.tar.gz"
 INST="E:/projects/tts-prototype-android/Архив/atlas97001-rc33-880/install-release-data.py"
