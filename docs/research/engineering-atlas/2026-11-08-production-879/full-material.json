@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "bytes": 219226934,
+  "sha256": "9a84f7ae76daa3fa15995001ca868f7e54bb9bffc0ba9b926bcb405a4e33e9d1",
+  "files": 1230,
+  "revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+  "ai_layer_included": true,
+  "learner_data_accessed": false
+}
