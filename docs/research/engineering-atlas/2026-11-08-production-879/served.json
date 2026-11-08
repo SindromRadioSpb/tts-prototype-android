@@ -1,0 +1,261 @@
+{
+  "origin": "https://linguistpro.kolosei.com",
+  "release_commit": "15343c98e56aba87e0252975c96b8a0ba07e8d7d",
+  "version": "3.11.879",
+  "assets": [
+    {
+      "file": "public/sw.js",
+      "sha256": "2e2853f421779c77feb25a63e9e18c7962c122c9bf1bd3eba309f5ac87594071",
+      "bytes": 44488
+    },
+    {
+      "file": "public/index.html",
+      "sha256": "fbcd44e2b0669213b8b4e1ca918be5b94730fd529b528e4fc81bf1e5470cc409",
+      "bytes": 2445499
+    },
+    {
+      "file": "public/library.html",
+      "sha256": "a754261a0c30dfe2e7e6f2d2d84cbfaea1f95f3edf9e96e8125fa8d124475314",
+      "bytes": 338517
+    },
+    {
+      "file": "public/js/atlas-edition.js",
+      "sha256": "14e00ede037b5698ca0ecced9d575a0da3ae93256e4130db006fb6dbdd8d833f",
+      "bytes": 10804
+    },
+    {
+      "file": "public/js/atlas-reader.js",
+      "sha256": "45e48ddcd5ae81fa8e95130a1bc96ec8acb62504f41c9babcd96a140db013f12",
+      "bytes": 149185
+    },
+    {
+      "file": "public/js/atlas-words.js",
+      "sha256": "52705b4e71cbdfc10e748c47f9b8c9ce204a2e80aab0b0bf40e754b3e7936f41",
+      "bytes": 32143
+    },
+    {
+      "file": "public/js/atlas-search.js",
+      "sha256": "60718f5547ff792d7f543e6c5f2ca4480b4c3cd7a037d20329d323697d297c30",
+      "bytes": 27999
+    },
+    {
+      "file": "public/js/atlas-train.js",
+      "sha256": "c0d2be9a7129093fb8fe64a4d05b07c42f46303ed36ba631fbe4f8efd36af6a2",
+      "bytes": 27222
+    },
+    {
+      "file": "public/js/library-ui.js",
+      "sha256": "de4a16a077f003dd4dbb1958387274624cf17437a27f25314c1926e54c262d23",
+      "bytes": 1173714
+    },
+    {
+      "file": "public/js/atlas-context-contract.js",
+      "sha256": "75f265e969d71f456f313a122810d59e0d1c1518b11898b8625645e74d4e81cf",
+      "bytes": 7319
+    },
+    {
+      "file": "public/js/atlas-context-addressed.js",
+      "sha256": "91139fcb9e3373269088676ff603a4660bf0ffad9f0ba12cee0d4f9f8200c6ca",
+      "bytes": 6538
+    },
+    {
+      "file": "public/js/atlas-context-rc32-loader.js",
+      "sha256": "fcc8ac5b694bd7e3c6c8679472a2f3f21797450aecff90bfb9136d4505d172bb",
+      "bytes": 3027
+    },
+    {
+      "file": "public/js/word-gloss-ai.js",
+      "sha256": "6b498ac233e78d78827f5f1d7dad67270891d5a2db4b42dc6fe80f7b03f991f6",
+      "bytes": 35148
+    },
+    {
+      "file": "public/js/reader-morph.js",
+      "sha256": "3fe12381074168ed90215b354ff2dcdec520f20046b98af24f077134bf69e81f",
+      "bytes": 335089
+    },
+    {
+      "file": "public/css/reader-morph.css",
+      "sha256": "e458b9caaec8713f6f55c7dfb52aa9f4146e94252dda16efa6806c3b8fc5f166",
+      "bytes": 54475
+    }
+  ],
+  "sections": [
+    {
+      "id": "s00-front",
+      "context_accepted": 66,
+      "context_missing": 3,
+      "learning_targets": 7
+    },
+    {
+      "id": "s01-units",
+      "context_accepted": 46,
+      "context_missing": 0,
+      "learning_targets": 6
+    },
+    {
+      "id": "s02-statics-basics",
+      "context_accepted": 108,
+      "context_missing": 0,
+      "learning_targets": 16
+    },
+    {
+      "id": "s03-concurrent-forces",
+      "context_accepted": 71,
+      "context_missing": 0,
+      "learning_targets": 5
+    },
+    {
+      "id": "s04-parallel-forces",
+      "context_accepted": 101,
+      "context_missing": 0,
+      "learning_targets": 3
+    },
+    {
+      "id": "s05-planar-forces",
+      "context_accepted": 32,
+      "context_missing": 0,
+      "learning_targets": 3
+    },
+    {
+      "id": "s06-trusses",
+      "context_accepted": 66,
+      "context_missing": 0,
+      "learning_targets": 2
+    },
+    {
+      "id": "s07-centroid",
+      "context_accepted": 41,
+      "context_missing": 0,
+      "learning_targets": 1
+    },
+    {
+      "id": "s08-friction",
+      "context_accepted": 48,
+      "context_missing": 0,
+      "learning_targets": 4
+    },
+    {
+      "id": "s09-linear-motion",
+      "context_accepted": 117,
+      "context_missing": 0,
+      "learning_targets": 6
+    },
+    {
+      "id": "s10-projectile-motion",
+      "context_accepted": 68,
+      "context_missing": 0,
+      "learning_targets": 5
+    },
+    {
+      "id": "s11-circular-motion",
+      "context_accepted": 40,
+      "context_missing": 0,
+      "learning_targets": 4
+    },
+    {
+      "id": "s12-sections",
+      "context_accepted": 28,
+      "context_missing": 0,
+      "learning_targets": 3
+    },
+    {
+      "id": "s13-dimensions",
+      "context_accepted": 70,
+      "context_missing": 0,
+      "learning_targets": 8
+    },
+    {
+      "id": "s14-industrial-symbols",
+      "context_accepted": 111,
+      "context_missing": 0,
+      "learning_targets": 19
+    },
+    {
+      "id": "s15-materials-basics",
+      "context_accepted": 207,
+      "context_missing": 0,
+      "learning_targets": 93
+    },
+    {
+      "id": "s16-mechanical-properties",
+      "context_accepted": 342,
+      "context_missing": 0,
+      "learning_targets": 37
+    },
+    {
+      "id": "s17-steels",
+      "context_accepted": 666,
+      "context_missing": 1,
+      "learning_targets": 53
+    },
+    {
+      "id": "s18-powder-metallurgy",
+      "context_accepted": 22,
+      "context_missing": 0,
+      "learning_targets": 8
+    },
+    {
+      "id": "s19-aluminium",
+      "context_accepted": 97,
+      "context_missing": 0,
+      "learning_targets": 11
+    },
+    {
+      "id": "s20-composites",
+      "context_accepted": 15,
+      "context_missing": 0,
+      "learning_targets": 9
+    }
+  ],
+  "health": [
+    {
+      "ok": true,
+      "uptimeSec": 1506,
+      "now": "2026-11-08T00:30:52.614Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 78,
+      "disk_warn": false
+    },
+    {
+      "ok": true,
+      "uptimeSec": 1508,
+      "now": "2026-11-08T00:30:54.691Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 78,
+      "disk_warn": false
+    },
+    {
+      "ok": true,
+      "uptimeSec": 1510,
+      "now": "2026-11-08T00:30:56.767Z",
+      "db": {
+        "ready": true
+      },
+      "migrations": {
+        "ready": true
+      },
+      "disk_pct_used": 78,
+      "disk_warn": false
+    }
+  ],
+  "scope": "anonymous GET only; served code and pinned native/context SHA; no learner data",
+  "dictionary_entries": 806,
+  "learning_targets": 303,
+  "context_pin": "eca82a3b2697d22a5be49fbb91f170b9dd7b3e1d60e2b43c12048828ee8fee19",
+  "native_pin": {
+    "atlas_id": "a97001",
+    "revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+    "manifest_sha256": "17ad83041d068b2a0a53e669d47c69ea2a631bc25530ac847106d70e78994b3d"
+  },
+  "status": "passed"
+}

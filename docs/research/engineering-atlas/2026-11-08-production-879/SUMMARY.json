@@ -1,0 +1,52 @@
+{
+  "version": "3.11.879",
+  "release_commit": "15343c98e56aba87e0252975c96b8a0ba07e8d7d",
+  "merged_main_base": "a40502fea62233c6456fb945e0f04a60d565bcb4",
+  "dictionary_entries": 806,
+  "learning_targets": 303,
+  "context_sections": 21,
+  "context_rows": 2362,
+  "context_missing": 4,
+  "unit_tests": {
+    "total": 3574,
+    "passed": 3559,
+    "skipped": 15,
+    "failed": 0
+  },
+  "python_tests": {
+    "total": 215,
+    "skipped": 12,
+    "failed": 0
+  },
+  "i18n": {
+    "passed": 233,
+    "failed": 0
+  },
+  "reader_audit": {
+    "sections": 21,
+    "findings": 0,
+    "disclosed_nonlearning_omissions": 12
+  },
+  "api_smoke": "passed",
+  "github_ci": "success",
+  "original_progress_migrated_or_reset": false,
+  "owner_profile_accessed": false,
+  "scientific_acceptance": false,
+  "publication_authority": "Owner instruction: publish to production",
+  "preservation": {
+    "original_a97001": "preserved",
+    "prior_rc32": "preserved",
+    "V2": "preserved",
+    "previous_runtime_3_11_878": "retained",
+    "source_backup": "atlas-sources/a97001rc32-backup-3.11.879"
+  },
+  "export": {
+    "status": "passed",
+    "bytes": 219226934,
+    "sha256": "9a84f7ae76daa3fa15995001ca868f7e54bb9bffc0ba9b926bcb405a4e33e9d1",
+    "files": 1230,
+    "revision": "841fd6424e8428ba5ebd1f489f514c5dff058d841e415c5a13a42fe7504b47cc",
+    "ai_layer_included": true,
+    "learner_data_accessed": false
+  }
+}

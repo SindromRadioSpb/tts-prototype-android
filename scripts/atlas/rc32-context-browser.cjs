@@ -13,7 +13,9 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
  base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);
  }report.origin=base;if(remoteBase)report.scope='actual production, new synthetic Chromium profile; only GET/HEAD network; no owner profile or cloud learner writes';await waitForSmokeHealth(base,{timeoutMs:60000});
  browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,viewport:{width:1280,height:1000},serviceWorkers:'block'});
- await browser.route('**/*',route=>route.request().url().startsWith(base)&&['GET','HEAD'].includes(route.request().method())?route.continue():route.abort());
+ if(remoteBase){await browser.addInitScript(()=>{const allowed=(url,method)=>new URL(url,location.href).origin===location.origin&&['GET','HEAD'].includes(String(method||'GET').toUpperCase()),fetchOriginal=window.fetch.bind(window);window.fetch=(input,init)=>{const url=typeof input==='string'||input instanceof URL?String(input):input.url,method=init?.method||input?.method||'GET';return allowed(url,method)?fetchOriginal(input,init):Promise.reject(new TypeError('Release verification blocks network mutation'));};const open=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(method,url,...args){if(!allowed(url,method))throw new TypeError('Release verification blocks network mutation');return open.call(this,method,url,...args);};navigator.sendBeacon=()=>false;});}else{
+ await browser.route(u=>u.origin!==base||u.pathname.startsWith('/api/'),route=>route.request().url().startsWith(base)&&['GET','HEAD'].includes(route.request().method())?route.continue():route.abort());
+ }
  const page=await browser.newPage();page.setDefaultTimeout(90000);page.on('pageerror',e=>report.errors.push(e.message));
  const url=(sid,pg,id='a97001rc32')=>base+'/study-library.html#room=atlas%3A'+id+'&sec='+sid+'&pg='+pg;
  await page.goto(url('s00-front',1),{waitUntil:'domcontentloaded'});await page.locator('.atlas-row .rm-w').first().waitFor({state:'attached'});
@@ -34,6 +36,7 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
   await page.goto(url(c.sid,c.row.source_context.page),{waitUntil:'domcontentloaded'});
   const selector='[data-ref="'+c.row.id+'"]';
   await page.waitForFunction(({selector,index})=>{const el=document.querySelector(selector);return el&&el.__lpPreparedContextLookup&&el.__lpPreparedContextLookup(index,'niqqud');},{selector,index:c.niq});
+  await page.evaluate(()=>InflectionDict.ensureReady().then(()=>true));
   const s=prepared.sections.find(s=>s.id===c.sid),answer=s.loaded.checked.rows.find(a=>a.row_id===c.row.id);
   for(const [column,index] of [['he',c.he],['niqqud',c.niq]]){
    const expected=s.loaded.adapter.lookup(c.row,answer,column,index);

@@ -1,0 +1,12 @@
+{
+  "scope": "actual production SW, new disposable profile; no owner data; cache corruption only in this local profile",
+  "checks": [
+    "full offline reload validates edition, candidate manifest, map and section from actual SW cache",
+    "stale/corrupt map cached under correct pin fails closed offline; no fallback",
+    "restoring verified candidate bytes recovers on offline reopen without resetting learner state"
+  ],
+  "errors": [],
+  "origin": "https://linguistpro.kolosei.com",
+  "learner_state_unchanged": true,
+  "status": "passed"
+}

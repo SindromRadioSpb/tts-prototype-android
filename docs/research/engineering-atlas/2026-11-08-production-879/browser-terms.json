@@ -1,0 +1,65 @@
+{
+  "scope": "actual production, new synthetic Chromium profile; only GET/HEAD network; no owner profile or cloud learner writes",
+  "checks": [
+    "matched reviewed cards: compact canonical, Russian meaning, scoped Learn; source disclosure/navigation; owner force/solidification examples; 380px/LTR/RTL; viewing writes no learner state",
+    "real scoped Learn→grade→global review→exact source works for molar mass and torsion; original SQL/review state and canonical personal-term storage preserved",
+    "search for torsion returns and opens the exact semantic source",
+    "three addendum editorial canonical targets stay loose with no invented source word span; p203 restriction remains in specific term note",
+    "all three editorial terms retain required notices in real section and global review, with exact source navigation and no literal HE/niqqud term highlight"
+  ],
+  "cards": [
+    {
+      "term": "a97001rc32:term:molar-mass",
+      "page": 116,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:torsion",
+      "page": 157,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:grain-size",
+      "page": 148,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:nickel-steel",
+      "page": 158,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:rolling-fiber-direction",
+      "page": 148,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:partial-annealing",
+      "page": 197,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    },
+    {
+      "term": "a97001rc32:term:magnetic-field",
+      "page": 185,
+      "compact_header": true,
+      "explicit_learning_action": true,
+      "source_navigation": true
+    }
+  ],
+  "errors": [],
+  "origin": "https://linguistpro.kolosei.com",
+  "stage": "editorial:a97001rc32:term:metal-fiber",
+  "status": "passed"
+}

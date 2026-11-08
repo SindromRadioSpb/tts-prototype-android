@@ -1,0 +1,15 @@
+'use strict';
+// Run from release worktree: node <this-script> <output-json>.
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),crypto=require('crypto');
+const root=process.cwd(),E=require(root+'/public/js/atlas-edition'),T=require(root+'/public/js/atlas-train'),{W,RM}=require(root+'/scripts/atlas/rc32-context.cjs').reader();
+const base='https://linguistpro.kolosei.com',sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+(async()=>{
+ const report={origin:base,release_commit:'15343c98e56aba87e0252975c96b8a0ba07e8d7d',version:'3.11.879',assets:[],sections:[],health:[],scope:'anonymous GET only; served code and pinned native/context SHA; no learner data'};
+ const files=['public/sw.js','public/index.html','public/library.html','public/js/atlas-edition.js','public/js/atlas-reader.js','public/js/atlas-words.js','public/js/atlas-search.js','public/js/atlas-train.js','public/js/library-ui.js','public/js/atlas-context-contract.js','public/js/atlas-context-addressed.js','public/js/atlas-context-rc32-loader.js','public/js/word-gloss-ai.js','public/js/reader-morph.js','public/css/reader-morph.css'];
+ for(const p of files){const r=await fetch(base+'/'+p.slice(7)+'?v=879&release_verify='+Date.now(),{cache:'no-store'});assert.equal(r.status,200,p);const bytes=Buffer.from(await r.arrayBuffer());assert.equal(sha(bytes),sha(fs.readFileSync(path.join(root,p))),p+' served SHA');report.assets.push({file:p,sha256:sha(bytes),bytes:bytes.length});}
+ const client=E.createClient('a97001rc32',{fetch:(url,opts)=>fetch(base+url,{...opts,cache:'no-store'}),crypto:crypto.webcrypto}),index=await client.json('index.json'),bank=await client.json('train/terms.json');report.dictionary_entries=Object.keys(bank.terms).length;report.learning_targets=0;
+ for(const s of index.sections){const data=await client.json('sections/'+s.id+'.json'),rows=W.glossRows(W.sectionContext('a97001rc32',data,RM,{purpose:'inspection'})),loaded=await client.contextForRows(s.id,rows),n=T.sectionTermItems(W.sectionContext('a97001rc32',data,RM,{purpose:'term_context'})).length;assert(loaded.checked.ok);report.sections.push({id:s.id,context_accepted:loaded.checked.accepted,context_missing:loaded.checked.missing.length,learning_targets:n});report.learning_targets+=n;}
+ assert.equal(report.dictionary_entries,806);assert.equal(report.learning_targets,303);assert.equal(report.sections.length,21);report.context_pin=E.contextPinFor('a97001rc32');report.native_pin=E.pinFor('a97001rc32');
+ for(let i=0;i<3;i++){const r=await fetch(base+'/healthz?release_verify='+Date.now(),{cache:'no-store'}),j=await r.json();assert.equal(r.status,200);assert(j.ok&&j.db.ready&&j.migrations.ready&&!j.disk_warn);report.health.push(j);if(i<2)await new Promise(r=>setTimeout(r,2000));}
+ report.status='passed';fs.writeFileSync(process.argv[2],JSON.stringify(report,null,2));console.log(JSON.stringify({status:report.status,version:report.version,assets:report.assets.length,sections:report.sections.length,targets:report.learning_targets,dictionary:report.dictionary_entries}));
+})().catch(e=>{console.error(e);process.exitCode=1});

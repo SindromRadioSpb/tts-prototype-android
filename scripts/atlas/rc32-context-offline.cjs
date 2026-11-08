@@ -11,7 +11,7 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
  base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);
  }await waitForSmokeHealth(base,{timeoutMs:60000});report.origin=base;if(remoteBase)report.scope='actual production SW, new disposable profile; no owner data; cache corruption only in this local profile';
  browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,serviceWorkers:'allow',viewport:{width:380,height:900}});
- const page=await browser.newPage();page.setDefaultTimeout(60000);page.on('pageerror',e=>report.errors.push(e.message));
+ const page=await browser.newPage();page.setDefaultTimeout(remoteBase?180000:60000);page.on('pageerror',e=>report.errors.push(e.message));
  await page.goto(base+'/study-library.html#room=atlas%3Aa97001rc32&sec=s00-front&pg=1');
  await page.waitForFunction(()=>navigator.serviceWorker.controller);await page.reload({waitUntil:'domcontentloaded'});
  const ready=()=>page.waitForFunction(()=>{const el=document.querySelector('[data-ref="a97001rc32:p1:b003"]');return el&&WordGlossAI.wordAt(el,0,'niqqud');});await ready();

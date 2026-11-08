@@ -16,7 +16,11 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
  base='http://127.0.0.1:'+await waitForSmokeServer(child,60000);
  }report.origin=base;if(remoteBase)report.scope='actual production, new synthetic Chromium profile; only GET/HEAD network; no owner profile or cloud learner writes';await waitForSmokeHealth(base,{timeoutMs:60000});
  browser=await chromium.launchPersistentContext(path.join(out,'synthetic-profile'),{headless:true,viewport:{width:1280,height:1000},serviceWorkers:'block'});
- await browser.route('**/*',route=>{const u=route.request().url();if(useV2&&u.startsWith(base+'/js/atlas-edition.js'))return route.fulfill({contentType:'application/javascript',body:oldEdition});return u.startsWith(base)&&['GET','HEAD'].includes(route.request().method())?route.continue():route.abort();});
+ if(remoteBase){useV2=false;await browser.addInitScript(()=>{const allowed=(url,method)=>new URL(url,location.href).origin===location.origin&&['GET','HEAD'].includes(String(method||'GET').toUpperCase()),fetchOriginal=window.fetch.bind(window);window.fetch=(input,init)=>{const url=typeof input==='string'||input instanceof URL?String(input):input.url,method=init?.method||input?.method||'GET';return allowed(url,method)?fetchOriginal(input,init):Promise.reject(new TypeError('Release verification blocks network mutation'));};const open=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(method,url,...args){if(!allowed(url,method))throw new TypeError('Release verification blocks network mutation');return open.call(this,method,url,...args);};navigator.sendBeacon=()=>false;});}
+ else {
+ await browser.route(u=>u.origin!==base||u.pathname.startsWith('/api/'),route=>route.request().url().startsWith(base)&&['GET','HEAD'].includes(route.request().method())?route.continue():route.abort());
+ await browser.route('**/js/atlas-edition.js*',route=>useV2?route.fulfill({contentType:'application/javascript',body:oldEdition}):route.continue());
+ }
  page=await browser.newPage();page.setDefaultTimeout(60000);page.on('pageerror',e=>report.errors.push(e.message));
  const url=(id,sid,pg)=>base+'/study-library.html#room=atlas%3A'+id+(sid?'&sec='+sid+'&pg='+pg:'');
  const open=async(id,sid,pg)=>{await page.goto(url(id,sid,pg),{waitUntil:'domcontentloaded'});await page.locator('.atlas-section').waitFor();};
@@ -28,11 +32,12 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
  items.push(proof.items.find(x=>x.termId.endsWith(':partial-annealing')),proof.items.find(x=>x.termId.endsWith(':magnetic-field')));assert(items.every(Boolean));
  async function wordCard(it){
   await open('a97001rc32',it.sid,it.page);const selector='[data-ref="'+it.block+'"]';
-  await page.locator(selector+' [data-col="he"] .rm-w').first().waitFor();
-  await page.locator(selector+' [data-col="he"] .rm-w[data-w-offset="'+it.from+'"]').first().evaluate(el=>el.click());await page.locator('.rm-sheet .rm-surface-title').waitFor();
+  await page.evaluate(()=>InflectionDict.ensureReady().then(()=>true));
+  await page.locator(selector+' .rm-w.atlas-term[data-term="'+it.termId+'"]:visible').first().click();await page.locator('.rm-sheet .rm-surface-title').waitFor();
   return selector;
  }
 
+ if(!remoteBase){
  stage('V2-upgrade-fixtures');
  const oldItem=proof.v2_items.find(i=>i.termId.endsWith(':wheel'));
  await wordCard(oldItem);await page.locator('[data-rm-surface-action="learn-term"]').click();await page.locator('[data-ts-reveal]').click();await page.locator('[data-ts-grade="1"]').click();await waitState(()=>page.evaluate(k=>__localDB.dbQuery('SELECT * FROM word_status WHERE lemma_key=?',[k]),oldItem.key),s=>s.length>0);await page.keyboard.press('Escape');
@@ -45,6 +50,7 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
  const beforeUpgrade=await snapshot();useV2=false;await page.reload({waitUntil:'domcontentloaded'});
  await page.waitForFunction(personal=>{const el=document.querySelector('[data-ref="a97001rc32:p1:b003"]');return el&&WordGlossAI.wordAt(el,0,'niqqud')?.gloss===personal;},personal);
  assert.deepEqual(await snapshot(),beforeUpgrade);await page.evaluate(async()=>{const saved=(await __localDB.dbQuery('SELECT * FROM bookmarks',[]))[0],data=await AtlasEdition.client('a97001rc32').json('sections/s00-front.json'),ctx=AtlasWords.sectionContext('a97001rc32',data,ReaderMorph,{purpose:'inspection'});if(ctx.textKeys.get(saved.sentence_id)!==saved.text_key||ctx.order.get(saved.sentence_id)!==saved.order_index||ctx.items.get(saved.sentence_id).he!==saved.snippet)throw Error('Saved favorite lost exact source identity');});report.checks.push('same-origin V2→addendum reload preserves actual synthetic SQL grades/review_log/bookmarks/progress, personal terms/stage and persisted manual context correction');initial=await state();
+ }
  for(const it of items){
   stage('card:'+it.termId);const selector=await wordCard(it);
   assert.equal(await page.locator('.rm-surface-top .rm-surface-title bdi').innerText(),it.title);
@@ -80,9 +86,9 @@ const remoteBase=process.argv.find(a=>a.startsWith('--base='))?.slice(7);if(remo
  }
  assert.deepEqual(await originalState(),originalBefore);assert.equal(await page.evaluate(()=>localStorage.getItem('room.atlas.myTerms.v1')),storedBefore);
  stage('global-review');await browser.addInitScript(()=>{const now=Date.now;Date.now=()=>now()+7*86400000;});await page.goto(url('a97001rc32'));await page.reload({waitUntil:'domcontentloaded'});await page.locator('.atlas-home').waitFor();await page.waitForFunction(()=>{const b=document.querySelector('[data-queue-start]');return b&&!b.disabled;});await page.locator('[data-queue-start]').click();await page.locator('[data-ts-reveal]').click();const dueTitle=await page.locator('.atlas-ts-term').innerText();assert([items[0].title,items[1].title].includes(dueTitle));await page.locator('[data-ts-open]').click();await page.locator('.atlas-row-flash').waitFor();assert([items[0].block,items[1].block].includes(await page.locator('.atlas-row-flash').first().getAttribute('data-ref')));
- assert.deepEqual(await originalState(),originalBefore);assert.equal(await page.evaluate(()=>localStorage.getItem('room.atlas.myTerms.v1')),storedBefore);report.checks.push('real scoped Learn→grade→global review→exact source works, including front matter; original SQL/review state and canonical personal-term storage preserved');
+ assert.deepEqual(await originalState(),originalBefore);assert.equal(await page.evaluate(()=>localStorage.getItem('room.atlas.myTerms.v1')),storedBefore);report.checks.push('real scoped Learn→grade→global review→exact source works for molar mass and torsion; original SQL/review state and canonical personal-term storage preserved');
  // Search result for a previously omitted table part must point into that part.
- stage('search-table-part');await open('a97001rc32',items[1].sid,items[1].page);await page.locator('.atlas-search').fill(items[1].plain);await page.locator('.atlas-search').press('Enter');const result=page.locator('[data-search-result="'+items[1].block+'"]');await result.first().waitFor();await result.first().click();await page.locator('[data-ref="'+items[1].block+'"].atlas-hit').waitFor();report.checks.push('search for wheel returns and opens the semantic table part');
+ stage('search-table-part');await open('a97001rc32',items[1].sid,items[1].page);await page.locator('.atlas-search').fill(items[1].plain);await page.locator('.atlas-search').press('Enter');const result=page.locator('[data-search-result="'+items[1].block+'"]');await result.first().waitFor();await result.first().click();await page.locator('[data-ref="'+items[1].block+'"].atlas-hit').waitFor();report.checks.push('search for torsion returns and opens the exact semantic source');
  // Explicit authorial canonical corrections are loose term targets, never fabricated word spans.
  for(const suffix of ['nonmetals','silicon-manganese-steel','metal-fiber']){const it=proof.items.find(it=>it.termId.endsWith(':'+suffix));assert(it&&it.from===null);await open('a97001rc32',it.sid,it.page);const row=page.locator('[data-ref="'+it.block+'"]');await page.waitForFunction(({block,ru})=>document.querySelector('[data-ref="'+block+'"]')?.textContent.includes(ru),{block:it.block,ru:it.ru});assert.equal(await row.locator('.rm-w[data-term="'+it.termId+'"]').count(),0);}
  report.checks.push('three addendum editorial canonical targets stay loose with no invented source word span; p203 restriction remains in specific term note');
