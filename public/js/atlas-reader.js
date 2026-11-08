@@ -1684,11 +1684,31 @@
       var ms = root.navigator && root.navigator.mediaSession;
       if (ms) { try { ms.metadata = null; ['play', 'pause', 'previoustrack', 'nexttrack'].forEach(function (a) { ms.setActionHandler(a, null); }); } catch (_) {} }
     }
+    // Where the recordings of this book are listed. A pinned edition (97001 RC3.x) is immutable, so its recordings
+    // live beside it in /data/atlas-audio/<atlas>/<revision>/ with their own index, accepted only for that revision.
+    var audioSourcePromise = null;
+    function audioSource() {
+      if (audioSourcePromise) return audioSourcePromise;
+      var pin = edition && Editions && Editions.pinFor ? Editions.pinFor(atlasId) : null;
+      if (!pin || atlasId !== 'a97001rc32') {
+        audioSourcePromise = loadIndex().then(function (ix) { return { ix: ix, url: function (sid) { return base + 'audio/' + sid + '.json'; }, get: fetchJson }; });
+        return audioSourcePromise;
+      }
+      var abase = '/data/atlas-audio/' + atlasId + '/' + pin.revision + '/';
+      var plain = function (url) { return root.fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); };
+      audioSourcePromise = Promise.all([loadIndex(), plain(abase + 'index.json')]).then(function (both) {
+        var ai = both[1];
+        if (!ai || ai.schema !== 'linguistpro.atlas-audio-index.1' || ai.atlas_id !== atlasId || ai.edition_revision !== pin.revision || !ai.audio) return null;
+        return { ix: Object.assign({}, both[0], { audio: ai.audio }), url: function (sid) { return abase + sid + '.json'; }, get: plain };
+      }).catch(function () { audioSourcePromise = null; return null; });
+      return audioSourcePromise;
+    }
     function setupListening(id, data, bar, section, how) {
       if (!Speech || !Speech.sourceOf) return Promise.resolve(null);
-      return loadIndex().then(function (ix) {
+      return audioSource().then(function (src) {
+        var ix = src && src.ix;
         if (!ix || !ix.audio || !ix.audio[id]) return null;
-        return fetchJson(base + 'audio/' + id + '.json').then(function (manifest) {
+        return src.get(src.url(id)).then(function (manifest) {
           if (!manifest || manifest.schema !== 'linguistpro.atlas-audio.1' || !manifest.items) return null;
           return verifiedRecordings(data, manifest).then(function (rec) {
             if (!section.isConnected || !Object.keys(rec).length) return null;

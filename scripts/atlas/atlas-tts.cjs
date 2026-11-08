@@ -321,6 +321,19 @@ function indexWithAudio({ out = DEFAULT_OUT, index }) {
   return { ...book, audio };
 }
 
+// An immutable edition (97001 RC3.x) cannot carry audio in its index.json: the recordings get their own index,
+// bound to the edition revision, served from DATA_DIR/atlas-audio/<atlas>/<revision>/ next to the section manifests.
+function editionAudioIndex({ out = DEFAULT_OUT, data = DEFAULT_DATA } = {}) {
+  invariant(BOOKS[ATLAS_ID].project, `EDITION_AUDIO_INDEX_ONLY_FOR_EDITIONS:${ATLAS_ID}`);
+  const revision = readJson(path.join(data, "index.json")).structure_revision;
+  invariant(/^[a-f0-9]{64}$/.test(revision), "EDITION_REVISION_MISSING");
+  const audio = {}, manifestDir = path.join(out, "audio");
+  for (const name of fs.readdirSync(manifestDir).filter((f) => f.endsWith(".json") && f !== "index.json").sort()) {
+    audio[name.slice(0, -5)] = sha256(fs.readFileSync(path.join(manifestDir, name)));
+  }
+  return { schema: "linguistpro.atlas-audio-index.1", atlas_id: ATLAS_ID, edition_revision: revision, audio };
+}
+
 function parseArgs(argv) {
   const out = { _: [] };
   for (let i = 0; i < argv.length; i++) {
@@ -361,6 +374,12 @@ async function main() {
     if (!result.ok) process.exitCode = 1;
     return;
   }
+  if (command === "index" && BOOKS[ATLAS_ID].project) {
+    const ix = editionAudioIndex({ out, data });
+    write(path.join(out, "audio", "index.json"), JSON.stringify(ix));
+    process.stdout.write(stable({ ok: true, write: path.join(out, "audio", "index.json"), sections: Object.keys(ix.audio).length, edition_revision: ix.edition_revision }));
+    return;
+  }
   if (command === "index") {
     invariant(args.index && args.write, "INDEX_REQUIRES_INDEX_AND_WRITE");
     write(path.resolve(args.write), JSON.stringify(indexWithAudio({ out, index: path.resolve(args.index) })));
@@ -372,4 +391,4 @@ async function main() {
 
 if (require.main === module) main().catch((error) => { process.stderr.write(`atlas-tts: ${error.stack || error.message}\n`); process.exitCode = 1; });
 
-module.exports = { selectAtlas, PROFILE, PROFILE_ID, CHARACTER_CEILING, SCHEMA, sectionPlan, inventory, reviewPack, bake, verify, indexWithAudio, assetKeyFor, validateRights };
+module.exports = { selectAtlas, editionAudioIndex, PROFILE, PROFILE_ID, CHARACTER_CEILING, SCHEMA, sectionPlan, inventory, reviewPack, bake, verify, indexWithAudio, assetKeyFor, validateRights };

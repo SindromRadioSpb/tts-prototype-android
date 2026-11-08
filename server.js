@@ -702,6 +702,12 @@ app.use('/data/atlas-context', express.static(path.join(__dirname, 'atlas-contex
   fallthrough: false, index: false,
   setHeaders(res) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); },
 }));
+// Recordings of a pinned atlas edition (97001 RC3.x): DATA_DIR/atlas-audio/<atlas>/<revision>/{index,<section>}.json.
+// The edition itself is immutable; the audio index names the revision it was baked for (atlas-reader audioSource).
+app.use('/data/atlas-audio', express.static(path.join(DATA_DIR, 'atlas-audio'), {
+  fallthrough: false, index: false,
+  setHeaders(res) { res.setHeader('Cross-Origin-Resource-Policy', 'same-origin'); res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); },
+}));
 app.use('/data/atlas', express.static(path.join(DATA_DIR, 'atlas'), {
   fallthrough: true, index: false,
   setHeaders(res, file) {
@@ -1441,7 +1447,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/atlas-train-ui.js?v=876",
   "/js/atlas-train.js?v=876",
   "/js/atlas-search.js?v=879",
-  "/js/atlas-reader.js?v=880",
+  "/js/atlas-reader.js?v=881",
   "/js/corpus-registry.js?v=876",
   "/js/course-hebrew.js?v=854",
   "/js/course-checker.js?v=861",

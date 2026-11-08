@@ -1,0 +1,261 @@
+{
+  "ok": true,
+  "out": "E:\\projects\\tts-prototype-android\\.worktrees\\atlas97001-rc33\\.tmp\\rc33\\tts",
+  "provider_calls": 1475,
+  "reused": 33,
+  "billed_characters": 158455,
+  "sections": [
+    {
+      "section": "s00-front",
+      "blocks": [
+        7,
+        7
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 7
+    },
+    {
+      "section": "s01-units",
+      "blocks": [
+        5,
+        5
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 5
+    },
+    {
+      "section": "s02-statics-basics",
+      "blocks": [
+        75,
+        75
+      ],
+      "formulas": [
+        10,
+        10
+      ],
+      "recordings": 85
+    },
+    {
+      "section": "s03-concurrent-forces",
+      "blocks": [
+        66,
+        66
+      ],
+      "formulas": [
+        34,
+        34
+      ],
+      "recordings": 100
+    },
+    {
+      "section": "s04-parallel-forces",
+      "blocks": [
+        84,
+        87
+      ],
+      "formulas": [
+        27,
+        30
+      ],
+      "recordings": 111
+    },
+    {
+      "section": "s05-planar-forces",
+      "blocks": [
+        32,
+        32
+      ],
+      "formulas": [
+        31,
+        31
+      ],
+      "recordings": 63
+    },
+    {
+      "section": "s06-trusses",
+      "blocks": [
+        66,
+        66
+      ],
+      "formulas": [
+        50,
+        50
+      ],
+      "recordings": 116
+    },
+    {
+      "section": "s07-centroid",
+      "blocks": [
+        22,
+        23
+      ],
+      "formulas": [
+        29,
+        29
+      ],
+      "recordings": 51
+    },
+    {
+      "section": "s08-friction",
+      "blocks": [
+        38,
+        38
+      ],
+      "formulas": [
+        43,
+        43
+      ],
+      "recordings": 81
+    },
+    {
+      "section": "s09-linear-motion",
+      "blocks": [
+        82,
+        86
+      ],
+      "formulas": [
+        39,
+        39
+      ],
+      "recordings": 121
+    },
+    {
+      "section": "s10-projectile-motion",
+      "blocks": [
+        50,
+        51
+      ],
+      "formulas": [
+        43,
+        43
+      ],
+      "recordings": 93
+    },
+    {
+      "section": "s11-circular-motion",
+      "blocks": [
+        26,
+        26
+      ],
+      "formulas": [
+        9,
+        9
+      ],
+      "recordings": 35
+    },
+    {
+      "section": "s12-sections",
+      "blocks": [
+        25,
+        25
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 25
+    },
+    {
+      "section": "s13-dimensions",
+      "blocks": [
+        34,
+        36
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 34
+    },
+    {
+      "section": "s14-industrial-symbols",
+      "blocks": [
+        27,
+        32
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 27
+    },
+    {
+      "section": "s15-materials-basics",
+      "blocks": [
+        83,
+        84
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 83
+    },
+    {
+      "section": "s16-mechanical-properties",
+      "blocks": [
+        219,
+        228
+      ],
+      "formulas": [
+        19,
+        19
+      ],
+      "recordings": 238
+    },
+    {
+      "section": "s17-steels",
+      "blocks": [
+        282,
+        309
+      ],
+      "formulas": [
+        7,
+        7
+      ],
+      "recordings": 289
+    },
+    {
+      "section": "s18-powder-metallurgy",
+      "blocks": [
+        21,
+        22
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 21
+    },
+    {
+      "section": "s19-aluminium",
+      "blocks": [
+        55,
+        57
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 55
+    },
+    {
+      "section": "s20-composites",
+      "blocks": [
+        9,
+        9
+      ],
+      "formulas": [
+        0,
+        0
+      ],
+      "recordings": 9
+    }
+  ]
+}

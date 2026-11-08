@@ -1,0 +1,17 @@
+{
+  "schema": "linguistpro.atlas-tts-rights.1",
+  "atlas_id": "a97001rc32",
+  "owner_attested": true,
+  "public_audio": true,
+  "download_audio": true,
+  "languages": ["he"],
+  "asserted_at": "2026-11-08",
+  "asserted_by": "owner",
+  "owner_words": "делай серверную озвучку 97001 по аналогии с 97002",
+  "scope": "Recorded Hebrew narration of the 97001 RC3.3 study text and formulas, published openly in the Reading Room on the same terms as atlas 97002 (rights D1, download D2 of 2026-11-02).",
+  "related_decisions": {
+    "D3_voice": "he-IL-Standard-A, speaking rate 0.8, pitch +2.5 — the 97002 voice",
+    "D5_ceiling": "inventory 158 440 characters, about 0.63 USD, about 111 MB — under the 600 000-character ceiling",
+    "speaker_text": "owner accepted the recommended readings, 2026-11-08 (atlas/a97001rc32/speech-overrides.json)"
+  }
+}
