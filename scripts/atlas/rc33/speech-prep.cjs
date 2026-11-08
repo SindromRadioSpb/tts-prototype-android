@@ -42,6 +42,9 @@ const LINE = {
   'p1:b005': null,   // set below as plain text
 };
 const TEXT = {
+  // p171 reversible transformations, said «equilibrium between … and …» (owner accepted the recommendation, 2026-11-08)
+  'p171:f01': 'שִׁוּוּי מִשְׁקָל בֵּין גַּמָּה, 0.83 אָחוּז פַּחְמָן, לְבֵין אַלְפָא, 0.020 אָחוּז פַּחְמָן, וְעוֹד צֶמֶנְטִיט, אֶף אִי 3 סִי, 6.7 אָחוּז פַּחְמָן',
+  'p171:f03': 'שִׁוּוּי מִשְׁקָל בֵּין נְתֹכֶת, אֶל, לְבֵין גַּמָּה וְעוֹד צֶמֶנְטִיט, אֶף אִי 3 סִי',
   'p1:b005': 'תַּשְׁפַּד – 2024',   // the Hebrew year תשפ"ד, said as one word
 };
 // English-only rows: the Hebrew voice does not read English (the Hebrew of the row is read where present).
@@ -84,7 +87,8 @@ function main() {
         let said = it.ok ? it.text : null, rule = null;
         if (!said) {   // no LaTeX: the plain notation is read line by line («= 0» and «N − W» on the next line are not «0 N»)
           const src = String(item.he || item.source_text || '');
-          if (/↔/.test(src)) { add(it.id, { exclude: true, reason: 'REVERSIBLE_ARROW_NEEDS_OWNER_READING', rule: 'formula-gap' }); continue; }
+          // «γ ↔ α + Fe₃C»: a reversible transformation, said «equilibrium between … and …» (owner accepted, 2026-11-08)
+          if (/↔/.test(src)) { add(it.id, { exclude: true, reason: 'REVERSIBLE_ARROW_UNMAPPED', rule: 'formula-gap' }); continue; }
           if (/^\s*\d+\s*$/.test(src)) { add(it.id, { exclude: true, reason: 'NUMBER_ONLY', rule: 'number-only' }); continue; }
           try {
             said = src.split(/\n+/).map((l) => l.trim()).filter(Boolean)
@@ -101,6 +105,8 @@ function main() {
       // 3. blocks: line fixes, abbreviations, whole-word alternatives with «/»
       let line = hn, rule = null;
       for (const [a, b] of LINE[id] || []) { if (!line.includes(a.normalize('NFC')) && !line.includes(a)) throw Error('LINE_FIX_MISSING ' + id + ' ' + a); line = line.normalize('NFC').split(a.normalize('NFC')).join(b.normalize('NFC')); rule = 'line-fix'; }
+      // «0.2%C» is percent carbon, not «percent times C»
+      if (/%\s*C(?![A-Za-z])/.test(line)) { line = line.replace(/%\s*C(?![A-Za-z])/g, '% פַּחְמָן'); rule = rule || 'percent-carbon'; }
       for (const [a, b] of ABBR) { const na = a.normalize('NFC'); if (line.normalize('NFC').includes(na)) { line = line.normalize('NFC').split(na).join(b.normalize('NFC')); rule = rule || 'abbreviation'; } }
       if (wholeWordSlash.test(line.normalize('NFC'))) { line = line.normalize('NFC').replace(wholeWordSlash, '$1 אוֹ $2'); rule = rule || 'slash-alternative'; }
       wholeWordSlash.lastIndex = 0;
@@ -121,7 +127,7 @@ function main() {
   const doc = { schema: 'linguistpro.atlas-speech-overrides.1', atlas_id: 'a97001rc32',
     basis: 'RC3.3 speaker text: abbreviations, slash alternatives, plain formulas and rejected roots; unresolved readings are not voiced.',
     edition_revision: JSON.parse(fs.readFileSync(path.join(DATA, 'index.json'), 'utf8')).structure_revision,
-    review: { status: 'needs_review', reviewed_by: null }, rules, items };
+    review: { status: 'owner_accepted_recommendations', reviewed_by: 'owner', reviewed_at: '2026-11-08' }, rules, items };
   const bytes = Buffer.from(JSON.stringify(doc, null, 1) + '\n');
   fs.writeFileSync(path.join(BOOK, 'speech-overrides.json'), bytes);
 

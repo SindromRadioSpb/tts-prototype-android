@@ -16,7 +16,7 @@
     "total": 1364
   },
   "formulas": {
-    "voiced": 339,
+    "voiced": 341,
     "total": 344
   },
   "not_shown_or_nothing_to_read": 3,
@@ -24,15 +24,14 @@
     "EXCLUDED:NUMBER_ONLY": 3,
     "EXCLUDED:UNRESOLVED_READING": 48,
     "EXCLUDED:AUDIT_UNRESOLVED": 5,
-    "EXCLUDED:REVERSIBLE_ARROW_NEEDS_OWNER_READING": 2,
     "EXCLUDED:NO_NIQQUD_IN_EDITION": 1,
     "EXCLUDED:ENGLISH_ONLY": 2
   },
-  "unique_recordings": 1480,
-  "billed_characters": 158440,
+  "unique_recordings": 1482,
+  "billed_characters": 158657,
   "character_ceiling": 600000,
   "estimated_usd_standard": 0.63,
-  "estimated_megabytes": 111,
+  "estimated_megabytes": 112,
   "longest_input_bytes": 1714,
   "max_input_bytes": 4800,
   "gate_cost": "PASS",
@@ -142,8 +141,8 @@
     {
       "section": "s17-steels",
       "items": 316,
-      "voiced": 287,
-      "billed_characters": 34301
+      "voiced": 289,
+      "billed_characters": 34518
     },
     {
       "section": "s18-powder-metallurgy",

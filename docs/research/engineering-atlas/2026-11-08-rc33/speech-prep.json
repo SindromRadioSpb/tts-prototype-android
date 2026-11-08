@@ -1,10 +1,10 @@
 {
  "schema": "atlas97001.rc33-speech-prep.1",
- "overrides_sha256": "fd43ca96176d75f11377129ac9cbd7bc62ca846b9ff67ca03e450dd9e10abba9",
- "overrides": 192,
+ "overrides_sha256": "e9e5b7a47ad86f5f412ca78c3ae93ce2956758a57a2ec5abbbf8e0e15466a9ad",
+ "overrides": 197,
  "rules": {
   "abbreviation": 11,
-  "manual-text": 1,
+  "manual-text": 3,
   "number-only": 3,
   "line-fix": 11,
   "unresolved": 48,
@@ -12,19 +12,18 @@
   "audit-unresolved": 5,
   "slash-alternative": 8,
   "crossed-out-root": 4,
-  "formula-gap": 2,
+  "percent-carbon": 5,
   "no-niqqud": 1,
   "english": 2,
   "product-key": 9,
   "alloy-code": 9
  },
- "voiced": 1647,
+ "voiced": 1649,
  "total": 1708,
  "not_voiced": {
   "EXCLUDED:NUMBER_ONLY": 3,
   "EXCLUDED:UNRESOLVED_READING": 48,
   "EXCLUDED:AUDIT_UNRESOLVED": 5,
-  "EXCLUDED:REVERSIBLE_ARROW_NEEDS_OWNER_READING": 2,
   "EXCLUDED:NO_NIQQUD_IN_EDITION": 1,
   "EXCLUDED:ENGLISH_ONLY": 2
  },
