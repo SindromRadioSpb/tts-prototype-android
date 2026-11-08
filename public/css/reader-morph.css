@@ -432,7 +432,8 @@ button.rm-proc-chip:hover { border-color: var(--accent); }
   stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.125em; }
 
 /* ── Epic-3a — pronounce-headword button ─────────────────────────────────────── */
-.rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.rm-word-wrap { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.rm-head-translit { font-size: 15px; font-style: italic; color: var(--text-secondary, #475569); unicode-bidi: isolate; overflow-wrap: anywhere; }
 .rm-speak {
   appearance: none; cursor: pointer; flex: none; width: 32px; height: 32px; padding: 0; line-height: 1;
   border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); font-size: 15px;

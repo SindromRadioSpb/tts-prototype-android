@@ -13595,24 +13595,22 @@ function atlasColoursControl(panel) {
 function attachAtlasWords(atlasId, section, data, how) {
   const AW = window.AtlasWords;
   if (!AW || !window.ReaderMorph || !section) return null;
+  // RC3.2 reads through its own projection ('inspection': every readable source field, its own occurrence keys and
+  // context layer). Since 3.11.883 (owner) it is a full learning corpus: the card writes status, words and terms.
   const inspection = atlasId === 'a97001rc32';
   const ctx = atlasWordsCtx = AW.sectionContext(atlasId, data, window.ReaderMorph, inspection ? {purpose:'inspection'} : undefined);
   const layers = () => (how && typeof how.layers === 'function' && how.layers()) || {};
   const AT = window.AtlasTrain, sid = String((data && data.id) || '');
   if (AT && typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(data.terms, atlasMyTerms(atlasId), sid));
   let train = null;
-  const termContext = inspection ? AW.sectionContext(atlasId, data, window.ReaderMorph, {purpose:'term_context'}) : ctx;
-  const approvedTermTargets = AT ? AT.sectionTermItems(termContext) : [];
   const cardTopOf = (occ) => {
     let top = AW.cardTop(occ, ctx, { kicker: tt('atlas.word.term', 'Термин атласа'), mine: tt('atlas.terms.mine', 'Мой термин'),
       other: tt('atlas.word.otherSenses', 'Другие значения'), script: layers().script }) || { title: '' };
-    const ref = occ && occ.atlas_term;
-    const approved = ref && approvedTermTargets.some(it => it.termId === ref.id && it.sense === ref.sense && it.block === occ.sentence_id);
-    if (AT && (!inspection || approved)) {
-      if (!top.title && !inspection) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
-      else if (!inspection || approved) {
+    if (AT) {
+      if (!top.title) top.actions = [{ id: 'add-term', label: tt('atlas.terms.add', 'Добавить в термины') }];
+      else {
         top.actions = [{ id: 'learn-term', label: tt('atlas.train.learnOne', 'Учить этот термин') }];
-        if (top.personal && !inspection) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
+        if (top.personal) top.actions.push({ id: 'edit-term', label: tt('atlas.terms.edit', 'Изменить мой термин') });
       }
     }
     // An uncertainty of this word/MWE stays visible; page-wide editorial notes
@@ -13651,12 +13649,6 @@ function attachAtlasWords(atlasId, section, data, how) {
     },
     // the per-place review and the mentor need a stored sentence: not for atlas places (W0 report §2)
     confirmOccurrenceAnalysis: null, confirmOccurrenceName: null, explainWord: null,
-    ...(inspection ? {
-      saveWord:null, saveUserMeaning:null, saveWordPersonal:null,
-      setWordStatus:null, enrollLearningTarget:null, practiceLearningTarget:null,
-      listLearningTargets:null, getDueSchedule:null, noteRecallShown:null, gradeReadingTap:null,
-      contextProvider:null, refineContext:null,
-    } : {}),
   });
   const labels = { terms: tt('atlas.word.terms', 'Термины абзаца') };
   section.querySelectorAll('.atlas-row[data-ref], .atlas-learning-row[data-ref]').forEach(row => { AW.decorateRow(row, ctx, labels); AW.bindGlossRow(row, ctx); });
@@ -13792,7 +13784,8 @@ function atlasHomeQueue(atlasId, home) {
       const sec = it.sid ? await atlasLoadSection(atlasId, it.sid) : null;
       let sentence = '', sentenceParts = null, from = null, to = null;
       if (sec && AW && RM) {
-        const ctx = AW.sectionContext(atlasId, sec, RM, sec.activation && sec.activation.learning_mode === 'scoped' ? {purpose:'term_context'} : undefined);
+        const ctx = AW.sectionContext(atlasId, sec, RM, atlasId === 'a97001rc32' ? {purpose:'inspection'}
+          : sec.activation && sec.activation.learning_mode === 'scoped' ? {purpose:'term_context'} : undefined);
         if (typeof ctx.setPersonal === 'function') ctx.setPersonal(AT.mergeTerms(sec.terms, atlasMyTerms(atlasId), it.sid));
         const block = ctx.items.get(it.block);
         if (block) {
@@ -13962,7 +13955,8 @@ const ATLAS_SESSION_N = 20;
 function atlasSectionTermsBlock(section, data, ctx, ui) {
   const AT = window.AtlasTrain, AW = window.AtlasWords, RM = window.ReaderMorph, UI = window.AtlasTrainUI;
   const atlasId = ctx.atlasId, sid = String((data && data.id) || '');
-  if (['a97001','a97001rc32'].includes(atlasId) && data.activation && data.activation.learning_mode === 'scoped') {
+  // the original 97001 trains its scoped terms only; RC3.2 trains every eligible term, the learner's own included
+  if (atlasId === 'a97001' && data.activation && data.activation.learning_mode === 'scoped') {
     const priorTerms = ctx.terms; ctx = AW.sectionContext(atlasId, data, RM, {purpose:'term_context'});
     if (typeof ctx.setPersonal === 'function') ctx.setPersonal(priorTerms);
   }

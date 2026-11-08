@@ -311,7 +311,6 @@
     var term = loc && Number.isInteger(off) ? termAt(col === "niqqud" ? loc.niqqud.spans : loc.he.spans, off) : null;
     if (ctx.purpose === 'term_context' && (!term || (it.terms || []).indexOf(term.id + '#' + term.sense) < 0)) return null;
     return Object.freeze({
-      ...(ctx.purpose === 'inspection' ? {inspection_only:true} : {}),
       source_kind: SOURCE_KIND, atlas_id: ctx.atlasId, section_id: ctx.sectionId,
       text_key: ctx.textKeys.get(String(it.id)), text_id: ctx.textKeys.get(String(it.id)), sentence_id: String(it.id), order_index: ctx.order.get(String(it.id)),
       word_offset: Number.isInteger(off) ? off : null, col: col === "niqqud" ? "niqqud" : "he", surface: bareWord(surface),
@@ -323,7 +322,6 @@
   // → { textKey, sentenceId, orderIndex, surface } (the source a mark keeps) or null
   function verifyOccurrence(occ, ctx) {
     if (!occ || occ.source_kind !== SOURCE_KIND || !ctx) return null;
-    if (occ.inspection_only || ctx.purpose === 'inspection') return null;
     var it = ctx.items.get(String(occ.sentence_id));
     if (!it || ctx.order.get(String(it.id)) !== Number(occ.order_index)) return null;
     var key = ctx.textKeys.get(String(it.id));
@@ -373,13 +371,10 @@
     const status = ctx.contextLayerStatus;
     if (status && status.covered.has(occ.sentence_id)) {
       lines.push((labels.prepared || 'Подготовлено ИИ') + ': ' + status.producer);
-      if (ctx.purpose === 'inspection') lines.push(labels.candidate || 'Технический кандидат; содержание ожидает приёмки');
       if (status.coverage_mode === 'partial') lines.push(labels.partial || 'Переведено частично');
     }
     if (source.coverage_notice) lines.push(source.coverage_notice.ru, source.coverage_notice.he);
     lines.push(...(source.scientific_notes || []), ...(source.limits || []).map(x=>x.scope));
-    if (ctx.purpose === 'inspection') lines.push(labels.inspection || 'Словарный просмотр: разбор слова не разрешает учебные оценки. Проверенные термины изучаются отдельно.');
-    if (!top.title) top.title = occ.surface;
     top.details = [{summary:labels.source || 'Источник и ограничения',lines:[...new Set(lines.filter(Boolean))],actions:[{id:'show-source',label:labels.showSource || 'Показать в книге'}]}];
     return top;
   }

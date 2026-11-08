@@ -2480,7 +2480,7 @@
       : "";
     var head =
       '<div class="rm-head">' +
-      '<span class="rm-word-wrap"><span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" + speakBtn + "</span>" +
+      '<span class="rm-word-wrap"><span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" + speakBtn + headTranslitHtml(card.niqqud) + "</span>" +
       '<span class="rm-badges">' +
       '<span class="rm-prov-line"' + (_activeOcc ? ' hidden' : '') + '>' +
       '<span class="rm-prov rm-prov-' + escapeHtml(card.label) + '">' + escapeHtml(tt(label[0], label[1])) + "</span>" +
@@ -2719,17 +2719,32 @@
     try { top = _attachOpts.cardTop(_activeOcc, _activeWordCtx ? _activeWordCtx.row : null); } catch (_) { top = null; }
     return surfaceTopHtml(top, uiDir());
   }
+  // The headword in learner Latin («Транслит: учебная латиница»), read from its vowel marks. A word without marks has
+  // no honest reading (מספקות → «msfkvt»), so it gets none.
+  function headTranslitHtml(niqqud) {
+    var w = String(niqqud || "");
+    var LT = typeof window !== "undefined" && window.LocalTranslit;
+    if (!LT || typeof LT.transliterateWithProfile !== "function" || !/[ְ-ׇּׁׂ]/.test(w)) return "";
+    var t = "";
+    try { t = String(LT.transliterateWithProfile(w, "learner-latin") || "").trim().toLowerCase(); } catch (_) { t = ""; }
+    if (!t || /[֐-׿]/.test(t)) return "";
+    return '<span class="rm-head-translit" dir="ltr" lang="he-Latn" title="' + escapeHtml(tt("classic.translitLearnerLatin", "Транслит: учебная латиница")) + '">' + escapeHtml(t) + "</span>";
+  }
+
   // top = { kicker, title, subtitle, lines[], actions[{ id, label }] }; actions alone (no title) still show — atlas P5:
   // «Добавить в термины» on any word. A click goes to opts.onSurfaceAction(id, occ, row).
   function surfaceTopHtml(top, dir) {
     var actions = top && Array.isArray(top.actions) ? top.actions.filter(function (a) { return a && a.id && a.label; }) : [];
-    if (!top || (!top.title && !actions.length)) return "";
+    var hasDetails = top && Array.isArray(top.details) && top.details.some(function (d) { return d && d.summary; });
+    if (!top || (!top.title && !actions.length && !hasDetails)) return "";
     var lines = Array.isArray(top.lines) ? top.lines.filter(Boolean) : [];
     var details = (Array.isArray(top.details) ? top.details : []).filter(function(d){return d && d.summary;}).map(function(d){
       return '<details class="rm-surface-details" dir="' + escapeHtml(dir || 'ltr') + '"><summary>' + escapeHtml(d.summary) + '</summary>' +
         (Array.isArray(d.lines) ? d.lines : []).filter(Boolean).map(function(line){return '<p>' + escapeHtml(line) + '</p>';}).join('') +
         (Array.isArray(d.actions) ? d.actions : []).filter(function(a){return a && a.id && a.label;}).map(function(a){return '<button type="button" class="rm-surface-action" data-rm-surface-action="' + escapeHtml(a.id) + '">' + escapeHtml(a.label) + '</button>';}).join('') + '</details>';
     }).join('');
+    // An ordinary word has no term of its own: only its source disclosure is shown, never the word again as a «term».
+    if (!top.title && !actions.length) return details;
     return '<section class="rm-surface-top' + (top.title ? "" : " rm-surface-actions-only") + '" dir="' + escapeHtml(dir || "ltr") + '">' +
       (top.title ? (top.kicker ? '<p class="rm-surface-kicker">' + escapeHtml(top.kicker) + "</p>" : "") +
         '<p class="rm-surface-title"><bdi dir="rtl" lang="he">' + escapeHtml(top.title) + "</bdi>" +
@@ -4548,6 +4563,7 @@
 
   var API = {
     surfaceTopHtml: surfaceTopHtml,
+    headTranslitHtml: headTranslitHtml,
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords, setDictaLexicon: setDictaLexicon,
     createRowQueue: createRowQueue, yieldWordWork: yieldWordWork,

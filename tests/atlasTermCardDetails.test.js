@@ -35,3 +35,20 @@ test('authorial canonical correction/expansion never acquires a source word span
  const loc=W.locateBlock({he:'מתק״ש',he_niqqud:'מַתָּכוֹת קָשׁוֹת',terms:[id+'#s1']},{[id]:term},RM);
  assert.deepEqual(loc.he.spans,[]);assert.deepEqual(loc.niqqud.spans,[]);assert.deepEqual(loc.loose,[{id,sense:'s1'}]);
 });
+test('an ordinary atlas word gets the source disclosure alone, without a fake term header',()=>{
+ const html=RM.surfaceTopHtml({title:'',details:[{summary:'Источник и ограничения',lines:['стр. 2'],actions:[{id:'show-source',label:'Показать в книге'}]}]},'ltr');
+ assert(html.startsWith('<details class="rm-surface-details"'));assert(!html.includes('rm-surface-top'));assert(!html.includes('rm-surface-title'));
+ assert.equal(RM.surfaceTopHtml({title:''},'ltr'),'');
+});
+test('headword shows learner Latin from its vowel marks and nothing for an unpointed word',()=>{
+ const vm=require('vm'),fs=require('fs'),path=require('path'),box={require,console};vm.createContext(box);
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../public/js/local-translit-bundle.js'),'utf8')+';this.LT=LocalTranslit;',box);
+ const had=Object.prototype.hasOwnProperty.call(globalThis,'window'),prev=globalThis.window;
+ globalThis.window=Object.assign({},prev||{},{LocalTranslit:box.LT});
+ try{
+  const html=RM.headTranslitHtml('מְסַפְּקוֹת');
+  assert(html.includes('class="rm-head-translit"'));assert(html.includes('dir="ltr"'));assert(html.includes('>mesapkot<'));
+  assert(RM.headTranslitHtml('הָאִישׁ').includes('>ha&#039;ish<'));
+  assert.equal(RM.headTranslitHtml('מספקות'),'');assert.equal(RM.headTranslitHtml(''),'');
+ }finally{ if(had)globalThis.window=prev; else delete globalThis.window; }
+});

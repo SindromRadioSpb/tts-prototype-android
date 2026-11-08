@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.882";
+const CACHE_VERSION = "v3.11.883";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=879",
+  "/js/library-ui.js?v=883",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=880",
   "/js/corpus-registry.js?v=876",
@@ -179,7 +179,7 @@ const PRECACHE_URLS = [
   "/js/reader-core.js?v=817",
   "/js/reader-row-work.js?v=1",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=879",
+  "/css/reader-morph.css?v=883",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -202,11 +202,11 @@ const PRECACHE_URLS = [
   "/js/atlas-speech.js?v=880",
   "/js/atlas-reader.js?v=881",
   "/js/atlas-search.js?v=879",
-  "/js/atlas-words.js?v=879",
+  "/js/atlas-words.js?v=883",
   "/js/atlas-context-contract.js?v=879",
   "/js/atlas-context-addressed.js?v=879",
   "/js/atlas-context-rc32-loader.js?v=879",
-  "/js/atlas-train.js?v=876",
+  "/js/atlas-train.js?v=883",
   "/js/atlas-train-ui.js?v=876",
   "/css/atlas-reader.css?v=880",
   "/js/obsidian-lexical-preview.js?v=10",
@@ -238,7 +238,7 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=879",
+  "/js/reader-morph.js?v=883",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=819",
   "/js/word-gloss-ai.js?v=879",
