@@ -221,8 +221,19 @@ function explainNoReliableFamiliaritySort() {
   roomToast(tt('room.compass.sortNoReliable', 'Пока нет текстов с достаточно достоверной оценкой для сортировки.'));
 }
 
+// Each compass worker holds the whole Pealim inflection dictionary (~44 MB of heap). An idle
+// worker is retired so the dictionary does not stay resident while the learner reads or
+// watches a material: on iPhone all open tabs share one memory budget and the page is killed.
+const COMPASS_WORKER_IDLE_MS = 15000;
+
 function compassWorkerLimit() {
   try { return matchMedia('(max-width: 700px)').matches ? 1 : 2; } catch (_) { return 1; }
+}
+
+function retireCompassWorker(slot) {
+  if (slot.idleTimer) { clearTimeout(slot.idleTimer); slot.idleTimer = 0; }
+  try { slot.worker.terminate(); } catch (_) {}
+  const index = _compassWorkerSlots.indexOf(slot); if (index >= 0) _compassWorkerSlots.splice(index, 1);
 }
 
 function pumpCompassWorkers() {
@@ -230,14 +241,15 @@ function pumpCompassWorkers() {
     while (_compassWorkerQueue.length) _compassWorkerQueue.shift().reject(new Error('WORKER_UNAVAILABLE'));
     return;
   }
-  while (_compassWorkerSlots.length < compassWorkerLimit()) {
+  while (_compassWorkerSlots.length < compassWorkerLimit()
+      && _compassWorkerSlots.filter((slot) => !slot.job).length < _compassWorkerQueue.length) {
     let worker;
     try { worker = new Worker('/js/learning-compass-worker.js'); }
     catch (_) {
       while (_compassWorkerQueue.length) _compassWorkerQueue.shift().reject(new Error('WORKER_UNAVAILABLE'));
       return;
     }
-    const slot = { worker, job: null };
+    const slot = { worker, job: null, idleTimer: 0 };
     worker.onmessage = ({ data }) => {
       const job = slot.job; if (!job || !data || data.id !== job.id) return;
       slot.job = null;
@@ -247,16 +259,20 @@ function pumpCompassWorkers() {
     worker.onerror = () => {
       const job = slot.job; slot.job = null;
       if (job) job.reject(new Error('ANALYSIS_WORKER_FAILED'));
-      try { worker.terminate(); } catch (_) {}
-      const index = _compassWorkerSlots.indexOf(slot); if (index >= 0) _compassWorkerSlots.splice(index, 1);
+      retireCompassWorker(slot);
       pumpCompassWorkers();
     };
     _compassWorkerSlots.push(slot);
   }
-  for (const slot of _compassWorkerSlots) {
-    if (slot.job || !_compassWorkerQueue.length) continue;
-    const job = _compassWorkerQueue.shift(); slot.job = job;
-    slot.worker.postMessage({ id: job.id, type: 'analyze', ...job.payload });
+  for (const slot of _compassWorkerSlots.slice()) {
+    if (slot.job) continue;
+    if (_compassWorkerQueue.length) {
+      if (slot.idleTimer) { clearTimeout(slot.idleTimer); slot.idleTimer = 0; }
+      const job = _compassWorkerQueue.shift(); slot.job = job;
+      slot.worker.postMessage({ id: job.id, type: 'analyze', ...job.payload });
+    } else if (!slot.idleTimer) {
+      slot.idleTimer = setTimeout(() => { slot.idleTimer = 0; if (!slot.job) retireCompassWorker(slot); }, COMPASS_WORKER_IDLE_MS);
+    }
   }
 }
 

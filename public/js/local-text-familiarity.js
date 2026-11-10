@@ -28,14 +28,20 @@
     recorded_familiar_pct_lower_bound: null, unresolved_uncertainty_pp: null, counts: null });
 
   function workerAnalyzer() {
-    let worker = null, serial = 0, pending = null;
-    const dispose = () => { if (worker) worker.terminate(); worker = null; };
+    // The worker holds the whole inflection dictionary (~44 MB): retire it when idle.
+    let worker = null, serial = 0, pending = null, idleTimer = null;
+    const dispose = () => { if (idleTimer) clearTimeout(idleTimer); idleTimer = null; if (worker) worker.terminate(); worker = null; };
     const analyze = payload => new Promise((resolve, reject) => {
       if (pending) { reject(new Error('ANALYZER_BUSY')); return; }
+      if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
       if (!worker) worker = new Worker('/js/learning-compass-worker.js');
       const id = 'studio-familiar-' + (++serial);
       const timer = setTimeout(() => { pending = null; dispose(); reject(new Error('ANALYSIS_TIMEOUT')); }, 90000);
-      const finish = (error, value) => { clearTimeout(timer); pending = null; error ? reject(error) : resolve(value); };
+      const finish = (error, value) => {
+        clearTimeout(timer); pending = null;
+        if (worker && !idleTimer) idleTimer = setTimeout(() => { idleTimer = null; if (!pending) dispose(); }, 15000);
+        error ? reject(error) : resolve(value);
+      };
       pending = { finish };
       worker.onmessage = event => {
         const result = event.data;
