@@ -807,7 +807,7 @@ function roomStateUrl(state) {
   const url = new URL(location.href);
   // Reader identity belongs in the request URL. A fragment describes only the
   // transient presentation and cannot distinguish works to a crawler or recipient.
-  for (const key of ['corpus_work', 'part', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open', 'at']) url.searchParams.delete(key);
+  for (const key of ['corpus_work', 'part', 'public_corpus', 'public_work', 'public_snapshot', 'group_corpus', 'group_work', 'my_text', 'open', 'at', 'news']) url.searchParams.delete(key);
   if (state.surface === 'reader' && roomReaderLinkIdentity) {
     for (const [key, value] of Object.entries(roomReaderLinkIdentity)) url.searchParams.set(key, value);
   }
@@ -834,7 +834,7 @@ function roomInitialMyTextsAnchor() {
 function roomDecodeInitialPresentation() {
   if (location.hash === '#mentor' || location.hash === '#lesson-builder') return null;
   const query = new URLSearchParams(location.search);
-  if (['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open'].some((key) => query.has(key))) return null;
+  if (['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open', 'news'].some((key) => query.has(key))) return null;
   if (String(location.hash || '').startsWith('#room=') && !roomB6.presentationStateFromHash(location.hash)) {
     _roomHistoryFallbackNotice = true;
     return null;
@@ -1994,11 +1994,15 @@ async function restoreReaderReturnContext(context) {
 function setReaderReturnRoute(route) {
   readerReturnRoute = route || null;
   const back = $('readerBack'); if (!back) return;
-  const key = readerReturnRoute === 'mediatheque' ? 'mediatheque.title' : readerReturnRoute === 'lesson-builder' ? 'room.lesson.backToLesson' : 'room.reader.back';
+  const key = readerReturnRoute === 'mediatheque' ? 'mediatheque.title' : readerReturnRoute === 'news' ? 'news.back' : readerReturnRoute === 'lesson-builder' ? 'room.lesson.backToLesson' : 'room.reader.back';
   back.setAttribute('data-i18n', key);
-  back.textContent = readerReturnRoute === 'mediatheque' ? tt(key, 'Медиатека') : readerReturnRoute === 'lesson-builder'
+  back.textContent = readerReturnRoute === 'mediatheque' ? tt(key, 'Медиатека') : readerReturnRoute === 'news' ? tt(key, '← Новости') : readerReturnRoute === 'lesson-builder'
     ? tt(key, '← К уроку') : tt(key, '← Полки');
-  back.href = readerReturnRoute === 'mediatheque' ? (mediathequeReturnHref() || '/mediatheque.html') : '/library.html';
+  back.href = readerReturnRoute === 'mediatheque' ? (mediathequeReturnHref() || '/mediatheque.html') : readerReturnRoute === 'news' ? newsReturnHref() : '/library.html';
+}
+// News section: back to the News tab, never to another origin or page.
+function newsReturnHref() {
+  return (window.NewsReader && window.NewsReader.returnHref(location.search, location.origin)) || '/news.html';
 }
 
 function mediathequeReturnHref() {
@@ -9136,7 +9140,7 @@ async function openReader(textId, title, opts) {
   if (!presentationRestore) roomCommitPresentation(opts && opts.replaceInitialHistory ? 'replace' : 'push', { surface: 'reader', anchor: { itemId: String(textId == null ? '' : textId), rowIndex: 0 } });
   const back = $('readerBack'); if (back) { back.disabled = false; delete back.dataset.busy; back.removeAttribute('aria-disabled'); }
   captureReaderReturnContext();
-  setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : opts && opts.returnToMediatheque ? 'mediatheque' : null);
+  setReaderReturnRoute(opts && opts.returnToLesson ? 'lesson-builder' : opts && opts.returnToMediatheque ? 'mediatheque' : opts && opts.returnToNews ? 'news' : null);
   if (content) content.hidden = true;
   reader.hidden = false;
   cancelCompassBuildSchedule();
@@ -9229,13 +9233,15 @@ async function openReader(textId, title, opts) {
       if (readerCorpusWorkId) probeCorpusExplain(readerCorpusWorkId);
     }
   } catch (_) { readerIsOwnText = !!readerTextKey; }
-  if (readerGroupCorpusId && roomReaderLinkIdentity?.group_work) roomReaderLinkIdentity = { group_corpus: readerGroupCorpusId, group_work: roomReaderLinkIdentity.group_work };
+  const readerNewsMeta = renderReaderNewsSource(res && res.ok ? res.text : null, openEpoch);
+  if (readerNewsMeta && readerPublicWorkId) roomReaderLinkIdentity = { news: readerPublicWorkId };
+  else if (readerGroupCorpusId && roomReaderLinkIdentity?.group_work) roomReaderLinkIdentity = { group_corpus: readerGroupCorpusId, group_work: roomReaderLinkIdentity.group_work };
   else if (readerPublicCorpusSlug && readerPublicWorkId) roomReaderLinkIdentity = { public_corpus: readerPublicCorpusSlug, public_work: readerPublicWorkId };
   else if (readerCorpusWorkId) roomReaderLinkIdentity = { corpus_work: readerCorpusWorkId };
   else if (readerIsOwnText) roomReaderLinkIdentity = { my_text: String(textId) };
   if (!presentationRestore && res && res.ok) roomCommitPresentation('replace');
-  if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
-  if (readerPublicCorpusSlug && readerPublicWorkId) Promise.resolve(renderReaderTaskLearningSupport(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
+  if (readerPublicCorpusSlug && readerPublicWorkId && !readerNewsMeta) Promise.resolve(renderReaderTaskResources(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
+  if (readerPublicCorpusSlug && readerPublicWorkId && !readerNewsMeta) Promise.resolve(renderReaderTaskLearningSupport(readerPublicCorpusSlug, readerPublicWorkId, openEpoch)).catch(() => {});
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   Promise.resolve(attachPartContext(res && res.ok ? res.text : null, openEpoch)).catch(() => {});   // F4 — part bar + next part
   renderReaderLearningNiqqud();
@@ -9414,10 +9420,10 @@ async function closeReader(options) {
   if (content) content.setAttribute('aria-busy', 'true');
   setReaderReturnRoute(null);
   readerReturnContext = null;
-  if (returnRoute === 'mediatheque' && !presentationRestore && !returnHome) {
+  if ((returnRoute === 'mediatheque' || returnRoute === 'news') && !presentationRestore && !returnHome) {
     try { await localDb.closeLocalDB(); } catch (_) {}
     if (closeEpoch !== readerOpenEpoch) return;
-    location.href = mediathequeReturnHref() || '/mediatheque.html';
+    location.href = returnRoute === 'news' ? newsReturnHref() : (mediathequeReturnHref() || '/mediatheque.html');
     return;
   }
   if (returnRoute === 'lesson-builder') {
@@ -10698,6 +10704,69 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
     try { console.warn('[room] open public corpus work failed:', error); } catch (_) {}
     roomToast(tt('room.publicCorpus.unavailable', 'Публичный материал сейчас недоступен'));
   } finally { invalidatePersonalSets(); }
+}
+
+// News section (plan Task 6): «Учебный пересказ LinguistPro по материалам {издание}» above and
+// below a news text, and a note when the article was withdrawn after this copy was made.
+// → the text's source_meta.news, or null for any other text (both plates are then hidden).
+function renderReaderNewsSource(textRow, epoch) {
+  const head = $('readerNewsSource'), foot = $('readerNewsSourceFoot');
+  if (head) { head.replaceChildren(); head.hidden = true; }
+  if (foot) { foot.replaceChildren(); foot.hidden = true; }
+  let meta = null;
+  try { const m = textRow && textRow.source_meta_json ? JSON.parse(textRow.source_meta_json) : null; meta = m && m.news && typeof m.news === 'object' ? m.news : null; } catch (_) { meta = null; }
+  if (!meta || !window.NewsReader) return null;
+  const locale = document.documentElement.lang || undefined;
+  const paint = withdrawn => {
+    if (epoch !== readerOpenEpoch) return;
+    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { t: tt, place: 'head', locale, withdrawn })); head.hidden = false; }
+    if (foot) { foot.replaceChildren(window.NewsReader.renderPlate(document, meta, { t: tt, place: 'foot', locale, withdrawn })); foot.hidden = false; }
+  };
+  paint(false);
+  const work = (() => { try { return JSON.parse(textRow.source_meta_json).public_corpus.public_work_id; } catch (_) { return null; } })();
+  if (work) fetch('/api/news/feed?work=' + encodeURIComponent(work), { cache: 'no-cache' })
+    .then(r => (r.status === 404 ? { card: { tier: 'withdrawn' } } : r.ok ? r.json() : null))
+    .then(p => { if (p && p.card && p.card.tier === 'withdrawn') paint(true); }).catch(() => {});
+  return meta;
+}
+// ?news=<work_id>: opens a news article on the public-work path (no corpus catalog needed).
+// Offline or withdrawn articles fall back to this device's copy, which stays the learner's.
+async function openInitialNewsMaterial(query) {
+  const entry = window.NewsReader && window.NewsReader.parseEntry(location.search);
+  if (!entry || ['my_text', 'open', 'group_corpus', 'corpus_work', 'handoff', 'public_corpus'].some(key => query.has(key))) return false;
+  const epoch = ++readerOpenEpoch, token = ++corpusRenderToken;
+  const isCurrent = () => epoch === readerOpenEpoch && token === corpusRenderToken;
+  setActiveTrack('corpus', { deferRender: true });
+  _roomPresentationReady = true;
+  showState('room.state.loading', '⏳');
+  const openLocalCopy = async () => {
+    const rows = await localDb.dbQuery("SELECT id, title FROM texts WHERE text_key LIKE ? ORDER BY updated_at DESC LIMIT 1", ['public:news-%:' + entry.workId + ':%']);
+    const row = rows && rows[0];
+    if (!row || !isCurrent()) return false;
+    await openReader(row.id, row.title, { resume: true, replaceInitialHistory: true, returnToNews: true, _readerOpenEpoch: epoch });
+    return true;
+  };
+  try {
+    let card = null;
+    try {
+      const response = await fetch('/api/news/feed?work=' + encodeURIComponent(entry.workId), { cache: 'no-cache' });
+      card = response.ok ? (await response.json()).card : null;
+    } catch (_) { card = null; }
+    if (!isCurrent()) return true;
+    if (card && card.readable && card.work_id === entry.workId) {
+      const opened = await openPublicCorpusWork('news-' + card.outlet_id, { public_work_id: card.work_id, snapshot_sha256: card.snapshot_sha256, title: card.title_he },
+        { resume: true, replaceInitialHistory: true, returnToNews: true, _readerOpenEpoch: epoch, isCurrent });
+      if (!isCurrent() || opened) return true;
+    }
+    if (await openLocalCopy()) return true;
+    throw new Error('NEWS_UNAVAILABLE');
+  } catch (_) {
+    if (!isCurrent()) return true;
+    showState('news.unavailable', '⚠️');
+    const back = el('a', { class: 'room-state-retry', attrs: { href: newsReturnHref() }, text: tt('news.back', '← Новости') });
+    $('roomContent')?.appendChild(back);
+  }
+  return true;
 }
 
 // A direct public work needs its live publication pointer and verified edition,
@@ -16882,7 +16951,7 @@ function consumeDueReviewHandoff() {
 
 async function boot() {
   const initialQuery = new URLSearchParams(location.search);
-  const incomingMaterialLink = ['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open'].some((key) => initialQuery.has(key));
+  const incomingMaterialLink = ['corpus_work', 'public_corpus', 'my_text', 'group_corpus', 'open', 'news'].some((key) => initialQuery.has(key));
   const initialPresentation = roomDecodeInitialPresentation();
   let localLinkOpened = false;
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
@@ -16935,7 +17004,12 @@ async function boot() {
         if (atRow != null && initialQuery.get('play') === '1') roomCueRowReplay(atRow);
       }
     }
-    const publicLinkHandled = await openInitialPublicMaterial(initialQuery, initialPresentation);
+    const newsLinkHandled = await openInitialNewsMaterial(initialQuery);
+    const publicLinkHandled = newsLinkHandled || await openInitialPublicMaterial(initialQuery, initialPresentation);
+    // News: device copies of read articles without learner data go away (at most once a day, off the boot path).
+    setTimeout(() => {
+      if (window.NewsLocalSweep) window.NewsLocalSweep.maybeRun(localDb, { keepIds: readerTextId ? [String(readerTextId)] : [] }).catch(() => {});
+    }, 45000);
     const corpusCatalogLoad = loadCorpusCatalog(); // R8: the catalog root loads beside the canon import
     // O-020: on a cold profile the default «Библиотека» home does not wait for the canon import.
     // An atlas is served from its own JSON. Unpacking the unrelated canon ZIP

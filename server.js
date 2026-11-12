@@ -334,7 +334,14 @@ app.use((req, res, next) => {
   const isPronunciationShell = req.path === PRONUNCIATION_SHELL_PATH;
   const isStudyVideoShell = req.path === '/study-video.html';
   const isStudyFullShell = ['/study-studio.html','/study-library.html'].includes(req.path);
-  if (isMiniappShell) {
+  const isNewsShell = req.path === '/news.html';
+  if (isNewsShell) {
+    // News feed: no SQLite/OPFS on this screen. Outlet photos are shown as link previews loaded
+    // from the outlet's own site; COEP require-corp would block them (news CDNs send no CORP).
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Cache-Control', 'no-cache');
+  } else if (isMiniappShell) {
     res.setHeader("Content-Security-Policy", MINIAPP_CSP);
     res.setHeader("Cache-Control", "no-cache");
   } else if (isAgentAccessShell) {
@@ -376,7 +383,9 @@ app.use((req, res, next) => {
     // The miniapp shell is excluded: it carries its own ENFORCED CSP above, and the
     // report-only frame-ancestors 'self' would spam violation reports from Telegram Web.
     res.setHeader("Reporting-Endpoints", 'csp-endpoint="/api/csp-report"');
-    res.setHeader("Content-Security-Policy-Report-Only", CSP_REPORT_ONLY_VALUE);
+    res.setHeader("Content-Security-Policy-Report-Only", isNewsShell
+      ? CSP_REPORT_ONLY_VALUE.replace("img-src 'self' data: blob: https://i.ytimg.com", "img-src 'self' data: blob: https:")
+      : CSP_REPORT_ONLY_VALUE);
   }
   next();
 });
@@ -1441,7 +1450,12 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=884",
+  "/js/library-ui.js?v=885",
+  // News section (3.11.885)
+  "/js/news-outlets.js?v=885",
+  "/js/news-reader.js?v=885",
+  "/js/news-local-sweep.js?v=885",
+  "/css/news-reader.css?v=885",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=880",
   "/js/atlas-train-ui.js?v=876",
@@ -1517,7 +1531,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/world-engine.js?v=882",
   "/js/world-render.js?v=856",
   "/css/world-skin.css?v=799",
-  "/js/app-nav.js?v=747",
+  "/js/app-nav.js?v=885",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
@@ -1525,9 +1539,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=880",
-  "/i18n/locales/en.js?v=880",
-  "/i18n/locales/he.js?v=880",
+  "/i18n/locales/ru.js?v=885",
+  "/i18n/locales/en.js?v=885",
+  "/i18n/locales/he.js?v=885",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4587,6 +4601,37 @@ app.post("/api/publication/corpora/:corpusId/draft\\:new-revision", rlPublicatio
 function learningAudioCatalogEtagHash(manifestSha256) {
   return crypto.createHash("sha256").update(String(manifestSha256) + ":learning-audio-v1").digest("hex");
 }
+// News section (docs/planning/NEWS_SECTION_PLAN_V1_2026_11_12.md). Mounted before the generic
+// /api/public-corpora/:slug/works/:workId so news-<outlet> works are served by the news store.
+// Editor keys/sessions are accepted only by /api/news/editor/*; they never become lp_session.
+let _newsStore = null;
+function newsStore() {
+  if (!_newsStore) {
+    const db = require("./db/sqlite").getDb();
+    _newsStore = { repo: require("./db/newsRepo").createNewsRepo({ db }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }) };
+  }
+  return _newsStore;
+}
+const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
+require("./news/newsRoutes").mountNewsRoutes(app, {
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth),
+  resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
+  // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
+  audit: (type, actorId, detail, ip) => {
+    const editor = typeof actorId === "string" && actorId.startsWith("editor:");
+    Promise.resolve(identityRepo.audit(type, editor ? null : actorId, editor ? { ...detail, editor: actorId } : detail, ip)).catch(() => {});
+  },
+  readLimiter: makeRateLimiter({ windowMs: 60_000, max: 300, name: "news-read" }), writeLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "news-editor-write" }),
+});
+const _newsLifecycle = setInterval(() => {
+  newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
+}, 3600 * 1000);
+if (_newsLifecycle.unref) _newsLifecycle.unref();
+// Deploys restart the interval: also run once shortly after boot so stages advance even with frequent releases.
+const _newsLifecycleBoot = setTimeout(() => {
+  newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
+}, 90 * 1000);
+if (_newsLifecycleBoot.unref) _newsLifecycleBoot.unref();
 // MASS_ACCESS_I4_PUBLIC_READ_BEGIN
 // Anonymous public-corpus reads are a separate namespace and projection. They
 // intentionally have no session, CSRF, audit or publication-write middleware.

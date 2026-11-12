@@ -1,0 +1,16 @@
+/* News section: the source plate above and below a news text in the Reading Room (news-reader.js). */
+#readerNewsSource[hidden], #readerNewsSourceFoot[hidden] { display: none; }
+.reader-news-source { margin: 8px 0 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--lp-border, #dce3ee);
+  background: var(--lp-surface-2, #f6f8fc); color: var(--lp-text-2, #536479); font-size: 0.9rem; line-height: 1.45; }
+.reader-news-source-foot { margin-top: 16px; }
+.reader-news-source p { margin: 0; overflow-wrap: anywhere; }
+.reader-news-source-note { margin-top: 4px !important; font-size: 0.85rem; }
+.reader-news-source a { color: var(--lp-accent, #1B4FB8); }
+.reader-news-outlet { display: inline-block; margin: 0 2px; padding: 0 6px; border-radius: 6px; color: #fff; font-weight: 600;
+  background: var(--news-outlet-color, #3d4a5c); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .reader-news-source { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); color: #b8c3d3; }
+  :root:not([data-theme="light"]) .reader-news-source a { color: #8fb4ff; }
+}
+:root[data-theme="dark"] .reader-news-source { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); color: #b8c3d3; }
+:root[data-theme="dark"] .reader-news-source a { color: #8fb4ff; }

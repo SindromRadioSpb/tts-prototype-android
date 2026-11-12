@@ -34,6 +34,7 @@
   <!-- Общие стили морф-карточки + палитра статусов (одна реализация со Студией). Подключён ДО
        инлайн-<style>, чтобы Room-специфичные правила при равной специфичности выигрывали каскадом. -->
   <link rel="stylesheet" href="/css/reader-morph.css?v=883">
+  <link rel="stylesheet" href="/css/news-reader.css?v=885">
   <link rel="stylesheet" href="/css/lexical-resolution.css?v=6">
   <link rel="stylesheet" href="/css/atlas-reader.css?v=880">
   <link rel="stylesheet" href="/css/course-reader.css?v=859">
@@ -3268,7 +3269,7 @@
 <style>.subtitle-speech-badge::after { content: attr(aria-label); }</style>
 </head>
 <body>
-<script src="/js/app-nav.js?v=747"></script>
+<script src="/js/app-nav.js?v=885"></script>
 <!-- No-flash theme: apply the shared Studio theme choice (appTheme_v1) before paint. -->
 <script>(function(){try{var t=localStorage.getItem("appTheme_v1");if(t==="light")document.body.classList.add("theme-light");else if(t==="dark")document.body.classList.add("theme-dark");}catch(_){}})();</script>
 
@@ -3342,6 +3343,8 @@
   <!-- Epic-6 W1-a — per-work source attribution + reader-header context (R6/R9): author · era · register · «Источник ↗».
        Post-render chrome (sibling of .reader-bar, under #readerTitle), built by setReaderSubtitle in openReader; self-hides for personal/non-corpus texts. -->
   <div id="readerSubtitle" class="reader-subtitle" dir="auto" hidden></div>
+  <!-- News section: «Учебный пересказ … по материалам {издание}» above and below a news text (news-reader.js). -->
+  <div id="readerNewsSource" hidden></div>
   <button id="readerStudyVideo" class="reader-back study-video-entry" type="button" hidden>Видео и строки</button>
   <span id="readerStudyVideoStatus" role="status"></span>
   <div id="readerTaskResources" class="reader-task-resources" hidden></div>
@@ -3362,6 +3365,7 @@
   <div id="roomReaderTable" class="reader-table-wrap"></div>
   <div id="readerTaskLearningSupport" class="reader-task-learning-support" hidden></div>
   <div id="readerCopyright" class="reader-copyright"></div>
+  <div id="readerNewsSourceFoot" hidden></div>
   <!-- Epic-2 #3 — honest provenance: translation AND vocalization are machine-made (R9). -->
   <p id="readerProvNote" class="reader-prov-note" dir="auto" data-i18n="room.prov.note">Перевод и огласовка — машинные, не вычитаны.</p>
 </section>
@@ -3419,7 +3423,7 @@
       <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
       <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
       <a href="/db-diagnostics.html" target="_blank" rel="noopener" data-i18n="dashboard.secDiag">Диагностика системы</a>
-      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.884</button>
+      <button class="room-footer-version" id="roomFooterVersion" type="button" data-i18n-title="room.footer.about" title="О Зале">v3.11.885</button>
     </p>
   </div>
 </div>
@@ -3596,9 +3600,9 @@
      до TTL 30 мин), завершение — только явной кнопкой с подтверждением. -->
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
-    <script src="/i18n/locales/ru.js?v=880"></script>
-    <script src="/i18n/locales/en.js?v=880"></script>
-    <script src="/i18n/locales/he.js?v=880"></script>
+    <script src="/i18n/locales/ru.js?v=885"></script>
+    <script src="/i18n/locales/en.js?v=885"></script>
+    <script src="/i18n/locales/he.js?v=885"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
@@ -3766,7 +3770,10 @@
 <script src="/js/local-translit-bundle.js?v=810"></script>
 <script src="/js/translit-display.js?v=817"></script>
 <script src="/js/atlas-progress-export.js?v=876"></script>
-<script type="module" src="/js/library-ui.js?v=884"></script>
+<script src="/js/news-outlets.js?v=885"></script>
+<script src="/js/news-reader.js?v=885"></script>
+<script src="/js/news-local-sweep.js?v=885"></script>
+<script type="module" src="/js/library-ui.js?v=885"></script>
 <script src="/js/tutor-client.js?v=2"></script>
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=718"></script>

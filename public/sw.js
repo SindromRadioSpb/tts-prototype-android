@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.884";
+const CACHE_VERSION = "v3.11.885";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,15 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=884",
+  "/js/library-ui.js?v=885",
+  // News section (3.11.885)
+  "/js/news-outlets.js?v=885",
+  "/js/news-reader.js?v=885",
+  "/js/news-local-sweep.js?v=885",
+  "/css/news-reader.css?v=885",
+  "/news.html",
+  "/js/news-ui.js?v=885",
+  "/css/news.css?v=885",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=880",
   "/js/corpus-registry.js?v=876",
@@ -343,7 +351,7 @@ const PRECACHE_URLS = [
   "/js/world-engine.js?v=882",
   "/js/world-render.js?v=856",
   "/css/world-skin.css?v=799",
-  "/js/app-nav.js?v=747",
+  "/js/app-nav.js?v=885",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
@@ -381,9 +389,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=880",
-  "/i18n/locales/en.js?v=880",
-  "/i18n/locales/he.js?v=880",
+  "/i18n/locales/ru.js?v=885",
+  "/i18n/locales/en.js?v=885",
+  "/i18n/locales/he.js?v=885",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -596,6 +604,9 @@ self.addEventListener("fetch", (event) => {
   // Д8-К4 v2: a corpus work's baked Dicta facts go straight into the device's database once — never into a PWA cache
   // (a second copy of the same facts; plan F4_D8K4_V2 К4.2)
   if (url.pathname.startsWith("/data/corpus-parse/") || /^\/api\/public-corpora\/[^/]+\/works\/[^/]+\/parse$/.test(url.pathname)) return;
+  // News: an opened article lives in the device database (and the daily sweep removes it); a second copy in
+  // CacheStorage would grow by every article read and outlive withdrawal. Network-only.
+  if (/^\/api\/public-corpora\/news-[a-z0-9]+\//.test(url.pathname)) return;
   if (req.method === "GET" && url.pathname.startsWith("/api/public-corpora")) {
     if (url.pathname.endsWith("/package")) return;
     // Owner-curated task PDFs are immutable but can be large and are served
