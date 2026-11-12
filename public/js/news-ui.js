@@ -119,6 +119,43 @@
     return "/api/news/feed?" + q.toString();
   }
 
+  // A returning visitor's old service worker still serves the old Reading Room, which does not know
+  // ?news= and would open its home instead of the article. When an update is waiting, show a banner
+  // and hold article taps; the new worker is activated only by the explicit Update press (the
+  // project's update policy). The News page itself writes nothing local, so it is a safe point.
+  function installUpdateGate(win, t) {
+    var doc = win.document, host = doc.getElementById("nw-update"), reg = null, reloading = false;
+    function show() {
+      if (!host) return;
+      var button = h(doc, "button", { type: "button", class: "nw-button", text: t("news.updateButton", "Обновить") });
+      button.addEventListener("click", function () {
+        if (!reg || !reg.waiting) { if (!reloading) { reloading = true; win.location.reload(); } return; }
+        button.disabled = true;
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        win.setTimeout(function () { if (!reloading) { reloading = true; win.location.reload(); } }, 4000);
+      });
+      host.replaceChildren(h(doc, "p", { text: t("news.updateText", "Вышла новая версия приложения. Обновите, чтобы статьи открывались правильно.") }), button);
+      host.hidden = false;
+    }
+    doc.addEventListener("click", function (e) {
+      if (!reg || !reg.waiting) return;
+      var a = e.target && e.target.closest && e.target.closest("a.nw-card-main");
+      if (!a) return;
+      e.preventDefault();
+      if (host) { host.setAttribute("data-attention", "true"); var b = host.querySelector("button"); if (b && b.focus) b.focus(); }
+    }, true);
+    var sw = win.navigator && win.navigator.serviceWorker;
+    if (sw && sw.addEventListener) sw.addEventListener("controllerchange", function () { if (!reloading) { reloading = true; win.location.reload(); } });
+    var ready = Promise.resolve(sw && sw.getRegistration ? sw.getRegistration("/") : null).then(function (r) {
+      reg = r || null;
+      if (reg && reg.waiting) show();
+      if (reg && reg.addEventListener) reg.addEventListener("updatefound", function () {
+        var w = reg.installing; if (w && w.addEventListener) w.addEventListener("statechange", function () { if (w.state === "installed" && reg.waiting) show(); });
+      });
+    }).catch(function () {});
+    return { ready: ready };
+  }
+
   // ---- page ----
   function boot(win) {
     var doc = win.document, root = doc.getElementById("nw-root");
@@ -247,7 +284,8 @@
     doc.addEventListener("i18n:changed", function () { if (lang && win.appGetLocale) lang.value = win.appGetLocale(); render(); });
     win.addEventListener("popstate", render);
     applyTheme();
+    installUpdateGate(win, t);
     render();
   }
-  return { renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
+  return { installUpdateGate: installUpdateGate, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });

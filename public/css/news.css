@@ -76,3 +76,7 @@ a.nw-card-main:hover .nw-card-title{text-decoration:underline;text-underline-off
   .nw-root{padding:18px 16px 90px}.nw-header{padding:10px 16px}.nw-card-title{font-size:1.2rem}}
 @media(max-width:400px){.nw-tiles{gap:10px}.nw-tile{min-height:104px;padding:12px 46px 12px 12px}[dir=rtl] .nw-tile{padding:12px 12px 12px 46px}.nw-tile-name{font-size:1.2rem}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.nw-update{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;max-width:1180px;margin:12px auto 0;padding:12px 16px;border:1px solid var(--nw-accent);border-radius:var(--nw-radius);background:var(--nw-soft)}
+.nw-update p{margin:0;line-height:1.5}
+.nw-update[data-attention=true]{outline:3px solid var(--nw-accent);outline-offset:2px}
+@media(max-width:720px){.nw-update{margin:10px 16px 0}}

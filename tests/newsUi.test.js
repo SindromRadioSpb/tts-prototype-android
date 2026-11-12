@@ -82,3 +82,27 @@ test('review fix: a broken photo keeps the 16:9 frame (no layout shift)', () => 
   const css = fs.readFileSync(path.join(__dirname, '..', 'public/css/news.css'), 'utf8');
   assert.ok(css.includes('.nw-cover-failed{aspect-ratio:16/9}'), 'failed-photo cover keeps 16:9');
 });
+test('update gate: a waiting app update shows a banner and holds article taps until the user updates', async () => {
+  const { window, document } = parseHTML('<html><body><div id="nw-update" hidden></div><main id="nw-root"><a class="nw-card-main" href="/library.html?news=x">a</a></main></body></html>');
+  const posted = [];
+  const reg = { waiting: { postMessage: m => posted.push(m) } };
+  const gate = UI.installUpdateGate({ document, navigator: { serviceWorker: { getRegistration: async () => reg, addEventListener() {} } }, location: { reload() {} }, setTimeout }, (k, f) => f);
+  await gate.ready;
+  const banner = document.getElementById('nw-update');
+  assert.equal(banner.hidden, false);
+  assert.match(banner.textContent, /новая версия/i);
+  const ev = new window.Event('click', { bubbles: true, cancelable: true });
+  document.querySelector('a.nw-card-main').dispatchEvent(ev);
+  assert.equal(ev.defaultPrevented, true, 'article tap is held while the old shell would open');
+  banner.querySelector('button').dispatchEvent(new window.Event('click', { bubbles: true }));
+  assert.deepEqual(posted, [{ type: 'SKIP_WAITING' }], 'only the explicit Update press activates the new worker');
+});
+test('update gate: nothing waiting → no banner, taps pass', async () => {
+  const { window, document } = parseHTML('<html><body><div id="nw-update" hidden></div><main id="nw-root"><a class="nw-card-main" href="/x">a</a></main></body></html>');
+  const gate = UI.installUpdateGate({ document, navigator: { serviceWorker: { getRegistration: async () => ({ waiting: null }), addEventListener() {} } }, location: { reload() {} }, setTimeout }, (k, f) => f);
+  await gate.ready;
+  assert.equal(document.getElementById('nw-update').hidden, true);
+  const ev = new window.Event('click', { bubbles: true, cancelable: true });
+  document.querySelector('a.nw-card-main').dispatchEvent(ev);
+  assert.equal(ev.defaultPrevented, false);
+});
