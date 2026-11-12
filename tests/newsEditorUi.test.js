@@ -42,3 +42,21 @@ test('the editor key is never stored or put in the address', () => {
   assert.match(html, /<meta name="robots" content="noindex/);
   assert.match(html, /id="ne-root"/); assert.match(html, /\/js\/news-editor-ui\.js\?v=\d+/);
 });
+test('article list rows: titles not file paths; actions per view; trash shows when it is erased', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const base = { article_id: 'na_' + 'a'.repeat(24), outlet_id: 'walla', published_at: new Date().toISOString(), title_he: 'מלון חדש', title_ru: 'Новый отель', section: 'lifestyle' };
+  const t = tFor(locales().ru);
+  const labels = row => [...row.querySelectorAll('button')].map(b => b.textContent);
+  const feed = UI.renderArticleRow(document, { ...base, tier: 'fresh' }, { t, view: 'feed', onAction() {} });
+  assert.match(feed.textContent, /מלון חדש/); assert.match(feed.textContent, /Новый отель/); assert.doesNotMatch(feed.textContent, /article\.json|articles\//);
+  assert.deepEqual(labels(feed), ['В архив', 'Удалить']);
+  assert.deepEqual(labels(UI.renderArticleRow(document, { ...base, tier: 'archive', can_return_to_feed: true }, { t, view: 'archive', onAction() {} })), ['Вернуть в ленту', 'Удалить']);
+  assert.deepEqual(labels(UI.renderArticleRow(document, { ...base, tier: 'card', can_return_to_feed: false }, { t, view: 'archive', onAction() {} })), ['Удалить']);
+  const trash = UI.renderArticleRow(document, { ...base, tier: 'withdrawn', purge_at: '2026-12-13T10:00:00.000Z' }, { t, view: 'deleted', onAction() {} });
+  assert.deepEqual(labels(trash), ['Восстановить']);
+  assert.match(trash.textContent, /навсегда/);
+});
+test('the receipt no longer lists per-article buttons with file paths', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'public/js/news-editor-ui.js'), 'utf8');
+  assert.doesNotMatch(src, /ne-article-actions/);
+});

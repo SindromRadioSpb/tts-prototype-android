@@ -16,6 +16,7 @@ async function setup(t, { packLimit } = {}) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
   await exec(db, 'PRAGMA foreign_keys=ON');
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '078_news.sql'), 'utf8'));
+  await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '079_news_manage.sql'), 'utf8'));
   const repo = createNewsRepo({ db, now: () => NOW }), auth = createNewsEditorAuth({ db, now: () => NOW });
   const app = express(), audits = [], userLookups = [];
   // The owner session is resolved by the app; an editor key must never reach this resolver as a session.
@@ -126,4 +127,27 @@ test('review fix: the spec upload path POST /api/news/packs works for an editor 
   const { key } = await auth.createEditor('owner', 'dot');
   const r = await call('POST', '/api/news/packs', { body: fixturePack([fixtureArticle()]), headers: zipHeaders({ authorization: 'Bearer ' + key }) });
   assert.equal(r.status, 200); assert.equal(r.body.receipt.totals.published, 1);
+});
+test('manage: archive, return to feed, delete, restore and the editor list through the routes', async t => {
+  const { call, repo, auth } = await setup(t);
+  const receipt = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle()]));
+  const id = receipt.items[0].article_id;
+  const { key } = await auth.createEditor('owner', 'dot');
+  const H = { authorization: 'Bearer ' + key };
+  assert.equal((await call('POST', '/api/news/editor/articles/' + id + '/archive', { json: {}, headers: H })).body.tier, 'archive');
+  assert.equal((await call('GET', '/api/news/editor/articles?view=archive', { headers: H })).body.items.length, 1);
+  assert.equal((await call('POST', '/api/news/editor/articles/' + id + '/unarchive', { json: {}, headers: H })).body.tier, 'fresh');
+  const del = await call('POST', '/api/news/editor/articles/' + id + '/delete', { json: {}, headers: ownerHeaders });
+  assert.equal(del.body.tier, 'withdrawn'); assert.ok(del.body.purge_at);
+  const trash = await call('GET', '/api/news/editor/articles?view=deleted', { headers: H });
+  assert.equal(trash.body.items[0].title_he, fixtureArticle().learning.title_he);
+  assert.equal((await call('POST', '/api/news/editor/articles/' + id + '/restore', { json: {}, headers: H })).body.tier, 'fresh');
+  assert.equal((await call('GET', '/api/news/editor/articles?view=deleted')).status, 401);
+  assert.equal((await call('POST', '/api/news/editor/articles/' + id + '/archive', { json: {} })).status, 401);
+});
+test('manage: soft role probe answers 200 for everyone (no console error for readers)', async t => {
+  const { call } = await setup(t);
+  const anon = await call('GET', '/api/news/editor/me?soft=1');
+  assert.equal(anon.status, 200); assert.equal(anon.body.kind, null);
+  assert.equal((await call('GET', '/api/news/editor/me?soft=1', { headers: { cookie: OWNER_COOKIE } })).body.kind, 'owner');
 });

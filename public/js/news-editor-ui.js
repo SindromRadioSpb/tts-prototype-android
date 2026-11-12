@@ -70,6 +70,37 @@
     return b;
   }
 
+  // One row of the «Статьи» list. view: 'feed' | 'archive' | 'deleted'.
+  function renderArticleRow(doc, card, opts) {
+    var t = opts.t || function (k, f) { return f; };
+    var O = (typeof self !== "undefined" && self.NewsOutlets) || (typeof require === "function" ? require("./news-outlets") : null);
+    var o = (O && O.byId(card.outlet_id)) || { name_latin: card.outlet_id, color: "#3d4a5c" };
+    var tag = h(doc, "span", { class: "nw-outlet-tag", text: o.name_latin }); tag.style.setProperty("--nw-outlet", o.color);
+    var when = "";
+    try { when = new Date(card.published_at).toLocaleString(); } catch (_) {}
+    var row = h(doc, "div", { class: "ne-article-row", "data-article": card.article_id }, [
+      h(doc, "div", { class: "ne-article-text" }, [h(doc, "p", { class: "ne-muted" }, [tag, " · " + when]),
+        h(doc, "p", { class: "ne-article-he", lang: "he", dir: "rtl", text: card.title_he }),
+        h(doc, "p", { class: "ne-article-ru", dir: "auto", text: card.title_ru })])]);
+    var actions = h(doc, "div", { class: "ne-row-actions" });
+    function add(action, label, danger) {
+      var run = function () { return opts.onAction(action, card, row); };
+      actions.appendChild(danger ? confirmButton(doc, label, t("newsEditor.confirmDelete", "Удалить? Нажмите ещё раз"), run)
+        : (function () { var b = h(doc, "button", { type: "button", class: "ne-button ne-quiet", text: label }); b.addEventListener("click", run); return b; })());
+    }
+    if (opts.view === "deleted") {
+      var date = ""; try { date = new Date(card.purge_at).toLocaleDateString(); } catch (_) {}
+      row.firstChild.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.purgeAt", "Удалится навсегда {date}").replace("{date}", date) }));
+      add("restore", t("newsEditor.action.restore", "Восстановить"));
+    } else {
+      if (opts.view === "feed") add("archive", t("newsEditor.action.archive", "В архив"));
+      else if (card.can_return_to_feed) add("unarchive", t("newsEditor.action.unarchive", "Вернуть в ленту"));
+      add("delete", t("newsEditor.action.delete", "Удалить"), true);
+    }
+    row.appendChild(actions);
+    return row;
+  }
+
   function boot(win) {
     var doc = win.document, root = doc.getElementById("ne-root"), live = doc.getElementById("ne-status");
     var t = function (k, f) { try { var v = typeof win.t === "function" ? win.t(k) : ""; return v && v !== k ? v : f; } catch (_) { return f; } };
@@ -143,9 +174,9 @@
           var show = h(doc, "button", { type: "button", class: "ne-button ne-quiet", text: t("newsEditor.showReceipt", "Квитанция") });
           show.addEventListener("click", function () { showReceipt(p.receipt); });
           line.appendChild(show);
-          line.appendChild(confirmButton(doc, t("newsEditor.withdrawPack", "Снять пакет"), t("newsEditor.confirm", "Точно? Нажмите ещё раз"), async function () {
+          line.appendChild(confirmButton(doc, t("newsEditor.withdrawPack", "Удалить пакет"), t("newsEditor.confirm", "Точно? Нажмите ещё раз"), async function () {
             try { var r = await api("POST", "/api/news/editor/packs/" + encodeURIComponent(p.pack_id) + "/withdraw", json({ reason: "editor" }), "application/json");
-              say(t("newsEditor.withdrawnCount", "Снято статей: {n}").replace("{n}", String(r.count))); } catch (e) { say(errorText(e)); }
+              say(t("newsEditor.withdrawnCount", "Удалено статей: {n}").replace("{n}", String(r.count))); } catch (e) { say(errorText(e)); }
           }));
           box.appendChild(line);
         });
@@ -155,17 +186,50 @@
     var receiptHost = null;
     function showReceipt(receipt) {
       var el = renderReceipt(doc, receipt, { t: t });
-      var list = h(doc, "div", { class: "ne-article-actions" });
-      (receipt.items || []).filter(function (i) { return i.article_id && ["published", "archived", "revised"].indexOf(i.status) >= 0; }).forEach(function (i) {
-        list.appendChild(h(doc, "div", { class: "ne-article" }, [h(doc, "span", { text: i.path }),
-          confirmButton(doc, t("newsEditor.withdrawArticle", "Снять"), t("newsEditor.confirm", "Точно? Нажмите ещё раз"), async function () {
-            try { await api("POST", "/api/news/editor/articles/" + encodeURIComponent(i.article_id) + "/withdraw", json({ reason: "editor" }), "application/json"); say(t("newsEditor.withdrawn", "Статья снята")); }
-            catch (e) { say(errorText(e)); }
-          })]));
-      });
-      if (list.children.length) el.appendChild(list);
       receiptHost.replaceChildren(el);
       el.setAttribute("tabindex", "-1"); el.focus();
+    }
+    // «Статьи»: what is in the feed, in the archive and in the 30-day trash — by title, not by file.
+    function articlesCard() {
+      var state = { view: "feed", outlet: "", q: "", cursor: null };
+      var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-articles-title" }, [h(doc, "h2", { id: "ne-articles-title", text: t("newsEditor.articles", "Статьи") })]);
+      var tabs = h(doc, "div", { class: "nw-tabs", role: "group", "aria-label": t("newsEditor.articles", "Статьи") });
+      [["feed", t("newsEditor.view.feed", "В ленте")], ["archive", t("newsEditor.view.archive", "В архиве")], ["deleted", t("newsEditor.view.deleted", "Удалённые")]].forEach(function (v) {
+        var b = h(doc, "button", { type: "button", class: "nw-tab", "data-view": v[0], "aria-pressed": v[0] === state.view ? "true" : "false", text: v[1] });
+        b.addEventListener("click", function () { state.view = v[0]; tabs.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); reload(); });
+        tabs.appendChild(b);
+      });
+      var outlet = h(doc, "select", { "aria-label": t("newsEditor.outlet", "Издание") }, [h(doc, "option", { value: "", text: t("newsEditor.allOutlets", "Все издания") })]);
+      (win.NewsOutlets ? win.NewsOutlets.OUTLETS : []).forEach(function (o) { outlet.appendChild(h(doc, "option", { value: o.id, text: o.name_latin })); });
+      outlet.addEventListener("change", function () { state.outlet = outlet.value; reload(); });
+      var search = h(doc, "input", { type: "search", placeholder: t("newsEditor.search", "Поиск по заголовку"), "aria-label": t("newsEditor.search", "Поиск по заголовку") });
+      var timer = null;
+      search.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(function () { state.q = search.value.trim(); reload(); }, 300); });
+      var list = h(doc, "div", { class: "ne-articles", "aria-live": "polite" });
+      var more = h(doc, "button", { type: "button", class: "ne-button ne-quiet", text: t("newsEditor.more", "Показать ещё"), hidden: true });
+      more.addEventListener("click", function () { page(); });
+      box.append(tabs, h(doc, "div", { class: "ne-inline ne-filters" }, [outlet, search]), list, more);
+      var MESSAGES = { archive: t("newsEditor.doneAction.archive", "Статья перенесена в архив"), unarchive: t("newsEditor.doneAction.unarchive", "Статья возвращена в ленту"),
+        delete: t("newsEditor.doneAction.delete", "Статья удалена — она в «Удалённых» 30 дней"), restore: t("newsEditor.doneAction.restore", "Статья восстановлена") };
+      async function onAction(action, card, row) {
+        try { await api("POST", "/api/news/editor/articles/" + encodeURIComponent(card.article_id) + "/" + action, json({}), "application/json"); row.remove(); say(MESSAGES[action]); }
+        catch (e) { say(e.message === "NEWS_TOO_OLD_FOR_FEED" ? t("newsEditor.tooOld", "Статье больше трёх дней — в ленту её вернуть нельзя") : errorText(e)); }
+      }
+      async function page() {
+        var q = new URLSearchParams({ view: state.view, limit: "30" });
+        if (state.outlet) q.set("outlet", state.outlet);
+        if (state.q) q.set("q", state.q);
+        if (state.cursor) q.set("cursor", state.cursor);
+        try {
+          var data = await api("GET", "/api/news/editor/articles?" + q.toString());
+          data.items.forEach(function (card) { list.appendChild(renderArticleRow(doc, card, { t: t, view: state.view, onAction: onAction })); });
+          if (!list.children.length) list.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.empty", "Здесь пока пусто") }));
+          state.cursor = data.next_cursor; more.hidden = !state.cursor;
+        } catch (e) { list.appendChild(h(doc, "p", { text: errorText(e) })); }
+      }
+      function reload() { state.cursor = null; list.replaceChildren(); page(); }
+      reload();
+      return box;
     }
     async function editorsCard() {
       var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-editors-title" }, [h(doc, "h2", { id: "ne-editors-title", text: t("newsEditor.editors", "Редакторы") }),
@@ -216,7 +280,7 @@
         who.appendChild(out);
       }
       receiptHost = h(doc, "div", { class: "ne-receipt-host" });
-      var parts = [who, uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var parts = [who, articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }
@@ -228,5 +292,5 @@
     doc.addEventListener("i18n:changed", function () { render(); });
     render();
   }
-  return { renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
+  return { renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
 });

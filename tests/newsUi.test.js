@@ -106,3 +106,27 @@ test('update gate: nothing waiting → no banner, taps pass', async () => {
   document.querySelector('a.nw-card-main').dispatchEvent(ev);
   assert.equal(ev.defaultPrevented, false);
 });
+test('manage menu: only for owner/editor; fresh → «В архив», young archive → «Вернуть в ленту», always «Удалить» with a titled confirm', async () => {
+  const { window, document } = parseHTML('<html><body></body></html>');
+  assert.equal(UI.renderCard(document, card(), { now: NOW }).querySelector('.nw-manage'), null, 'plain readers see no controls');
+  const calls = [];
+  const el = UI.renderCard(document, card(), { now: NOW, manage: { act: async (action, c) => { calls.push(action); return true; } } });
+  const toggle = el.querySelector('.nw-manage-toggle');
+  assert.equal(toggle.getAttribute('aria-haspopup'), 'menu');
+  toggle.dispatchEvent(new window.Event('click', { bubbles: true }));
+  const items = [...el.querySelectorAll('.nw-manage-menu button')].map(b => b.textContent);
+  assert.deepEqual(items, ['В архив', 'Удалить']);
+  el.querySelector('.nw-manage-menu button[data-action=delete]').dispatchEvent(new window.Event('click', { bubbles: true }));
+  const confirm = el.querySelector('.nw-confirm');
+  assert.match(confirm.textContent, /התקציב עבר/); assert.match(confirm.textContent, /30 дней/);
+  assert.deepEqual(calls, [], 'nothing deleted before the confirm press');
+  confirm.querySelector('button[data-confirm=yes]').dispatchEvent(new window.Event('click', { bubbles: true }));
+  await new Promise(r => setTimeout(r, 0));
+  assert.deepEqual(calls, ['delete']);
+  const young = UI.renderCard(document, card({ tier: 'archive' }), { now: NOW, manage: { act: async () => true } });
+  young.querySelector('.nw-manage-toggle').dispatchEvent(new window.Event('click', { bubbles: true }));
+  assert.deepEqual([...young.querySelectorAll('.nw-manage-menu button')].map(b => b.textContent), ['Вернуть в ленту', 'Удалить']);
+  const old = UI.renderCard(document, card({ tier: 'archive', published_at: new Date(NOW - 100 * 3600e3).toISOString() }), { now: NOW, manage: { act: async () => true } });
+  old.querySelector('.nw-manage-toggle').dispatchEvent(new window.Event('click', { bubbles: true }));
+  assert.deepEqual([...old.querySelectorAll('.nw-manage-menu button')].map(b => b.textContent), ['Удалить']);
+});

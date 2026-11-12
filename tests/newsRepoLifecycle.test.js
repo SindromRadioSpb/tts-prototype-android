@@ -13,6 +13,7 @@ async function setup(t) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
   await exec(db, 'PRAGMA foreign_keys=ON');
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '078_news.sql'), 'utf8'));
+  await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '079_news_manage.sql'), 'utf8'));
   t.after(() => new Promise(r => db.close(r)));
   let now = NOW;
   return { db, repo: createNewsRepo({ db, now: () => now }), setNow: v => { now = v; } };
@@ -31,14 +32,14 @@ test('runLifecycle: 72h → archive, 6 months → card drops body and works', as
   await repo.ingestPack(OWNER, fixturePack([article(1, { hoursAgo: 1 }), article(2, { hoursAgo: 70 }), article(3, { hoursAgo: 100 * 24 })]));
   setNow(NOW + 3 * 3600 * 1000);
   const r1 = await repo.runLifecycle(NOW + 3 * 3600 * 1000);
-  assert.deepEqual(r1, { to_archive: 1, to_card: 0 });
+  assert.deepEqual(r1, { to_archive: 1, to_card: 0, purged: 0 });
   const later = NOW + 90 * 24 * 3600 * 1000;
   const r2 = await repo.runLifecycle(later);
-  assert.deepEqual(r2, { to_archive: 1, to_card: 1 });
+  assert.deepEqual(r2, { to_archive: 1, to_card: 1, purged: 0 });
   const card = await get(db, "SELECT body_json, tier, article_id FROM news_articles WHERE tier='card'");
   assert.equal(card.body_json, null);
   assert.equal((await get(db, 'SELECT COUNT(*) n FROM news_works WHERE article_id=?', [card.article_id])).n, 0);
-  assert.deepEqual(await repo.runLifecycle(later), { to_archive: 0, to_card: 0 });
+  assert.deepEqual(await repo.runLifecycle(later), { to_archive: 0, to_card: 0, purged: 0 });
 });
 test('fresh feed is newest first, paginates, never shows withdrawn', async t => {
   const { repo } = await setup(t);

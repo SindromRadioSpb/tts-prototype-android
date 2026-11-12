@@ -12,7 +12,7 @@ const { wordGlossLayerReport } = require('../publication/materialArchive');
 const { withTxnLock } = require('./txnLock');
 
 const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 256 * 1024, image: 1024 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, total: 400 * 1024 * 1024 };
-const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000;
+const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000;
 const REJECT_OVER = 0.15, FLAG_OVER = 0.08;
 const ENTRY = /^articles\/([a-z0-9-]{1,64})\/([A-Za-z0-9_-][A-Za-z0-9._-]{0,80})$/;
 const DIR_ENTRY = /^articles\/([a-z0-9-]{1,64}\/)?$/;
@@ -177,8 +177,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       const row = await dbGet(db, 'SELECT tier FROM news_articles WHERE article_id=?', [articleId]);
       if (!row) return null;
       if (row.tier === 'withdrawn') return 'already';
-      await dbRun(db, "UPDATE news_articles SET tier='withdrawn', withdrawn_reason=?, body_json=NULL, updated_at=? WHERE article_id=?", [String(reason || '').slice(0, 500), iso(), articleId]);
-      await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [articleId]);
+      // «Удалить» = 30-day trash: hidden from everyone, body and works kept so «Восстановить» works.
+      await dbRun(db, "UPDATE news_articles SET tier='withdrawn', withdrawn_reason=?, deleted_at=?, updated_at=? WHERE article_id=?", [String(reason || '').slice(0, 500), iso(), iso(), articleId]);
       await event(actor, 'withdrawn', { packId, articleId, detail: { reason: String(reason || '').slice(0, 500) } });
       return 'withdrawn';
     });
@@ -314,11 +314,88 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       for (const r of toCardRows) await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [r.article_id]);
       const card = await dbRun(db, "UPDATE news_articles SET tier='card', body_json=NULL, updated_at=? WHERE tier IN ('fresh','archive') AND published_at<?", [t, cardCut]);
       const arch = await dbRun(db, "UPDATE news_articles SET tier='archive', updated_at=? WHERE tier='fresh' AND published_at<?", [t, freshCut]);
-      const result = { to_archive: arch.changes, to_card: card.changes };
-      if (result.to_archive || result.to_card) await event({ id: 'system' }, 'lifecycle', { detail: result });
+      const purgeCut = new Date(atMs - TRASH_MS).toISOString();
+      const purged = await dbRun(db, "DELETE FROM news_articles WHERE tier='withdrawn' AND COALESCE(deleted_at, updated_at)<?", [purgeCut]);
+      const result = { to_archive: arch.changes, to_card: card.changes, purged: purged.changes };
+      if (result.to_archive || result.to_card || result.purged) await event({ id: 'system' }, 'lifecycle', { detail: result });
       return result;
     }));
   }
+  // ---- «В архив» / «Вернуть в ленту» / «Удалить» / «Восстановить» (owner decision 2026-11-13) ----
+  const ARTICLE_ID = /^na_[0-9a-f]{24}$/;
+  async function rowFor(articleId) {
+    if (!ARTICLE_ID.test(String(articleId || ''))) fail('NEWS_NOT_FOUND', 404);
+    const row = await dbGet(db, 'SELECT article_id, tier, published_at, deleted_at, body_json FROM news_articles WHERE article_id=?', [articleId]);
+    if (!row) fail('NEWS_NOT_FOUND', 404);
+    return row;
+  }
+  const purgeAt = deletedAt => new Date(Date.parse(deletedAt) + TRASH_MS).toISOString();
+  function archiveArticle(actor, articleId) {
+    return serialize(() => transaction(async () => {
+      const row = await rowFor(articleId);
+      if (row.tier === 'withdrawn') fail('NEWS_DELETED', 409);
+      if (row.tier === 'fresh') {
+        await dbRun(db, "UPDATE news_articles SET tier='archive', updated_at=? WHERE article_id=?", [iso(), articleId]);
+        await event(actor, 'archived', { articleId });
+      }
+      return { article_id: articleId, tier: row.tier === 'fresh' ? 'archive' : row.tier };
+    }));
+  }
+  function unarchiveArticle(actor, articleId) {
+    return serialize(() => transaction(async () => {
+      const row = await rowFor(articleId);
+      if (row.tier === 'fresh') return { article_id: articleId, tier: 'fresh' };
+      if (row.tier !== 'archive') fail(row.tier === 'withdrawn' ? 'NEWS_DELETED' : 'NEWS_TOO_OLD_FOR_FEED', 409);
+      if (nowMs() - Date.parse(row.published_at) > FRESH_MS) fail('NEWS_TOO_OLD_FOR_FEED', 409);
+      await dbRun(db, "UPDATE news_articles SET tier='fresh', updated_at=? WHERE article_id=?", [iso(), articleId]);
+      await event(actor, 'unarchived', { articleId });
+      return { article_id: articleId, tier: 'fresh' };
+    }));
+  }
+  function deleteArticle(actor, articleId, reason) {
+    return serialize(async () => {
+      await rowFor(articleId);
+      await withdrawByKey(actor, articleId, reason);
+      const row = await rowFor(articleId);
+      return { article_id: articleId, tier: 'withdrawn', purge_at: purgeAt(row.deleted_at || iso()) };
+    });
+  }
+  function restoreArticle(actor, articleId) {
+    return serialize(() => transaction(async () => {
+      const row = await rowFor(articleId);
+      if (row.tier !== 'withdrawn') return { article_id: articleId, tier: row.tier };
+      const tier = tierFor(Date.parse(row.published_at), nowMs());
+      if (tier === 'card') {
+        await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [articleId]);
+        await dbRun(db, "UPDATE news_articles SET tier='card', body_json=NULL, deleted_at=NULL, withdrawn_reason=NULL, updated_at=? WHERE article_id=?", [iso(), articleId]);
+      } else {
+        await dbRun(db, 'UPDATE news_articles SET tier=?, deleted_at=NULL, withdrawn_reason=NULL, updated_at=? WHERE article_id=?', [tier, iso(), articleId]);
+      }
+      await event(actor, 'restored', { articleId, detail: { tier } });
+      return { article_id: articleId, tier };
+    }));
+  }
+  async function listForEditor({ view = 'feed', outlet_id, q, cursor, limit = 30 } = {}) {
+    const where = [], params = [], freshCut = new Date(nowMs() - FRESH_MS).toISOString();
+    if (view === 'feed') { where.push("tier='fresh' AND published_at>=?"); params.push(freshCut); }
+    else if (view === 'archive') { where.push("(tier IN ('archive','card') OR (tier='fresh' AND published_at<?))"); params.push(freshCut); }
+    else if (view === 'deleted') where.push("tier='withdrawn'");
+    else fail('NEWS_VIEW_INVALID', 400);
+    if (outlet_id) { if (!Outlets.byId(outlet_id)) fail('OUTLET_UNKNOWN', 404); where.push('outlet_id=?'); params.push(outlet_id); }
+    const needle = q ? C.normalizeHebrewText(String(q).slice(0, 200)).toLowerCase() : '';
+    if (needle) { where.push("title_norm LIKE ? ESCAPE '\\'"); params.push('%' + needle.replace(/[\\%_]/g, ch => '\\' + ch) + '%'); }
+    if (cursor) { const [p, id] = decodeCursor(cursor); where.push('(published_at<? OR (published_at=? AND article_id<?))'); params.push(p, p, id); }
+    const n = Math.max(1, Math.min(50, Math.trunc(Number(limit)) || 30));
+    const rows = await dbAll(db, `SELECT ${CARD_COLS}, deleted_at FROM news_articles WHERE ${where.join(' AND ')} ORDER BY published_at DESC, article_id DESC LIMIT ?`, [...params, n + 1]);
+    const page = rows.slice(0, n), works = await firstWorks(page.map(r => r.article_id));
+    return { items: page.map(r => {
+      const card = toCard(r, works.get(r.article_id));
+      if (r.tier === 'withdrawn') { card.deleted_at = r.deleted_at; card.purge_at = purgeAt(r.deleted_at || new Date(nowMs()).toISOString()); }
+      card.can_return_to_feed = card.tier === 'archive' && nowMs() - Date.parse(r.published_at) <= FRESH_MS;
+      return card;
+    }), next_cursor: rows.length > n ? encodeCursor(page[page.length - 1]) : null };
+  }
+
   async function journal({ limit = 20 } = {}) {
     const n = Math.max(1, Math.min(100, Math.trunc(Number(limit)) || 20));
     const packs = await dbAll(db, 'SELECT pack_id, uploaded_by, uploaded_at, producer_json, receipt_json FROM news_packs ORDER BY uploaded_at DESC LIMIT ?', [n]);
@@ -329,7 +406,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     };
   }
 
-  return { ingestPack, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
+  return { ingestPack, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
 }
 
 module.exports = { createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };

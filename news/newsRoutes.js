@@ -95,6 +95,14 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     } catch (e) { send(res, e); }
   });
   app.get('/api/news/editor/me', read, noStore, async (req, res) => {
+    // ?soft=1: the News tab asks "may this viewer manage articles?" — a plain reader gets 200 {kind:null}.
+    if (req.query.soft === '1') {
+      const auth = await Promise.resolve(resolveUser(req)).catch(() => null);
+      if (auth && auth.user && String(auth.user.role || '').toLowerCase() === 'owner') return res.json({ ok: true, kind: 'owner', label: null, csrf: auth.session && auth.session.csrf || null });
+      const editor = await editorAuth.resolve(req).catch(() => null);
+      if (editor) return res.json({ ok: true, kind: 'editor', label: editor.label, csrf: editor.via === 'cookie' ? editor.csrf : null });
+      return res.json({ ok: true, kind: null });
+    }
     const actor = await actorFor(req, res); if (!actor) return;
     res.json({ ok: true, kind: actor.kind, label: actor.label || null, csrf: actor.via === 'cookie' || actor.via === 'owner' ? actor.csrf : null });
   });
@@ -124,6 +132,26 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       const r = await repo.withdrawArticle(actor, req.params.id, req.body && req.body.reason);
       audit('news_article_withdrawn', actor.id, { article_id: r.article_id }, req.ip);
       res.json({ ok: true, ...r });
+    } catch (e) { send(res, e); }
+  });
+  // «В архив» / «Вернуть в ленту» / «Удалить» (30-day trash) / «Восстановить» — owner or editor.
+  for (const [action, method, auditName] of [['archive', 'archiveArticle', 'news_article_archived'], ['unarchive', 'unarchiveArticle', 'news_article_unarchived'],
+    ['delete', 'deleteArticle', 'news_article_deleted'], ['restore', 'restoreArticle', 'news_article_restored']]) {
+    app.post('/api/news/editor/articles/:id/' + action, write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+      try {
+        const r = await repo[method](actor, req.params.id, req.body && req.body.reason);
+        audit(auditName, actor.id, { article_id: r.article_id }, req.ip);
+        res.json({ ok: true, ...r });
+      } catch (e) { send(res, e); }
+    });
+  }
+  app.get('/api/news/editor/articles', read, noStore, async (req, res) => {
+    const actor = await actorFor(req, res); if (!actor) return;
+    const q = req.query;
+    try {
+      res.json({ ok: true, ...(await repo.listForEditor({ view: String(q.view || 'feed'), outlet_id: q.outlet ? String(q.outlet) : undefined,
+        q: q.q ? String(q.q) : undefined, cursor: q.cursor ? String(q.cursor) : undefined, limit: q.limit })) });
     } catch (e) { send(res, e); }
   });
   app.post('/api/news/editor/packs/:id/withdraw', write, json, noStore, async (req, res) => {

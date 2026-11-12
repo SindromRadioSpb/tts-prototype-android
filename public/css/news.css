@@ -80,3 +80,21 @@ a.nw-card-main:hover .nw-card-title{text-decoration:underline;text-underline-off
 .nw-update p{margin:0;line-height:1.5}
 .nw-update[data-attention=true]{outline:3px solid var(--nw-accent);outline-offset:2px}
 @media(max-width:720px){.nw-update{margin:10px 16px 0}}
+/* Owner / editor card controls */
+.nw-card{position:relative}
+.nw-manage{position:absolute;inset-block-start:8px;inset-inline-end:8px;z-index:2}
+.nw-manage-toggle{width:44px;height:44px;border:0;border-radius:999px;background:rgba(15,26,42,.72);color:#fff;font-size:1.3rem;line-height:1}
+.nw-manage-menu{position:absolute;inset-inline-end:0;inset-block-start:48px;min-width:190px;display:grid;padding:6px;border:1px solid var(--nw-line);border-radius:10px;background:var(--nw-paper);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.nw-manage-menu button{min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--nw-text);text-align:start}
+.nw-manage-menu button:hover,.nw-manage-menu button:focus-visible{background:var(--nw-soft)}
+.nw-manage-menu button[data-action=delete]{color:#a32336}
+body.nw-dark .nw-manage-menu button[data-action=delete]{color:#ffadb7}
+.nw-confirm{position:absolute;inset-inline-end:0;inset-block-start:48px;width:min(320px,calc(100vw - 48px));display:grid;gap:10px;padding:14px;border:1px solid #a32336;border-radius:10px;background:var(--nw-paper);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.nw-confirm p{margin:0;line-height:1.5;font-size:.9rem}
+.nw-confirm strong{display:block;margin-block-start:6px}
+.nw-confirm-actions{display:flex;gap:8px;flex-wrap:wrap}
+.nw-danger{background:#a32336;border-color:#a32336;color:#fff}
+.nw-quiet{background:transparent;color:var(--nw-accent)}
+.nw-toast{position:fixed;inset-inline:16px;inset-block-end:calc(84px + env(safe-area-inset-bottom,0px));margin:auto;width:fit-content;max-width:620px;display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:10px;background:var(--nw-text);color:var(--nw-paper);z-index:60}
+.nw-toast button{min-height:40px;border:0;background:transparent;color:inherit;font-weight:700;text-decoration:underline}
+@media(min-width:600px){.nw-toast{inset-block-end:24px}}

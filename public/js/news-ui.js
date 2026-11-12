@@ -75,7 +75,55 @@
     var foot = h(doc, "p", { class: "nw-card-foot" }, [h(doc, "span", { text: hasPhoto ? fill(t("news.photo", "Фото: {outlet}"), { outlet: o.name_latin }) + credit : "", dir: "auto" })]);
     var orig = safeHttps(card.original_url);
     if (orig) foot.appendChild(h(doc, "a", { href: orig, target: "_blank", rel: "noopener noreferrer", text: t("news.original", "Оригинал ↗") }));
-    return h(doc, "article", { class: "nw-card", "data-tier": card.tier }, [main, foot]);
+    var article = h(doc, "article", { class: "nw-card", "data-tier": card.tier, "data-article": card.article_id }, [main, foot]);
+    if (opts.manage) article.appendChild(renderManage(doc, card, opts, article));
+    return article;
+  }
+  // Owner/editor controls on a card: «В архив» / «Вернуть в ленту» / «Удалить» (titled confirm, 30-day trash).
+  var FRESH_MS = 72 * 3600 * 1000;
+  function renderManage(doc, card, opts, article) {
+    var t = opts.t || function (k, f) { return f; }, now = opts.now || Date.now();
+    var box = h(doc, "div", { class: "nw-manage" });
+    var menuId = "nw-menu-" + card.article_id;
+    var toggle = h(doc, "button", { type: "button", class: "nw-manage-toggle", "aria-haspopup": "menu", "aria-expanded": "false", "aria-controls": menuId,
+      "aria-label": t("news.manage.menu", "Действия со статьёй"), text: "⋯" });
+    var menu = h(doc, "div", { class: "nw-manage-menu", id: menuId, role: "menu", hidden: true });
+    var actions = [];
+    if (card.tier === "fresh") actions.push(["archive", t("news.manage.archive", "В архив")]);
+    else if (card.tier === "archive" && now - Date.parse(card.published_at) <= FRESH_MS) actions.push(["unarchive", t("news.manage.unarchive", "Вернуть в ленту")]);
+    actions.push(["delete", t("news.manage.delete", "Удалить")]);
+    function close() { menu.hidden = true; toggle.setAttribute("aria-expanded", "false"); }
+    async function run(action) {
+      close();
+      var ok = false;
+      try { ok = await opts.manage.act(action, card); } catch (_) { ok = false; }
+      if (ok && opts.manage.done) opts.manage.done(action, card, article);
+    }
+    actions.forEach(function (a) {
+      var b = h(doc, "button", { type: "button", role: "menuitem", "data-action": a[0], text: a[1] });
+      b.addEventListener("click", function () {
+        if (a[0] !== "delete") return run(a[0]);
+        close();
+        var confirm = h(doc, "div", { class: "nw-confirm", role: "alertdialog", "aria-label": t("news.manage.delete", "Удалить") }, [
+          h(doc, "p", {}, [t("news.manage.confirmText", "Удалить статью из раздела «Новости»? Её не увидит никто. Удалённое хранится 30 дней на странице редактора, там её можно восстановить."), " ",
+            h(doc, "strong", { lang: "he", dir: "rtl", text: card.title_he })])]);
+        var yes = h(doc, "button", { type: "button", class: "nw-button nw-danger", "data-confirm": "yes", text: t("news.manage.delete", "Удалить") });
+        var no = h(doc, "button", { type: "button", class: "nw-button nw-quiet", "data-confirm": "no", text: t("news.manage.cancel", "Отмена") });
+        yes.addEventListener("click", function () { confirm.remove(); run("delete"); });
+        no.addEventListener("click", function () { confirm.remove(); toggle.focus && toggle.focus(); });
+        confirm.appendChild(h(doc, "div", { class: "nw-confirm-actions" }, [yes, no]));
+        box.appendChild(confirm);
+        yes.focus && yes.focus();
+      });
+      menu.appendChild(b);
+    });
+    toggle.addEventListener("click", function () {
+      var open = menu.hidden; menu.hidden = !open; toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) { var first = menu.querySelector("button"); if (first && first.focus) first.focus(); }
+    });
+    menu.addEventListener("keydown", function (e) { if (e.key === "Escape") { close(); toggle.focus && toggle.focus(); } });
+    box.append(toggle, menu);
+    return box;
   }
   function renderOutletTile(doc, outlet, opts) {
     opts = opts || {};
@@ -164,6 +212,45 @@
     var pinned = function () { try { var v = JSON.parse(store.get(PIN_KEY) || "[]"); return Array.isArray(v) ? v.filter(function (id) { return Outlets.byId(id); }) : []; } catch (_) { return []; } };
     var noHeavy = function () { return store.get(HEAVY_KEY) === "1"; };
     var outletsCache = null, token = 0;
+    // Owner / news editor: card controls «В архив» / «Вернуть в ленту» / «Удалить» + «Отменить».
+    var manage = null, toastTimer = null;
+    var UNDO = { archive: "unarchive", unarchive: "archive", delete: "restore" };
+    function toast(text, undo) {
+      var host = doc.getElementById("nw-toast"); if (!host) return;
+      clearTimeout(toastTimer);
+      host.replaceChildren(h(doc, "span", { text: text }));
+      if (undo) {
+        var b = h(doc, "button", { type: "button", text: t("news.manage.undo", "Отменить") });
+        b.addEventListener("click", function () { host.hidden = true; undo(); });
+        host.appendChild(b);
+      }
+      host.hidden = false;
+      toastTimer = setTimeout(function () { host.hidden = true; }, 8000);
+    }
+    async function act(action, card) {
+      var headers = { "content-type": "application/json" };
+      if (manage && manage.csrf) headers["x-lp-csrf"] = manage.csrf;
+      var r = await win.fetch("/api/news/editor/articles/" + encodeURIComponent(card.article_id) + "/" + action, { method: "POST", credentials: "same-origin", headers: headers, body: "{}" });
+      if (!r.ok) { toast(t("news.manage.failed", "Не получилось. Попробуйте ещё раз.")); return false; }
+      outletsCache = null;
+      return true;
+    }
+    function manageOpts() {
+      if (!manage) return null;
+      return { act: act, done: function (action, card, article) {
+        article.remove();
+        var text = action === "archive" ? t("news.manage.doneArchive", "Статья перенесена в архив")
+          : action === "unarchive" ? t("news.manage.doneUnarchive", "Статья возвращена в ленту") : t("news.manage.doneDelete", "Статья удалена");
+        toast(text, function () { act(UNDO[action], card).then(function (ok) { if (ok) render(); }); });
+      } };
+    }
+    async function probeManage() {
+      try {
+        var r = await win.fetch("/api/news/editor/me?soft=1", { cache: "no-store", credentials: "same-origin" });
+        var j = r.ok ? await r.json() : null;
+        manage = j && j.kind ? { kind: j.kind, csrf: j.csrf || null } : null;
+      } catch (_) { manage = null; }
+    }
     var locale = function () { return (typeof win.appGetLocale === "function" && win.appGetLocale()) || "ru"; };
 
     function status(key, fallback, retry) {
@@ -257,7 +344,7 @@
           var data = await getJson(feedUrl(state, cursor, noHeavy()));
           if (my !== token) return;
           loading.remove();
-          data.items.forEach(function (card) { list.appendChild(renderCard(doc, card, { t: t, returnTo: returnTo, locale: locale() })); });
+          data.items.forEach(function (card) { list.appendChild(renderCard(doc, card, { t: t, returnTo: returnTo, locale: locale(), manage: manageOpts() })); });
           if (!list.children.length) list.appendChild(status(state.tier === "archive" ? "news.emptyArchive" : "news.empty", state.tier === "archive" ? "Ничего не найдено" : "Здесь пока нет свежих статей"));
           cursor = data.next_cursor; more.hidden = !cursor;
         } catch (_) { if (my !== token) return; loading.remove(); list.appendChild(status("news.error", "Не удалось загрузить новости", function () { list.lastChild && list.lastChild.remove(); page(); })); }
@@ -285,7 +372,7 @@
     win.addEventListener("popstate", render);
     applyTheme();
     installUpdateGate(win, t);
-    render();
+    probeManage().then(render, render);
   }
   return { installUpdateGate: installUpdateGate, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });

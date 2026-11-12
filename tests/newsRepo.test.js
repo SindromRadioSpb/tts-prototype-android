@@ -19,6 +19,7 @@ async function setup(t, now = NOW) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
   await exec(db, 'PRAGMA foreign_keys=ON');
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '078_news.sql'), 'utf8'));
+  await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '079_news_manage.sql'), 'utf8'));
   t.after(() => new Promise(r => db.close(r)));
   return { db, repo: createNewsRepo({ db, now: () => now }) };
 }
