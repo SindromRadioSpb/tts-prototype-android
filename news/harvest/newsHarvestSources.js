@@ -1,22 +1,40 @@
 'use strict';
 const { hydrateSections } = require('./newsFlight');
-// Where the daily harvester reads (docs/planning/NEWS_PACK_FORMAT_V1_2026_11_12.md §16): the RSS feed
-// of each outlet and how its article page is laid out. `text` = the body paragraphs; photos are the
-// <figure> elements between them. `image` turns a page-size photo address into a larger one.
+// Where the harvester reads (docs/planning/NEWS_PACK_FORMAT_V1_2026_11_12.md §16–§17): the RSS feeds of
+// each outlet, polled every hour, and how its article page is laid out. Flash feeds («מבזקים») are left
+// out on purpose: two-line items are not articles. `section_he` is the feed's rubric — the page's own
+// rubric wins when it has one. The general feed goes last: an article listed in a rubric feed too keeps
+// that rubric (the first feed that lists an article names it). `text` = the body paragraphs; photos are the <figure> elements between
+// them. `image` turns a page-size photo address into a larger one.
 // C14 answers servers with a Cloudflare challenge: the harvester does not get around it, the outlet is
 // reported as closed and can be harvested from a home computer with scripts/news/harvest.js.
 
 const SOURCES = [
-  { outlet_id: 'ynet', feeds: [{ url: 'https://www.ynet.co.il/Integration/StoryRss2.xml', section_he: 'חדשות' }],
-    article: /^https:\/\/www\.ynet\.co\.il\/[a-z-]+\/article\//,
+  { outlet_id: 'ynet', feeds: [
+    { url: 'https://www.ynet.co.il/Integration/StoryRss6.xml', section_he: 'כלכלה' },
+    { url: 'https://www.ynet.co.il/Integration/StoryRss538.xml', section_he: 'תרבות ובידור' },
+    { url: 'https://www.ynet.co.il/Integration/StoryRss194.xml', section_he: 'דעות' },
+    { url: 'https://www.ynet.co.il/Integration/StoryRss3.xml', section_he: 'ספורט' },
+    { url: 'https://www.ynet.co.il/Integration/StoryRss544.xml', section_he: 'דיגיטל' },
+    { url: 'https://www.ynet.co.il/Integration/StoryRss2.xml', section_he: 'חדשות' }],
+    article: /^https:\/\/www\.ynet\.co\.il\/(?:[a-z-]+\/)+article\//,
     text: 'div.text_editor_paragraph, .DraftEditor-editorContainer h2, .DraftEditor-editorContainer h3', skipText: '.copyright-27a-notice',
     skipImage: /big_defual_image|\/Common\/Api\//,
     image: u => u.replace(/\/cdn-cgi\/image\/[^/]+\//, '/') },
-  { outlet_id: 'walla', feeds: [{ url: 'https://rss.walla.co.il/feed/1', section_he: 'חדשות' }],
+  { outlet_id: 'walla', feeds: [
+    { url: 'https://rss.walla.co.il/feed/1', section_he: 'חדשות בארץ' },
+    { url: 'https://rss.walla.co.il/feed/10', section_he: 'פלילים ומשפט' },
+    { url: 'https://rss.walla.co.il/feed/3', section_he: 'כלכלה' },
+    { url: 'https://rss.walla.co.il/feed/4', section_he: 'טכנולוגיה' },
+    { url: 'https://rss.walla.co.il/feed/7', section_he: 'ספורט' }],
     article: /^https:\/\/[a-z]+\.walla\.co\.il\/.+\/\d{6,}$/,
-    text: '[class*="styles_prose"] p, [class*="styles_prose"] h2, [class*="styles_prose"] h3, [class*="styles_prose"] li',
+    // Two layouts: the new one (www.walla.co.il/news/…) and the older one on news./finance./sports. subdomains.
+    text: '[class*="styles_prose"] p, [class*="styles_prose"] h2, [class*="styles_prose"] h3, [class*="styles_prose"] li, '
+      + 'section.article-content .text-content p, section.article-content .text-content li, section.article-content h3',
     skipImage: /\/w_96\//, image: u => u },
-  { outlet_id: 'maariv', feeds: [{ url: 'https://www.maariv.co.il/Rss/RssChadashot', section_he: 'חדשות' }],
+  { outlet_id: 'maariv', feeds: [
+    { url: 'https://www.maariv.co.il/rss/rssfeedsopinions', section_he: 'דעות' },
+    { url: 'https://www.maariv.co.il/rss/rssfeedsallnews', section_he: 'חדשות' }],
     article: /^https:\/\/www\.maariv\.co\.il\/.+\/article-\d+/,
     text: 'section.article-body-container p, section.article-body-container h2, section.article-body-container h3, section.article-body-container li',
     skipImage: /h_250,w_250/,

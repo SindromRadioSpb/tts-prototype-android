@@ -63,15 +63,25 @@ async function buildPack(dir, { out, checkOnly = false, producer = 'dot', now = 
     manifestArticles.push({ path: folder + '/article.json', sha256: C.sha256(body) });
     report.ok = true; report.warnings = v.warnings;
   }
-  const ok = manifestArticles.length > 0;
-  if (checkOnly || !ok) return { ok, articles };
+  // «Обзор дня» (§17): overview.json next to the drafts travels as is; it is checked here like on the server.
+  let overview = null;
+  const overviewFile = path.join(dir, 'overview.json');
+  if (fs.existsSync(overviewFile)) {
+    const buf = fs.readFileSync(overviewFile);
+    let o = null; try { o = JSON.parse(buf.toString('utf8').replace(/^﻿/, '')); } catch (e) { overview = { ok: false, code: 'OVERVIEW_INVALID', message: 'JSON: ' + e.message }; }
+    if (o) { const v = C.validateOverview(o); overview = { ...v, buf }; }
+  }
+  const ok = manifestArticles.length > 0 || !!(overview && overview.ok);
+  const overviewReport = overview && { ok: overview.ok, code: overview.code, message: overview.message, stories: overview.stories, items: overview.items, warnings: overview.warnings };
+  if (checkOnly || !ok) return { ok, articles, overview: overviewReport };
   const manifest = { schema: 'linguistpro-news-pack', schema_version: 1, pack_id: crypto.randomUUID(), created_at: localIso(now),
     producer: { name: producer }, ui_languages: ['ru'], articles: manifestArticles };
+  if (overview && overview.ok) { zip.addFile('overview.json', overview.buf); manifest.overview = { path: 'overview.json', sha256: C.sha256(overview.buf) }; }
   zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 1)));
   const stamp = localIso(now).slice(0, 16).replace(/[-:]/g, '');
   const written = path.resolve(out || path.join(dir, `news-${stamp}-${producer}.lpnews.zip`));
   zip.writeZip(written);
-  return { ok, written, articles };
+  return { ok, written, articles, overview: overviewReport };
 }
 
 if (require.main === module) {
@@ -80,6 +90,7 @@ if (require.main === module) {
   if (!dir) { console.error('Использование: node scripts/news/build-pack.js <папка> [--out файл.lpnews.zip] [--check-only] [--producer dot]'); process.exit(2); }
   buildPack(dir, { out: opt('--out'), producer: opt('--producer') || 'dot', checkOnly: args.includes('--check-only') }).then(r => {
     for (const a of r.articles) console.log((a.ok ? (a.flagged ? '⚠ ' : '✓ ') : '✗ ') + a.file + (a.code ? ' — ' + a.code : '') + (a.message ? ' (' + a.message + ')' : '') + (a.overlap != null ? ' · совпадение пересказа ' + Math.round(a.overlap * 100) + '%' : '') + (a.fidelity != null ? ' · оригинал совпал на ' + Math.round(a.fidelity * 100) + '%' : ''));
+    if (r.overview) console.log((r.overview.ok ? '✓ ' : '✗ ') + 'overview.json' + (r.overview.ok ? ` · сюжетов ${r.overview.stories}, статей ${r.overview.items}` : ' — ' + r.overview.code + (r.overview.message ? ' (' + r.overview.message + ')' : '')) + ((r.overview.warnings || []).length ? ' · ' + r.overview.warnings.join(', ') : ''));
     const good = r.articles.filter(a => a.ok).length;
     console.log(`Итого: принято ${good}, отклонено ${r.articles.length - good}` + (r.written ? `\nАрхив: ${r.written}` : ''));
     process.exit(r.ok ? 0 : 1);

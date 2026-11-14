@@ -121,7 +121,7 @@ test('RSS items and robots.txt', () => {
 // ---- end to end with a fake web ---------------------------------------------------------------------
 async function harvesterSetup(t, { clock, pages = {} } = {}) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
-  await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '081_news_harvest.sql'), 'utf8'));
+  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-harvest-'));
   t.after(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); });
   const photo = await sharp({ create: { width: 2400, height: 1600, channels: 3, background: '#8899aa' } }).jpeg().toBuffer();
@@ -147,59 +147,155 @@ async function harvesterSetup(t, { clock, pages = {} } = {}) {
   return { db, dataDir, harvester, requests };
 }
 
-test('a run makes one archive of drafts that pass the packer once dot fills the translation', async t => {
-  const clock = { now: Date.parse('2026-11-15T06:30:00+02:00') };
+test('hourly poll keeps every new article; the morning build makes main drafts + «Обзор дня» that pack once dot translates', async t => {
+  const clock = { now: Date.parse('2026-11-15T03:30:00+02:00') };
   const { harvester, requests, dataDir } = await harvesterSetup(t, { clock });
+  const poll = await harvester.poll();
+  assert.equal(poll.outlets.ynet.new, 3);
+  assert.ok(poll.outlets.c14.errors.some(e => e.startsWith('BOT_CHALLENGE')));
+  assert.ok(!requests.includes('https://www.ynet.co.il/english/article/en1'), 'robots.txt is honoured');
+  assert.deepEqual(await harvester.pending().then(p => [p.items, p.queued]), [2, 0]);
+
+  clock.now = Date.parse('2026-11-15T06:30:00+02:00');
   const r = await harvester.runOnce({ trigger: 'manual' });
   assert.equal(r.articles, 1, JSON.stringify(r.report)); assert.equal(r.images, 2);
-  assert.deepEqual(r.report.outlets.ynet.skipped, { ROBOTS: 1, TOO_SHORT: 1 });
-  assert.ok(r.report.outlets.c14.errors.some(e => e.startsWith('BOT_CHALLENGE')));
-  assert.ok(!requests.includes('https://www.ynet.co.il/english/article/en1'));
-  const file = await harvester.runFile(r.run_id);
-  const zip = new AdmZip(file.path), names = zip.getEntries().map(e => e.entryName).sort();
-  assert.deepEqual(names, ['README-dot.md', 'harvest.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
+  assert.equal(r.overview_items, 2); assert.equal(r.stories, 2);
+  const zip = new AdmZip((await harvester.runFile(r.run_id)).path), names = zip.getEntries().map(e => e.entryName).sort();
+  assert.deepEqual(names, ['README-dot.md', 'harvest.json', 'overview.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
   const img = await sharp(zip.readFile('ynet-0001/img-1.jpg')).metadata();
   assert.equal(img.width, 1600); assert.ok(zip.readFile('ynet-0001/img-1.jpg').length <= 600 * 1024);
   const draft = JSON.parse(zip.readAsText('ynet-0001.draft.json'));
-  assert.equal(draft.learning.versions[0].level, 'OR');
   assert.equal(draft.learning.versions[0].rows.map(x => x.he_plain).join(' '), [P1, 'האופוזיציה מגיבה', 'תגובה חריפה', P2, P3].join(' '));
   assert.deepEqual(draft.images.map(i => [i.file, i.role, i.after_p]), [['img-1.jpg', 'hero', undefined], ['img-2.jpg', 'inline', 1]]);
-  assert.equal(draft.source.retrieved_at, '2026-11-15T06:30:00+02:00');
-  assert.equal(draft.prepared.method, 'original');
+  assert.match(draft.learning.story_key, /^2026-11-15-[0-9a-f]{8}$/);
+  const ov = JSON.parse(zip.readAsText('overview.json'));
+  assert.equal(ov.day, '2026-11-15');
+  assert.equal(ov.stories[0].main, true); assert.equal(ov.stories[0].story_key, draft.learning.story_key);
+  assert.deepEqual(ov.stories[0].items[0], { outlet_id: 'ynet', url: 'https://www.ynet.co.il/news/article/abc123', published_at: '2026-11-14T21:49:59+02:00', section: 'politics',
+    title_he: 'נתניהו נאם בכנסת: "נעבור את זה"', title_ru: '', subtitle_he: 'הממשלה מתכוננת לשבוע סוער בכנסת, והאופוזיציה מאיימת בהפגנות', subtitle_ru: '',
+    lead_he: 'ראש הממשלה נאם הערב בכנסת ואמר כי הממשלה תמשיך לפעול. הוא הוסיף כי "המצב קשה, אבל נעבור את זה" ופנה לאופוזיציה.', lead_ru: '', draft: 'ynet-0001.draft.json' });
+  assert.equal(ov.stories[1].items[0].title_he, 'קצר'); assert.equal(ov.stories[1].main, false);
 
-  // Untouched it is not publishable (translation missing); filled like dot does, it packs at 100%.
+  // Untouched: the article lacks translation and the overview says so; translated, both pack.
   const dir = fs.mkdtempSync(path.join(dataDir, 'dot-'));
   zip.extractAllTo(dir, true);
-  assert.equal((await buildPack(dir, { checkOnly: true, now: clock.now })).articles[0].code, 'TRANSLATION_MISSING');
-  draft.learning.title_ru = 'Нетаньяху выступил в Кнессете'; draft.learning.summary_ru = 'О чём статья.'; draft.learning.subtitle_ru = 'Подзаголовок';
+  const raw = await buildPack(dir, { checkOnly: true, now: clock.now });
+  assert.equal(raw.articles[0].code, 'TRANSLATION_MISSING'); assert.deepEqual(raw.overview.warnings, ['OVERVIEW_TRANSLATION_MISSING:2']);
+  Object.assign(draft.learning, { title_ru: 'Нетаньяху выступил в Кнессете', summary_ru: 'О чём статья.', subtitle_ru: 'Подзаголовок' });
   for (const row of draft.learning.versions[0].rows) row.ru = 'Перевод';
   fs.writeFileSync(path.join(dir, 'ynet-0001.draft.json'), JSON.stringify(draft));
-  const packed = await buildPack(dir, { checkOnly: true, now: clock.now });
-  assert.equal(packed.ok, true, JSON.stringify(packed.articles)); assert.equal(packed.articles[0].fidelity, 1);
+  for (const s of ov.stories) for (const it of s.items) { it.title_ru = 'Заголовок'; if (it.subtitle_he) it.subtitle_ru = 'Подзаголовок'; if (it.lead_he) it.lead_ru = 'Первый абзац'; }
+  fs.writeFileSync(path.join(dir, 'overview.json'), JSON.stringify(ov));
+  const packed = await buildPack(dir, { now: clock.now, out: path.join(dir, 'pack.lpnews.zip') });
+  assert.equal(packed.ok, true, JSON.stringify(packed)); assert.equal(packed.articles[0].fidelity, 1); assert.deepEqual(packed.overview.warnings, []);
+  const pz = new AdmZip(packed.written), manifest = JSON.parse(pz.readAsText('manifest.json'));
+  assert.equal(manifest.overview.path, 'overview.json'); assert.equal(manifest.overview.sha256, require('node:crypto').createHash('sha256').update(pz.readFile('overview.json')).digest('hex'));
 
-  // The next run does not take the same article again.
+  // The next build takes nothing twice.
   const again = await harvester.runOnce({ trigger: 'manual' });
-  assert.equal(again.articles, 0); assert.equal(again.file_name, null);
-  const runs = await harvester.listRuns();
-  assert.equal(runs.length, 2); assert.equal(runs.find(x => x.run_id === r.run_id).has_file, true);
+  assert.equal(again.overview_items, 0); assert.equal(again.file_name, null);
+  assert.equal((await harvester.listRuns()).find(x => x.run_id === r.run_id).overview_items, 2);
 });
 
-test('the schedule runs once a day after 06:00 Israel time', async t => {
-  const clock = { now: Date.parse('2026-11-15T05:50:00+02:00') };
-  const { harvester } = await harvesterSetup(t, { clock });
-  assert.equal(await harvester.tick(), null);
+test('schedule: the feeds are polled every hour, the archive is built once a day after 06:00 Israel time', async t => {
+  const clock = { now: Date.parse('2026-11-15T05:00:00+02:00') };
+  const { harvester, db } = await harvesterSetup(t, { clock });
+  const runs = () => new Promise((res, rej) => db.get('SELECT COUNT(*) n FROM news_harvest_runs', (e, r) => e ? rej(e) : res(r.n)));
+  const first = await harvester.tick();
+  assert.ok(first && first.outlets && !first.run_id, 'before 06:00 a tick polls');
+  clock.now += 20 * 60 * 1000;
+  assert.equal(await harvester.tick(), null, 'no second poll within the hour');
   clock.now = Date.parse('2026-11-15T06:05:00+02:00');
   const r = await harvester.tick();
   assert.equal(r.trigger, 'schedule'); assert.equal(r.articles, 1);
   clock.now = Date.parse('2026-11-15T09:00:00+02:00');
-  assert.equal(await harvester.tick(), null);
+  await harvester.tick();
+  assert.equal(await runs(), 1, 'one archive a day');
   clock.now = Date.parse('2026-11-16T06:01:00+02:00');
   assert.equal((await harvester.tick()).trigger, 'schedule');
-  // A manual run after 06:00 stands for the day's run: the schedule does not add a second archive.
+  // A manual run after 06:00 stands for the day's run.
   clock.now = Date.parse('2026-11-17T07:00:00+02:00');
   await harvester.runOnce({ trigger: 'manual' });
   clock.now = Date.parse('2026-11-17T07:10:00+02:00');
-  assert.equal(await harvester.tick(), null);
+  await harvester.tick();
+  assert.equal(await runs(), 3);
+});
+
+test('rubric: a generic «חדשות» article gets its rubric from the words of its title and first paragraph', () => {
+  const { refineSection } = require('../news/harvest/newsStories');
+  assert.equal(refineSection('news', 'בכיר חמאס נפצע אנוש בתקיפת צה״ל', ''), 'security');
+  assert.equal(refineSection('news', 'נתניהו קורא למו״מ, איזנקוט: כבר נקבעה פגישה', ''), 'politics');
+  assert.equal(refineSection('world', 'ראפיניה רתח אחרי ההפסד של ברזיל', 'המשחק הסתיים במהומה'), 'sport');
+  assert.equal(refineSection('news', 'בת 12 הותקפה ונשדדה בגן ציבורי בחולון', 'המשטרה פתחה בחקירה'), 'news');
+  assert.equal(refineSection('world', 'פוטין התקשר לטראמפ', 'בכנסת הגיבו'), 'world');
+  assert.equal(refineSection('opinion', 'נתניהו וכנסת', ''), 'opinion', 'a specific rubric is kept');
+});
+test('stories: one event across outlets is one story; the main stories follow the rubric quota', () => {
+  const { clusterStories, selectStories } = require('../news/harvest/newsStories');
+  const items = [
+    { id: 'a', outlet_id: 'ynet', title: 'צה״ל חיסל את מפקד חטיבת רפיח של חמאס', text: 'הותקף בחאן יונס', at: 3 },
+    { id: 'b', outlet_id: 'maariv', title: 'בעזה מדווחים: מפקד חטיבת רפיח בחמאס חוסל בתקיפה', text: '', at: 2 },
+    { id: 'c', outlet_id: 'walla', title: 'נבחרת ישראל סיימה ב-0:0 מול קוסובו', text: 'ליגת האומות', at: 1 },
+    { id: 'd', outlet_id: 'haaretz', title: 'ישראל סיימה 0:0 בקוסובו בליגת האומות', text: '', at: 1 },
+    { id: 'e', outlet_id: 'n12', title: 'התחזית: גשם ראשון בצפון', text: '', at: 1 },
+  ];
+  const of = clusterStories(items);
+  assert.equal(of.get('a'), of.get('b')); assert.equal(of.get('c'), of.get('d'));
+  assert.notEqual(of.get('a'), of.get('c')); assert.notEqual(of.get('e'), of.get('a'));
+  const m = (id, outlet, section, extra) => ({ id, outlet_id: outlet, section, at: 1, full_ok: true, paywalled: 0, images: 1, chars: 2000, ...extra });
+  const stories = [
+    { id: 's1', members: [m('1', 'ynet', 'security'), m('2', 'maariv', 'security', { images: 3 }), m('3', 'haaretz', 'security', { paywalled: 1 })] },
+    { id: 's2', members: [m('4', 'walla', 'sport'), m('5', 'ynet', 'sport')] },
+    { id: 's3', members: [m('6', 'n12', 'sport')] },
+    { id: 's4', members: [m('7', 'ynet', 'opinion')] },
+    { id: 's5', members: [m('8', 'walla', 'news', { full_ok: false })] },
+  ];
+  const picked = selectStories(stories, { total: 3, quota: { security: 1, culture: 1, opinion: 1 } });
+  assert.deepEqual(picked.map(p => p.story.id), ['s1', 's2', 's4']);
+  assert.equal(picked[0].pick.id, '2', 'not paywalled, more photos');
+  assert.equal(picked[1].pick.outlet_id, 'walla', 'outlets are rotated');
+});
+
+test('«Обзор дня»: packed overview is checked, stored by day and links readable articles; GET /api/news/overview', async t => {
+  const C = require('../news/newsPackCore');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
+  t.after(() => db.close());
+  for (const m of ['078_news.sql', '079_news_manage.sql', '080_news_images.sql', '082_news_harvest_items.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
+  const NOW = Date.parse('2026-11-12T08:00:00+02:00');
+  const repo = createNewsRepo({ db, now: () => NOW });
+  const art = fixtureArticle();
+  const ov = { schema: 'linguistpro-news-overview', schema_version: 1, day: '2026-11-12', stories: [
+    { story_key: '2026-11-12-aaaa', main: true, items: [{ outlet_id: art.source.outlet_id, url: art.source.canonical_url, section: 'politics', title_he: 'כותרת ראשית', title_ru: 'Главный заголовок', lead_he: 'פסקה ראשונה.', lead_ru: 'Первый абзац.' },
+      { outlet_id: 'walla', url: 'https://www.walla.co.il/news/israel/383961412', section: 'politics', title_he: 'כותרת שנייה', title_ru: 'Второй' }] }] };
+  assert.equal(C.validateOverview(ov).ok, true);
+  assert.equal(C.validateOverview({ ...ov, stories: [{ story_key: 'x', items: [{ outlet_id: 'ynet', url: 'https://www.walla.co.il/news/1', title_he: 'א' }] }] }).code, 'OVERVIEW_ITEM_INVALID');
+  // A pack with one article and the overview.
+  const zip = new AdmZip(fixturePack([art]));
+  const buf = Buffer.from(JSON.stringify(ov));
+  const manifest = JSON.parse(zip.readAsText('manifest.json'));
+  manifest.overview = { path: 'overview.json', sha256: C.sha256(buf) };
+  zip.addFile('overview.json', buf); zip.updateFile('manifest.json', Buffer.from(JSON.stringify(manifest)));
+  const receipt = await repo.ingestPack({ id: 'owner', kind: 'owner' }, zip.toBuffer());
+  assert.equal(receipt.totals.published, 1);
+  assert.deepEqual(receipt.overview, { status: 'published', day: '2026-11-12', stories: 1, items: 2, warnings: [] });
+  const got = await repo.getOverview();
+  assert.equal(got.day, '2026-11-12'); assert.equal(got.prev, null);
+  assert.match(got.stories[0].items[0].work_id, /^na_[0-9a-f]{24}\.b1$/);
+  assert.equal(got.stories[0].items[1].work_id, undefined);
+  // A wrong hash is refused, the articles of the pack still go in.
+  manifest.overview.sha256 = '0'.repeat(64); zip.updateFile('manifest.json', Buffer.from(JSON.stringify(manifest)));
+  assert.equal((await repo.ingestPack({ id: 'owner', kind: 'owner' }, zip.toBuffer())).overview.code, 'SHA_MISMATCH');
+
+  const app = express();
+  mountNewsRoutes(app, { repo, editorAuth: { resolve: async () => null }, resolveUser: async () => null });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(r)));
+  const base = 'http://127.0.0.1:' + server.address().port;
+  const res = await (await fetch(base + '/api/news/overview?day=2026-11-12')).json();
+  assert.equal(res.overview.stories[0].items[0].title_ru, 'Главный заголовок');
+  assert.equal((await fetch(base + '/api/news/overview?day=2026-01-01')).status, 404);
 });
 
 test('routes: the owner lists, starts and downloads; strangers get 401', async t => {
@@ -224,4 +320,28 @@ test('routes: the owner lists, starts and downloads; strangers get 401', async t
   const dl = await fetch(base + '/api/news/editor/harvests/nh_1/download', { headers: owner });
   assert.equal(dl.status, 200); assert.match(dl.headers.get('content-disposition'), /news-harvest-2026-11-15-abcdef\.zip/);
   assert.equal((await fetch(base + '/api/news/editor/harvests/nope/download', { headers: owner })).status, 404);
+});
+
+test('photos of articles live 2 months; the text stays in the archive', async t => {
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
+  t.after(() => db.close());
+  for (const m of ['078_news.sql', '079_news_manage.sql', '080_news_images.sql', '082_news_harvest_items.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
+  const NOW = Date.parse('2026-11-12T08:00:00+02:00');
+  let clock = NOW;
+  const repo = createNewsRepo({ db, now: () => clock });
+  const jpeg = await sharp({ create: { width: 400, height: 300, channels: 3, background: '#abc' } }).jpeg().toBuffer();
+  const a = fixtureArticle({ images: [{ file: 'img-1.jpg', role: 'hero', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg' }], __files: { 'img-1.jpg': jpeg } });
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([a]));
+  const id = r.items[0].article_id;
+  assert.ok(await repo.getImage(id, 'img-1.jpg'));
+  clock = NOW + 30 * 86400000;
+  assert.equal((await repo.runLifecycle(clock)).photos_removed, 0);
+  clock = NOW + 62 * 86400000;
+  const life = await repo.runLifecycle(clock);
+  assert.equal(life.photos_removed, 1);
+  assert.equal(await repo.getImage(id, 'img-1.jpg'), null);
+  const card = await repo.getCard(r.items[0].work_id);
+  assert.equal(card.tier, 'archive'); assert.equal(card.readable, true); assert.equal(card.image.stored, undefined);
 });

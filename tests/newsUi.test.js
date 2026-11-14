@@ -43,11 +43,18 @@ test('outlet tile shows the Hebrew name, fresh count and a labelled pin toggle',
   assert.equal(pin.getAttribute('aria-pressed'), 'true'); assert.match(pin.getAttribute('aria-label'), /Haaretz/);
   assert.equal(el.querySelector('a').getAttribute('href'), '/news.html?outlet=haaretz');
 });
+test('overview url state: view, day and rubric group round-trip; an outlet page is never an overview', () => {
+  const s = UI.parseState('?view=overview&day=2026-11-15&group=security');
+  assert.equal(s.view, 'overview'); assert.equal(s.day, '2026-11-15'); assert.equal(s.group, 'security');
+  assert.equal(UI.stateHref(s), '/news.html?view=overview&day=2026-11-15&group=security');
+  assert.equal(UI.parseState('?view=overview&outlet=ynet').view, null);
+  assert.equal(UI.parseState('?view=overview&group=bad&day=x').group, null);
+});
 test('url state round-trips and rejects junk', () => {
   const s = UI.parseState('?outlet=walla&section=sport&tier=archive&q=כנסת&from=2026-11-01&to=bad');
-  assert.deepEqual(s, { outlet: 'walla', section: 'sport', tier: 'archive', q: 'כנסת', from: '2026-11-01', to: null });
+  assert.deepEqual(s, { outlet: 'walla', section: 'sport', tier: 'archive', q: 'כנסת', from: '2026-11-01', to: null, view: null, day: null, group: null });
   assert.equal(UI.stateHref(s), '/news.html?outlet=walla&section=sport&tier=archive&q=' + encodeURIComponent('כנסת') + '&from=2026-11-01');
-  assert.deepEqual(UI.parseState('?outlet=cnn&section=x'), { outlet: null, section: null, tier: 'fresh', q: '', from: null, to: null });
+  assert.deepEqual(UI.parseState('?outlet=cnn&section=x'), { outlet: null, section: null, tier: 'fresh', q: '', from: null, to: null, view: null, day: null, group: null });
   assert.equal(UI.feedUrl({ outlet: 'ynet', tier: 'fresh', section: null }, 'abc', true), '/api/news/feed?outlet=ynet&tier=fresh&limit=20&no_heavy=1&cursor=abc');
 });
 test('every news.* key used by the News tab exists in ru, en and he', () => {

@@ -178,7 +178,31 @@ function validateArticle(a, { now = Date.now() } = {}) {
   return { ok: true, warnings };
 }
 
+// «Обзор дня» (§17): every article of the day as title / subtitle / first paragraph, grouped by story.
+// Not a reprint: short quotes with a link to each original. → { ok, code?, warnings, stories, items }
+const OVERVIEW_LIMITS = { stories: 1500, items: 4000, title: 400, subtitle: 700, lead: 900, ru: 1500 };
+function validateOverview(o) {
+  const bad = code => ({ ok: false, code, warnings: [], stories: 0, items: 0 });
+  if (!obj(o) || o.schema !== 'linguistpro-news-overview' || o.schema_version !== 1 || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.day || ''))
+    || !Array.isArray(o.stories) || o.stories.length > OVERVIEW_LIMITS.stories) return bad('OVERVIEW_INVALID');
+  let items = 0, missing = 0;
+  const textOk = (v, max) => v == null || (typeof v === 'string' && v.length <= max);
+  for (const s of o.stories) {
+    if (!obj(s) || typeof s.story_key !== 'string' || s.story_key.length > 64 || !Array.isArray(s.items) || !s.items.length) return bad('OVERVIEW_INVALID');
+    for (const it of s.items) {
+      items++;
+      if (items > OVERVIEW_LIMITS.items || !obj(it) || !Outlets.byId(it.outlet_id) || !httpsUrl(it.url) || Outlets.outletForUrl(it.url) !== it.outlet_id) return bad('OVERVIEW_ITEM_INVALID');
+      if (!HEBREW.test(String(it.title_he || '')) || !textOk(it.title_he, OVERVIEW_LIMITS.title) || !textOk(it.subtitle_he, OVERVIEW_LIMITS.subtitle) || !textOk(it.lead_he, OVERVIEW_LIMITS.lead)
+        || !['title_ru', 'subtitle_ru', 'lead_ru'].every(k => textOk(it[k], OVERVIEW_LIMITS.ru))
+        || (it.section != null && !SECTIONS.includes(it.section)) || (it.published_at != null && !ISO_TZ.test(String(it.published_at)) && !isFinite(Date.parse(it.published_at)))) return bad('OVERVIEW_ITEM_INVALID');
+      if (!str(it.title_ru) || (it.subtitle_he && !str(it.subtitle_ru)) || (it.lead_he && !str(it.lead_ru))) missing++;
+    }
+  }
+  return { ok: true, warnings: missing ? ['OVERVIEW_TRANSLATION_MISSING:' + missing] : [], stories: o.stories.length, items };
+}
+
 module.exports = {
+  validateOverview, OVERVIEW_LIMITS,
   SECTIONS, CONTENT_TYPES, LEVELS, ORIGINAL, SENSITIVE_KINDS, IMAGE_MODES, IMAGE_FILE, MAX_IMAGES,
   normalizeHebrewText, quotedSpans, shingles, overlapRatio, articleOverlap, articleFidelity, isOriginal, validateImages,
   canonicalizeUrl, articleKey, validateArticle, sha256,

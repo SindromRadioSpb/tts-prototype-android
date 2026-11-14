@@ -99,3 +99,22 @@ body.nw-dark .nw-manage-menu button[data-action=delete]{color:#ffadb7}
 .nw-toast{position:fixed;inset-inline:16px;inset-block-end:calc(84px + env(safe-area-inset-bottom,0px));margin:auto;width:fit-content;max-width:620px;display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:10px;background:var(--nw-text);color:var(--nw-paper);z-index:60}
 .nw-toast button{min-height:40px;border:0;background:transparent;color:inherit;font-weight:700;text-decoration:underline}
 @media(min-width:600px){.nw-toast{inset-block-end:24px}}
+/* «Обзор дня» (§17) */
+.nw-ov-teaser{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;padding:16px 18px;border:1px solid var(--nw-accent);border-radius:var(--nw-radius);background:var(--nw-soft);text-decoration:none;font-size:1.05rem}
+.nw-ov-teaser strong{color:var(--nw-accent)}.nw-ov-teaser-sub{flex-basis:100%;color:var(--nw-muted);font-size:.88rem}
+.nw-ov-days{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-block:4px 14px;padding:10px 14px;border:1px solid var(--nw-line);border-radius:var(--nw-radius);background:var(--nw-paper)}
+.nw-ov-days a{color:var(--nw-accent);min-height:40px;display:inline-flex;align-items:center}.nw-ov-day-off{color:var(--nw-line)}
+.nw-ov-story{border:1px solid var(--nw-line);border-radius:var(--nw-radius);background:var(--nw-paper);padding:14px 16px;margin-block-end:12px}
+.nw-ov-main{border-inline-start:5px solid var(--nw-accent)}
+.nw-ov-head{margin:0 0 6px;font-size:.8rem;color:var(--nw-muted);text-transform:uppercase;letter-spacing:.03em}
+.nw-ov-group{color:var(--nw-accent);font-weight:700}
+.nw-ov-item{margin-block:8px}.nw-ov-meta{margin:0 0 4px;font-size:.82rem;color:var(--nw-muted)}
+.nw-ov-original{color:var(--nw-accent);text-underline-offset:3px;white-space:nowrap}
+.nw-ov-title{margin:0;font-size:1.02rem;line-height:1.5;font-weight:600}h3.nw-ov-title{font-size:1.22rem}
+.nw-ov-ru{margin:2px 0 0;color:var(--nw-muted);line-height:1.5}
+.nw-ov-lead{margin:8px 0 0;line-height:1.65}.nw-ov-lead-ru{font-size:.94rem}
+.nw-ov-read{display:inline-flex;margin-block:8px 2px;text-decoration:none}
+.nw-ov-more{margin-block-start:8px;border-block-start:1px solid var(--nw-line);padding-block-start:6px}
+.nw-ov-more summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:var(--nw-accent);font-size:.9rem}
+.nw-ov-more .nw-ov-item{padding-inline-start:10px;border-inline-start:2px solid var(--nw-line)}
+@media (max-width:640px){.nw-ov-story{padding:12px}.nw-ov-days{font-size:.9rem}}

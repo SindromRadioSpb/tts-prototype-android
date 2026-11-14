@@ -270,9 +270,10 @@
     // «Статьи для dot»: the server's daily harvest archives (§16) — download and pass to dot.
     function harvestCard() {
       var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-harvest-title" }, [h(doc, "h2", { id: "ne-harvest-title", text: t("newsEditor.harvest.title", "Статьи для dot") }),
-        h(doc, "p", { class: "ne-muted", text: t("newsEditor.harvest.hint", "Каждый день в 6:00 по Израилю сервер собирает новые статьи изданий дословно, с фото и подписями. Скачайте архив и передайте dot: он добавит перевод и учебные поля и соберёт пакет.") })]);
+        h(doc, "p", { class: "ne-muted", text: t("newsEditor.harvest.hint2", "Сервер каждый час собирает все новые статьи изданий. В 6:00 по Израилю он делает архив: главные события дня с полным текстом и фото и «Обзор дня» со всеми статьями. Скачайте архив и передайте dot: он переведёт и соберёт пакет.") })]);
       var run = h(doc, "button", { type: "button", class: "ne-button", text: t("newsEditor.harvest.run", "Собрать сейчас") });
       var list = h(doc, "div", { class: "ne-harvests", "aria-live": "polite" });
+      var pendingLine = h(doc, "p", { class: "ne-muted ne-harvest-pending" });
       var timer = null;
       run.addEventListener("click", async function () {
         run.disabled = true;
@@ -293,11 +294,14 @@
           var data = await api("GET", "/api/news/editor/harvests?limit=10");
           run.disabled = !!data.running;
           list.replaceChildren();
+          if (data.pending) pendingLine.textContent = t("newsEditor.harvest.pending", "К следующему архиву накоплено статей: {n}").replace("{n}", String(data.pending.items))
+            + (Object.keys(data.pending.outlets || {}).length ? " (" + Object.keys(data.pending.outlets).map(function (k) { return k + " " + data.pending.outlets[k]; }).join(", ") + ")" : "");
           if (!data.runs.length) list.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.harvest.empty", "Архивов ещё не было — первый появится завтра в 6:00, или нажмите «Собрать сейчас»") }));
           data.runs.forEach(function (r) {
             var when = ""; try { when = new Date(r.started_at).toLocaleString(); } catch (_) {}
             var status = r.status === "running" ? t("newsEditor.harvest.statusRunning", "собирается…") : r.status === "failed" ? t("newsEditor.harvest.statusFailed", "ошибка") + (r.error ? " (" + r.error + ")" : "")
-              : t("newsEditor.harvest.counts", "статей {a}, фото {i}").replace("{a}", String(r.articles)).replace("{i}", String(r.images));
+              : t("newsEditor.harvest.counts", "статей {a}, фото {i}").replace("{a}", String(r.articles)).replace("{i}", String(r.images))
+                + (r.overview_items ? " · " + t("newsEditor.harvest.overview", "в обзоре {n} ({s} сюжетов)").replace("{n}", String(r.overview_items)).replace("{s}", String(r.stories)) : "");
             var line = h(doc, "div", { class: "ne-pack ne-harvest", "data-status": r.status }, [h(doc, "span", { text: when + " · " + status }),
               h(doc, "span", { class: "ne-muted", text: outletsLine(r.outlets) })]);
             if (r.has_file) line.appendChild(h(doc, "a", { class: "ne-button", href: "/api/news/editor/harvests/" + encodeURIComponent(r.run_id) + "/download", download: r.file_name,
@@ -307,7 +311,7 @@
           if (data.running) timer = setTimeout(refresh, 10000);
         } catch (e) { list.replaceChildren(h(doc, "p", { text: errorText(e) })); }
       }
-      box.append(h(doc, "div", { class: "ne-inline" }, [run]), list);
+      box.append(h(doc, "div", { class: "ne-inline" }, [run]), pendingLine, list);
       refresh();
       return box;
     }

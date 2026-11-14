@@ -97,7 +97,8 @@ function parseFigure(fig, base, source) {
 }
 
 function sectionFor(sectionHe, url) {
-  const path = (() => { try { return new URL(url).pathname; } catch (_) { return ''; } })();
+  // Host too: Walla keeps rubrics on subdomains (finance., sports., tech.).
+  const path = (() => { try { const u = new URL(url); return u.hostname + u.pathname; } catch (_) { return ''; } })();
   for (const [id, re] of SECTION_RULES) if (re.test(sectionHe || '') || re.test(path)) return id;
   return 'news';
 }

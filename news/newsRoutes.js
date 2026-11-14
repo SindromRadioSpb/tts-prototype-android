@@ -61,6 +61,14 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         limit: q.limit, no_heavy: q.no_heavy === '1' })) });
     } catch (e) { send(res, e); }
   });
+  // «Обзор дня» (§17): all of a day's articles by story — titles, first paragraphs, links to originals.
+  app.get('/api/news/overview', read, async (req, res) => {
+    try {
+      const o = await repo.getOverview(req.query.day ? String(req.query.day) : null);
+      res.set('Cache-Control', 'public, max-age=60');
+      return o ? res.json({ ok: true, overview: o }) : res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
+    } catch (e) { send(res, e); }
+  });
   // Photos from the article (owner decision 2026-11-14): same-origin, so the Reading Room shows them
   // under COEP require-corp. ?v= is the content hash prefix, so a matching address is immutable.
   app.get('/api/news/images/:articleId/:name', read, async (req, res) => {
@@ -179,7 +187,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
   if (harvester) {
     app.get('/api/news/editor/harvests', read, noStore, async (req, res) => {
       const actor = await actorFor(req, res); if (!actor) return;
-      try { res.json({ ok: true, running: harvester.isRunning(), runs: await harvester.listRuns(req.query.limit) }); } catch (e) { send(res, e); }
+      try { res.json({ ok: true, running: harvester.isRunning(), runs: await harvester.listRuns(req.query.limit), pending: harvester.pending ? await harvester.pending() : null }); } catch (e) { send(res, e); }
     });
     app.post('/api/news/editor/harvests/run', write, json, noStore, async (req, res) => {
       const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;

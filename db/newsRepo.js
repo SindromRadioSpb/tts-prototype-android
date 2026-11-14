@@ -11,8 +11,8 @@ const { buildNewsSnapshot, workIdFor } = require('../news/newsSnapshot');
 const { wordGlossLayerReport } = require('../publication/materialArchive');
 const { withTxnLock } = require('./txnLock');
 
-const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 1024 * 1024, image: 1024 * 1024, newsImage: 600 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, total: 400 * 1024 * 1024 };
-const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000;
+const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 1024 * 1024, image: 1024 * 1024, newsImage: 600 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, overview: 8 * 1024 * 1024, total: 400 * 1024 * 1024 };
+const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000, PHOTO_MS = 61 * 24 * 3600 * 1000;
 const REJECT_OVER = 0.15, FLAG_OVER = 0.08;
 // 'OR' version (the original one-to-one): below 50% of its 5-word windows found in the source it is
 // not this article; below 85% it was edited or cut and the receipt says so.
@@ -61,7 +61,7 @@ function openPack(zipBuffer) {
   let total = 0;
   for (const e of entries) {
     const name = e.entryName;
-    if (name === 'manifest.json' || name === 'README.txt' || DIR_ENTRY.test(name)) { /* allowed */ }
+    if (name === 'manifest.json' || name === 'README.txt' || name === 'overview.json' || DIR_ENTRY.test(name)) { /* allowed */ }
     else { const m = name.match(ENTRY); if (!m || m[2] === '.' || m[2] === '..' || m[2].includes('..')) fail('PACK_INVALID', 400, 'ENTRY_NAME'); }
     if (byName.has(name)) fail('PACK_INVALID', 400, 'ENTRY_DUPLICATE');
     total += e.header.size;
@@ -214,6 +214,42 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     });
   }
 
+  // «Обзор дня» (§17): one per day; a later pack for the same day replaces it.
+  async function ingestOverview(manifest, byName) {
+    const ref = manifest.overview, entry = ref && ref.path === 'overview.json' && byName.get('overview.json');
+    const buf = entry && readEntry(entry, LIMITS.overview);
+    if (!buf) return { status: 'rejected', code: entry ? 'TOO_LARGE' : 'NOT_FOUND' };
+    if (!/^[0-9a-f]{64}$/.test(String(ref.sha256 || '')) || C.sha256(buf) !== ref.sha256) return { status: 'rejected', code: 'SHA_MISMATCH' };
+    let o; try { o = JSON.parse(buf.toString('utf8').replace(/^﻿/, '')); } catch (_) { return { status: 'rejected', code: 'OVERVIEW_INVALID' }; }
+    const v = C.validateOverview(o);
+    if (!v.ok) return { status: 'rejected', code: v.code };
+    const t = iso(), body = { day: o.day, created_at: o.created_at || null, stories: o.stories };
+    await dbRun(db, `INSERT INTO news_overviews(day, pack_id, body_json, stories, items, created_at, updated_at) VALUES (?,?,?,?,?,?,?)
+      ON CONFLICT(day) DO UPDATE SET pack_id=excluded.pack_id, body_json=excluded.body_json, stories=excluded.stories, items=excluded.items, updated_at=excluded.updated_at`,
+      [o.day, manifest.pack_id, JSON.stringify(body), v.stories, v.items, t, t]);
+    return { status: 'published', day: o.day, stories: v.stories, items: v.items, warnings: v.warnings };
+  }
+  // → { day, prev, next, stories:[{ story_key, main, items:[{…, work_id? }]}] } or null. An item links to
+  // its full study article while that one is readable (feed or archive).
+  async function getOverview(day) {
+    const row = day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? await dbGet(db, 'SELECT * FROM news_overviews WHERE day=?', [day])
+      : await dbGet(db, 'SELECT * FROM news_overviews ORDER BY day DESC LIMIT 1');
+    if (!row) return null;
+    const body = JSON.parse(row.body_json);
+    const keys = new Map();
+    for (const s of body.stories) for (const it of s.items) { try { keys.set(C.articleKey(it.outlet_id, C.canonicalizeUrl(it.url)), it); } catch (_) {} }
+    const ids = [...keys.keys()];
+    for (let i = 0; i < ids.length; i += 400) {
+      const part = ids.slice(i, i + 400);
+      const works = await dbAll(db, `SELECT w.article_id, w.work_id FROM news_works w JOIN news_articles a ON a.article_id=w.article_id
+        WHERE w.position_no=1 AND a.tier IN ('fresh','archive') AND w.article_id IN (${part.map(() => '?').join(',')})`, part);
+      for (const w of works) keys.get(w.article_id).work_id = w.work_id;
+    }
+    const prev = await dbGet(db, 'SELECT day FROM news_overviews WHERE day<? ORDER BY day DESC LIMIT 1', [row.day]);
+    const next = await dbGet(db, 'SELECT day FROM news_overviews WHERE day>? ORDER BY day ASC LIMIT 1', [row.day]);
+    return { day: row.day, prev: prev ? prev.day : null, next: next ? next.day : null, updated_at: row.updated_at, stories: body.stories };
+  }
+
   function ingestPack(actor, zipBuffer) {
     return serialize(async () => {
       const { manifest, byName } = openPack(zipBuffer);
@@ -236,6 +272,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       const totals = Object.fromEntries(TOTAL_KEYS.map(k => [k, 0]));
       for (const i of items) { totals[i.status] = (totals[i.status] || 0) + 1; if (i.flagged) totals.flagged++; }
       const receipt = { pack_id: manifest.pack_id, totals, items, warnings };
+      if (manifest.overview) receipt.overview = await ingestOverview(manifest, byName);
       await dbRun(db, `INSERT INTO news_packs(pack_id,uploaded_by,uploaded_at,producer_json,receipt_json) VALUES(?,?,?,?,?)
         ON CONFLICT(pack_id) DO UPDATE SET uploaded_by=excluded.uploaded_by, uploaded_at=excluded.uploaded_at, receipt_json=excluded.receipt_json`,
         [manifest.pack_id, String(actor.id), iso(), JSON.stringify(manifest.producer), JSON.stringify(receipt)]);
@@ -264,6 +301,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const prov = JSON.parse(row.provenance_json);
     const image = JSON.parse(row.image_json);
     if (!readable && image && image.stored) delete image.stored;   // a card keeps no stored photos (§10)
+    if (image && image.stored && Date.parse(row.published_at) < nowMs() - PHOTO_MS) delete image.stored;   // photos live 2 months (§17)
     return {
       article_id: row.article_id, work_id: readable ? work.work_id : null, snapshot_sha256: readable ? work.snapshot_sha256 : null,
       outlet_id: row.outlet_id, section: row.section, section_original_he: row.section_original_he, content_type: row.content_type,
@@ -355,8 +393,11 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       const purgeCut = new Date(atMs - TRASH_MS).toISOString();
       await dbRun(db, "DELETE FROM news_images WHERE article_id IN (SELECT article_id FROM news_articles WHERE tier='withdrawn' AND COALESCE(deleted_at, updated_at)<?)", [purgeCut]);
       const purged = await dbRun(db, "DELETE FROM news_articles WHERE tier='withdrawn' AND COALESCE(deleted_at, updated_at)<?", [purgeCut]);
-      const result = { to_archive: arch.changes, to_card: card.changes, purged: purged.changes };
-      if (result.to_archive || result.to_card || result.purged) await event({ id: 'system' }, 'lifecycle', { detail: result });
+      // Photos live 2 months, not the whole archive half-year: ~20 full articles a day would not fit the disk (§17).
+      const photos = await dbRun(db, 'DELETE FROM news_images WHERE article_id IN (SELECT article_id FROM news_articles WHERE published_at<?)', [new Date(atMs - PHOTO_MS).toISOString()]);
+      try { await dbRun(db, 'DELETE FROM news_overviews WHERE day<?', [new Date(atMs - ARCHIVE_MS).toISOString().slice(0, 10)]); } catch (_) { /* before migration 082 */ }
+      const result = { to_archive: arch.changes, to_card: card.changes, purged: purged.changes, photos_removed: photos.changes };
+      if (result.to_archive || result.to_card || result.purged || result.photos_removed) await event({ id: 'system' }, 'lifecycle', { detail: result });
       return result;
     }));
   }
@@ -446,7 +487,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     };
   }
 
-  return { ingestPack, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
+  return { ingestPack, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
 }
 
 module.exports = { createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };

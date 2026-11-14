@@ -33,14 +33,14 @@ test('runLifecycle: 72h → archive, 6 months → card drops body and works', as
   await repo.ingestPack(OWNER, fixturePack([article(1, { hoursAgo: 1 }), article(2, { hoursAgo: 70 }), article(3, { hoursAgo: 100 * 24 })]));
   setNow(NOW + 3 * 3600 * 1000);
   const r1 = await repo.runLifecycle(NOW + 3 * 3600 * 1000);
-  assert.deepEqual(r1, { to_archive: 1, to_card: 0, purged: 0 });
+  assert.deepEqual(r1, { to_archive: 1, to_card: 0, purged: 0, photos_removed: 0 });
   const later = NOW + 90 * 24 * 3600 * 1000;
   const r2 = await repo.runLifecycle(later);
-  assert.deepEqual(r2, { to_archive: 1, to_card: 1, purged: 0 });
+  assert.deepEqual(r2, { to_archive: 1, to_card: 1, purged: 0, photos_removed: 0 });
   const card = await get(db, "SELECT body_json, tier, article_id FROM news_articles WHERE tier='card'");
   assert.equal(card.body_json, null);
   assert.equal((await get(db, 'SELECT COUNT(*) n FROM news_works WHERE article_id=?', [card.article_id])).n, 0);
-  assert.deepEqual(await repo.runLifecycle(later), { to_archive: 0, to_card: 0, purged: 0 });
+  assert.deepEqual(await repo.runLifecycle(later), { to_archive: 0, to_card: 0, purged: 0, photos_removed: 0 });
 });
 test('fresh feed is newest first, paginates, never shows withdrawn', async t => {
   const { repo } = await setup(t);
