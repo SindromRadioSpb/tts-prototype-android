@@ -368,6 +368,7 @@
     "marked": "^14.1.4",
     "oidc-provider": "9.8.2",
     "qrcode-generator": "^2.0.4",
+    "sharp": "0.34.5",
     "sql.js": "^1.14.1",
     "sqlite3": "^6.0.1",
     "undici": "6.28.1",

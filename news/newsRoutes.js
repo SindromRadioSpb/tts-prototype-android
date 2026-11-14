@@ -10,7 +10,7 @@ const { NewsError, LIMITS } = require('../db/newsRepo');
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20 }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -175,6 +175,29 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       res.json({ ok: true, ...r });
     } catch (e) { send(res, e); }
   });
+  // The daily harvester (§16): archives of fresh articles one-to-one for dot. Owner or editor.
+  if (harvester) {
+    app.get('/api/news/editor/harvests', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res); if (!actor) return;
+      try { res.json({ ok: true, running: harvester.isRunning(), runs: await harvester.listRuns(req.query.limit) }); } catch (e) { send(res, e); }
+    });
+    app.post('/api/news/editor/harvests/run', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+      if (harvester.isRunning()) return res.status(409).json({ ok: false, error: 'HARVEST_RUNNING' });
+      const done = harvester.runOnce({ trigger: 'manual' });
+      done.then(r => audit('news_harvest_run', actor.id, { run_id: r.run_id, articles: r.articles }, req.ip)).catch(e => { try { console.warn('[news-harvest]', e && e.message); } catch (_) {} });
+      res.status(202).json({ ok: true, started: true });
+    });
+    app.get('/api/news/editor/harvests/:id/download', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res); if (!actor) return;
+      try {
+        const file = await harvester.runFile(req.params.id);
+        if (!file) return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
+        res.set({ 'Content-Type': 'application/zip', 'X-Content-Type-Options': 'nosniff' });
+        res.download(file.path, file.name);
+      } catch (e) { send(res, e); }
+    });
+  }
   app.get('/api/news/editor/editors', read, noStore, async (req, res) => {
     const actor = await actorFor(req, res, { ownerOnly: true }); if (!actor) return;
     try { res.json({ ok: true, editors: await editorAuth.listEditors() }); } catch (e) { send(res, e); }

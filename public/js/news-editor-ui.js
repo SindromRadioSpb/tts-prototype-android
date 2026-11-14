@@ -267,6 +267,51 @@
       return box;
     }
 
+    // «Статьи для dot»: the server's daily harvest archives (§16) — download and pass to dot.
+    function harvestCard() {
+      var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-harvest-title" }, [h(doc, "h2", { id: "ne-harvest-title", text: t("newsEditor.harvest.title", "Статьи для dot") }),
+        h(doc, "p", { class: "ne-muted", text: t("newsEditor.harvest.hint", "Каждый день в 6:00 по Израилю сервер собирает новые статьи изданий дословно, с фото и подписями. Скачайте архив и передайте dot: он добавит перевод и учебные поля и соберёт пакет.") })]);
+      var run = h(doc, "button", { type: "button", class: "ne-button", text: t("newsEditor.harvest.run", "Собрать сейчас") });
+      var list = h(doc, "div", { class: "ne-harvests", "aria-live": "polite" });
+      var timer = null;
+      run.addEventListener("click", async function () {
+        run.disabled = true;
+        try { await api("POST", "/api/news/editor/harvests/run", json({}), "application/json"); say(t("newsEditor.harvest.started", "Сбор начат — это займёт несколько минут")); }
+        catch (e) { say(e.message === "HARVEST_RUNNING" ? t("newsEditor.harvest.running", "Сбор уже идёт") : errorText(e)); }
+        refresh();
+      });
+      function outletsLine(outlets) {
+        return Object.keys(outlets || {}).map(function (id) {
+          var o = outlets[id] || {}, bad = (o.errors || []).some(function (e) { return /BOT_CHALLENGE|BLOCKED/.test(e); });
+          return id + " " + (bad ? t("newsEditor.harvest.closed", "закрыт для сервера") : String(o.taken || 0));
+        }).join(" · ");
+      }
+      function sizeText(bytes) { return bytes > 1048576 ? (Math.round(bytes / 104857.6) / 10) + " МБ" : Math.max(1, Math.round(bytes / 1024)) + " КБ"; }
+      async function refresh() {
+        clearTimeout(timer);
+        try {
+          var data = await api("GET", "/api/news/editor/harvests?limit=10");
+          run.disabled = !!data.running;
+          list.replaceChildren();
+          if (!data.runs.length) list.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.harvest.empty", "Архивов ещё не было — первый появится завтра в 6:00, или нажмите «Собрать сейчас»") }));
+          data.runs.forEach(function (r) {
+            var when = ""; try { when = new Date(r.started_at).toLocaleString(); } catch (_) {}
+            var status = r.status === "running" ? t("newsEditor.harvest.statusRunning", "собирается…") : r.status === "failed" ? t("newsEditor.harvest.statusFailed", "ошибка") + (r.error ? " (" + r.error + ")" : "")
+              : t("newsEditor.harvest.counts", "статей {a}, фото {i}").replace("{a}", String(r.articles)).replace("{i}", String(r.images));
+            var line = h(doc, "div", { class: "ne-pack ne-harvest", "data-status": r.status }, [h(doc, "span", { text: when + " · " + status }),
+              h(doc, "span", { class: "ne-muted", text: outletsLine(r.outlets) })]);
+            if (r.has_file) line.appendChild(h(doc, "a", { class: "ne-button", href: "/api/news/editor/harvests/" + encodeURIComponent(r.run_id) + "/download", download: r.file_name,
+              text: t("newsEditor.harvest.download", "Скачать архив") + " · " + sizeText(r.bytes) }));
+            list.appendChild(line);
+          });
+          if (data.running) timer = setTimeout(refresh, 10000);
+        } catch (e) { list.replaceChildren(h(doc, "p", { text: errorText(e) })); }
+      }
+      box.append(h(doc, "div", { class: "ne-inline" }, [run]), list);
+      refresh();
+      return box;
+    }
+
     async function render() {
       root.setAttribute("aria-busy", "true");
       if (!session) {
@@ -280,7 +325,7 @@
         who.appendChild(out);
       }
       receiptHost = h(doc, "div", { class: "ne-receipt-host" });
-      var parts = [who, articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var parts = [who, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }

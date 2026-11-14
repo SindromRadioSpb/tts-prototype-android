@@ -1539,9 +1539,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=889",
-  "/i18n/locales/en.js?v=889",
-  "/i18n/locales/he.js?v=889",
+  "/i18n/locales/ru.js?v=890",
+  "/i18n/locales/en.js?v=890",
+  "/i18n/locales/he.js?v=890",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4608,13 +4608,14 @@ let _newsStore = null;
 function newsStore() {
   if (!_newsStore) {
     const db = require("./db/sqlite").getDb();
-    _newsStore = { repo: require("./db/newsRepo").createNewsRepo({ db }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }) };
+    _newsStore = { repo: require("./db/newsRepo").createNewsRepo({ db }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
+      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m) }) };
   }
   return _newsStore;
 }
 const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
 require("./news/newsRoutes").mountNewsRoutes(app, {
-  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth),
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester),
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
   // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
   audit: (type, actorId, detail, ip) => {
@@ -4632,6 +4633,11 @@ const _newsLifecycleBoot = setTimeout(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
 }, 90 * 1000);
 if (_newsLifecycleBoot.unref) _newsLifecycleBoot.unref();
+// Daily article harvester (§16): checks every 10 minutes, runs once a day after 06:00 Israel time.
+const _newsHarvestTick = setInterval(() => {
+  newsStore().harvester.tick().catch(e => console.error("[news-harvest] run failed:", e && e.message));
+}, 10 * 60 * 1000);
+if (_newsHarvestTick.unref) _newsHarvestTick.unref();
 // MASS_ACCESS_I4_PUBLIC_READ_BEGIN
 // Anonymous public-corpus reads are a separate namespace and projection. They
 // intentionally have no session, CSRF, audit or publication-write middleware.

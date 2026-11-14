@@ -38,3 +38,4 @@
 .ne-article-he{font-size:1.1rem;font-weight:650;overflow-wrap:anywhere}
 .ne-article-ru{overflow-wrap:anywhere}
 .ne-row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ne-button:disabled{opacity:.55;cursor:default}
