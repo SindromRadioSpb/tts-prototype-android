@@ -21,7 +21,7 @@ test('card: outlet tag, reader link with return path, safe original link, lazy n
   assert.equal(img.getAttribute('referrerpolicy'), 'no-referrer'); assert.equal(img.getAttribute('loading'), 'lazy');
   const orig = el.querySelector('.nw-card-foot a');
   assert.equal(orig.getAttribute('rel'), 'noopener noreferrer'); assert.equal(orig.getAttribute('href'), 'https://www.ynet.co.il/news/article/abc');
-  assert.match(el.querySelector('.nw-card-foot').textContent, /Фото: ynet · צילום: א/);
+  assert.match(el.querySelector('.nw-card-foot').textContent, /Фото: ynet · א/);
   assert.equal(el.querySelector('h3').getAttribute('lang'), 'he');
 });
 test('card: no photo → fallback cover; card-tier → no reader link; unsafe urls dropped', () => {
@@ -129,4 +129,16 @@ test('manage menu: only for owner/editor; fresh → «В архив», young arc
   const old = UI.renderCard(document, card({ tier: 'archive', published_at: new Date(NOW - 100 * 3600e3).toISOString() }), { now: NOW, manage: { act: async () => true } });
   old.querySelector('.nw-manage-toggle').dispatchEvent(new window.Event('click', { bubbles: true }));
   assert.deepEqual([...old.querySelectorAll('.nw-manage-menu button')].map(b => b.textContent), ['Удалить']);
+});
+
+test('card prefers the stored article photo, credits it, and labels the original version', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const src = '/api/news/images/na_' + 'a'.repeat(24) + '/img-1.webp?v=' + 'd'.repeat(12);
+  const el = UI.renderCard(document, card({ levels: ['OR', 'B1'], image: { mode: 'source_link', url: 'https://ynet-pic1.yit.co.il/x.jpg', credit_he: 'og',
+    stored: { url: src, credit_he: 'צילום: א', alt_ru: 'Пленум' } } }), { now: NOW });
+  assert.equal(el.querySelector('.nw-cover img').getAttribute('src'), src);
+  assert.match(el.querySelector(".nw-card-foot").textContent, /Фото: ynet · א(?!:)/);
+  assert.equal(el.querySelector('.nw-level-original').textContent, 'Оригинал');
+  const foreign = UI.renderCard(document, card({ image: { mode: 'none', stored: { url: 'https://evil.example/a.jpg' } } }), { now: NOW });
+  assert.equal(foreign.querySelector('.nw-cover img'), null);
 });

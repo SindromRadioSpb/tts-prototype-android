@@ -11,9 +11,19 @@ const { buildNewsSnapshot, workIdFor } = require('../news/newsSnapshot');
 const { wordGlossLayerReport } = require('../publication/materialArchive');
 const { withTxnLock } = require('./txnLock');
 
-const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 256 * 1024, image: 1024 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, total: 400 * 1024 * 1024 };
+const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 1024 * 1024, image: 1024 * 1024, newsImage: 600 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, total: 400 * 1024 * 1024 };
 const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000;
 const REJECT_OVER = 0.15, FLAG_OVER = 0.08;
+// 'OR' version (the original one-to-one): below 50% of its 5-word windows found in the source it is
+// not this article; below 85% it was edited or cut and the receipt says so.
+const FIDELITY_REJECT = 0.5, FIDELITY_WARN = 0.85;
+function imageMime(buf) {
+  if (buf.length > 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+  if (buf.length > 8 && buf.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+  if (buf.length > 12 && buf.slice(0, 4).toString('latin1') === 'RIFF' && buf.slice(8, 12).toString('latin1') === 'WEBP') return 'image/webp';
+  return null;
+}
+const imageUrl = (articleId, name, sha) => '/api/news/images/' + articleId + '/' + name + '?v=' + sha.slice(0, 12);
 const ENTRY = /^articles\/([a-z0-9-]{1,64})\/([A-Za-z0-9_-][A-Za-z0-9._-]{0,80})$/;
 const DIR_ENTRY = /^articles\/([a-z0-9-]{1,64}\/)?$/;
 const TOTAL_KEYS = ['published', 'archived', 'revised', 'duplicate', 'flagged', 'withdrawn', 'rejected'];
@@ -108,6 +118,16 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const warnings = [...v.warnings];
     const overlap = C.articleOverlap(article);
     if (overlap > REJECT_OVER) return { ...item, code: 'VERBATIM_OVERLAP', overlap };
+    const fidelity = C.articleFidelity(article);
+    if (fidelity != null && fidelity < FIDELITY_REJECT) return { ...item, code: 'ORIGINAL_MISMATCH', fidelity: Math.round(fidelity * 1000) / 1000 };
+    if (fidelity != null && fidelity < FIDELITY_WARN) warnings.push('FIDELITY_LOW:' + Math.round(fidelity * 100));
+    const photos = [];
+    for (const im of article.images || []) {
+      const ie = byName.get(dir + im.file), ib = ie && readEntry(ie, LIMITS.newsImage);
+      const mime = ib && imageMime(ib);
+      if (!mime) return { ...item, code: ie && !ib ? 'TOO_LARGE' : 'IMAGE_INVALID', image: im.file };
+      photos.push({ name: im.file, mime, sha256: C.sha256(ib), bytes: ib });
+    }
     if (article.image.mode === 'licensed') {
       const img = byName.get(dir + article.image.file);
       if (!img || !readEntry(img, LIMITS.image)) return { ...item, code: 'IMAGE_INVALID' };
@@ -137,17 +157,24 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const tier = tierFor(publishedMs, nowMs());
     const flagged = overlap > FLAG_OVER;
     const result = { ...item, article_id: articleId, overlap: Math.round(overlap * 1000) / 1000, warnings };
+    if (fidelity != null) result.fidelity = Math.round(fidelity * 1000) / 1000;
+    const shaOf = new Map(photos.map(ph => [ph.name, ph.sha256]));
+    const images = (article.images || []).map(im => ({ ...im, url: imageUrl(articleId, im.file, shaOf.get(im.file)) }));
+    const hero = images.find(im => im.role === 'hero');
+    const imageJson = hero ? { ...article.image, stored: { url: hero.url, credit_he: hero.credit_he || null, caption_he: hero.caption_he || null,
+      caption_ru: hero.caption_ru || null, alt_he: hero.alt_he || null, alt_ru: hero.alt_ru || null, source_url: hero.source_url } } : article.image;
     return transaction(async () => {
       const existing = await dbGet(db, 'SELECT revision FROM news_articles WHERE article_id=?', [articleId]);
       if (existing && article.revision === existing.revision) return { ...result, status: 'duplicate' };
       if (existing && article.revision < existing.revision) return { ...result, status: 'rejected', code: 'REVISION_STALE' };
       const body = { ...article }; delete body.check;
+      if (images.length) body.images = images;
       const s = article.source, l = article.learning, t = iso();
       const provenance = { prepared: article.prepared, quality: article.quality || null, producer: manifest.producer, pack_id: manifest.pack_id, uploaded_by: String(actor.id), paywalled: !!s.paywalled, url: s.url };
       const values = [s.outlet_id, canonical, article.revision, s.section, s.section_original_he, s.content_type, new Date(publishedMs).toISOString(),
         new Date(Date.parse(s.retrieved_at)).toISOString(), l.title_he, l.title_ru, l.summary_ru, C.normalizeHebrewText(l.title_he + ' ' + l.title_ru).toLowerCase(),
         s.original_title_he, s.author || null, l.story_key || null, l.sensitive.heavy ? 1 : 0, JSON.stringify(l.versions.map(x => x.level)),
-        JSON.stringify(article.image), JSON.stringify(provenance), tier === 'card' ? null : JSON.stringify(body), tier, overlap, flagged ? 1 : 0, manifest.pack_id, t];
+        JSON.stringify(imageJson), JSON.stringify(provenance), tier === 'card' ? null : JSON.stringify(body), tier, overlap, flagged ? 1 : 0, manifest.pack_id, t];
       if (existing) {
         await dbRun(db, `UPDATE news_articles SET outlet_id=?,canonical_url=?,revision=?,section=?,section_original_he=?,content_type=?,published_at=?,retrieved_at=?,
           title_he=?,title_ru=?,summary_ru=?,title_norm=?,original_title_he=?,author=?,story_key=?,heavy=?,levels_json=?,image_json=?,provenance_json=?,body_json=?,
@@ -158,6 +185,9 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
           title_he,title_ru,summary_ru,title_norm,original_title_he,author,story_key,heavy,levels_json,image_json,provenance_json,body_json,tier,overlap,flagged,pack_id,updated_at,
           article_id,created_at) VALUES(${Array(27).fill('?').join(',')})`, [...values, articleId, t]);
       }
+      await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [articleId]);
+      if (tier !== 'card') for (const ph of photos)
+        await dbRun(db, 'INSERT INTO news_images(article_id,name,mime,sha256,bytes,created_at) VALUES(?,?,?,?,?,?)', [articleId, ph.name, ph.mime, ph.sha256, ph.bytes, t]);
       const works = [];
       if (tier !== 'card') for (const [i, version] of l.versions.entries()) {
         const workId = workIdFor(articleId, version.level);
@@ -232,11 +262,13 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   function toCard(row, work) {
     const readable = (row.tier === 'fresh' || row.tier === 'archive') && !!work;
     const prov = JSON.parse(row.provenance_json);
+    const image = JSON.parse(row.image_json);
+    if (!readable && image && image.stored) delete image.stored;   // a card keeps no stored photos (§10)
     return {
       article_id: row.article_id, work_id: readable ? work.work_id : null, snapshot_sha256: readable ? work.snapshot_sha256 : null,
       outlet_id: row.outlet_id, section: row.section, section_original_he: row.section_original_he, content_type: row.content_type,
       published_at: row.published_at, title_he: row.title_he, title_ru: row.title_ru, summary_ru: row.summary_ru, author: row.author,
-      levels: JSON.parse(row.levels_json), image: JSON.parse(row.image_json), heavy: !!row.heavy, story_key: row.story_key,
+      levels: JSON.parse(row.levels_json), image, heavy: !!row.heavy, story_key: row.story_key,
       tier: row.tier, readable, original_url: row.canonical_url, prepared_by: prov.prepared && prov.prepared.by || null,
     };
   }
@@ -299,6 +331,12 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       assets: [], field_evidence: null,
     };
   }
+  // A stored article photo, only while the article itself is readable (fresh or archive).
+  async function getImage(articleId, name) {
+    if (!ARTICLE_ID.test(String(articleId || '')) || !C.IMAGE_FILE.test(String(name || ''))) return null;
+    return dbGet(db, `SELECT i.mime, i.sha256, i.bytes FROM news_images i JOIN news_articles a ON a.article_id=i.article_id
+      WHERE i.article_id=? AND i.name=? AND a.tier IN ('fresh','archive')`, [articleId, name]);
+  }
   async function listOutlets() {
     const counts = await dbAll(db, "SELECT outlet_id, section, COUNT(*) n, MAX(published_at) latest FROM news_articles WHERE tier='fresh' AND published_at>=? GROUP BY outlet_id, section", [new Date(nowMs() - FRESH_MS).toISOString()]);
     return Outlets.OUTLETS.map(o => {
@@ -311,10 +349,11 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     return serialize(() => transaction(async () => {
       const freshCut = new Date(atMs - FRESH_MS).toISOString(), cardCut = new Date(atMs - ARCHIVE_MS).toISOString(), t = new Date(atMs).toISOString();
       const toCardRows = await dbAll(db, "SELECT article_id FROM news_articles WHERE tier IN ('fresh','archive') AND published_at<?", [cardCut]);
-      for (const r of toCardRows) await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [r.article_id]);
+      for (const r of toCardRows) { await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [r.article_id]); await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [r.article_id]); }
       const card = await dbRun(db, "UPDATE news_articles SET tier='card', body_json=NULL, updated_at=? WHERE tier IN ('fresh','archive') AND published_at<?", [t, cardCut]);
       const arch = await dbRun(db, "UPDATE news_articles SET tier='archive', updated_at=? WHERE tier='fresh' AND published_at<?", [t, freshCut]);
       const purgeCut = new Date(atMs - TRASH_MS).toISOString();
+      await dbRun(db, "DELETE FROM news_images WHERE article_id IN (SELECT article_id FROM news_articles WHERE tier='withdrawn' AND COALESCE(deleted_at, updated_at)<?)", [purgeCut]);
       const purged = await dbRun(db, "DELETE FROM news_articles WHERE tier='withdrawn' AND COALESCE(deleted_at, updated_at)<?", [purgeCut]);
       const result = { to_archive: arch.changes, to_card: card.changes, purged: purged.changes };
       if (result.to_archive || result.to_card || result.purged) await event({ id: 'system' }, 'lifecycle', { detail: result });
@@ -367,6 +406,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       const tier = tierFor(Date.parse(row.published_at), nowMs());
       if (tier === 'card') {
         await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [articleId]);
+        await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [articleId]);
         await dbRun(db, "UPDATE news_articles SET tier='card', body_json=NULL, deleted_at=NULL, withdrawn_reason=NULL, updated_at=? WHERE article_id=?", [iso(), articleId]);
       } else {
         await dbRun(db, 'UPDATE news_articles SET tier=?, deleted_at=NULL, withdrawn_reason=NULL, updated_at=? WHERE article_id=?', [tier, iso(), articleId]);
@@ -406,7 +446,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     };
   }
 
-  return { ingestPack, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
+  return { ingestPack, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
 }
 
 module.exports = { createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };

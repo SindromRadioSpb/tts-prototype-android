@@ -61,6 +61,19 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         limit: q.limit, no_heavy: q.no_heavy === '1' })) });
     } catch (e) { send(res, e); }
   });
+  // Photos from the article (owner decision 2026-11-14): same-origin, so the Reading Room shows them
+  // under COEP require-corp. ?v= is the content hash prefix, so a matching address is immutable.
+  app.get('/api/news/images/:articleId/:name', read, async (req, res) => {
+    try {
+      const img = await repo.getImage(req.params.articleId, req.params.name);
+      if (!img) { res.set('Cache-Control', 'no-store'); return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' }); }
+      const pinned = String(req.query.v || '') === img.sha256.slice(0, 12);
+      res.set({ 'Content-Type': img.mime, 'X-Content-Type-Options': 'nosniff', 'Cross-Origin-Resource-Policy': 'same-origin', ETag: '"' + img.sha256 + '"',
+        'Cache-Control': pinned ? 'public, max-age=31536000, immutable' : 'public, max-age=0, must-revalidate' });
+      if (req.get('if-none-match') === '"' + img.sha256 + '"') return res.status(304).end();
+      res.send(Buffer.from(img.bytes));
+    } catch (e) { send(res, e); }
+  });
   // Must be mounted before the generic /api/public-corpora/:slug/works/:workId route.
   app.get('/api/public-corpora/news-:outlet/works/:workId', read, async (req, res) => {
     try {

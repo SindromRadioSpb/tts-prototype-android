@@ -5757,3 +5757,11 @@ window.I18N_LOCALES.he.news.manage = {"menu":"פעולות על הכתבה","arc
 Object.assign(window.I18N_LOCALES.he.newsEditor, {"articles":"כתבות","view":{"feed":"בפיד","archive":"בארכיון","deleted":"נמחקו"},"outlet":"כלי תקשורת","allOutlets":"כל כלי התקשורת","search":"חיפוש בכותרות","more":"עוד","empty":"אין כאן עדיין כלום","tooOld":"הכתבה בת יותר משלושה ימים — אי אפשר להחזיר אותה לפיד","confirmDelete":"למחוק? לחצו שוב","purgeAt":"תימחק לצמיתות ב־{date}","action":{"archive":"לארכיון","unarchive":"חזרה לפיד","delete":"מחיקה","restore":"שחזור"},"doneAction":{"archive":"הכתבה הועברה לארכיון","unarchive":"הכתבה הוחזרה לפיד","delete":"הכתבה נמחקה — היא נשמרת ב„נמחקו” 30 יום","restore":"הכתבה שוחזרה"}});
 Object.assign(window.I18N_LOCALES.he.newsEditor, {"withdrawPack":"מחיקת החבילה","withdrawnCount":"כתבות שנמחקו: {n}"});
 window.I18N_LOCALES.he.newsEditor.total.withdrawn = "נמחקו";
+// News originals + photos (owner decision 2026-11-14)
+window.I18N_LOCALES.he.news.lead = "כתבות מאתרי חדשות בישראל — עם טבלה, ניקוד, תרגום וכרטיסי מילים. הטקסט המקורי או עיבוד לימודי; לכל כתבה קישור למקור ולכל תמונה קרדיט.";
+Object.assign(window.I18N_LOCALES.he.news.plate, {"headOriginal":"הטקסט המקורי: כתבה מ־{outlet}","opinionOriginal":"טור דעה: עמדת הכותב, לא של LinguistPro"});
+window.I18N_LOCALES.he.news.figure = {"credit":"צילום: {credit}{outlet}","source":"מקור התמונה ↗","gallery":"תמונות מהכתבה"};
+window.I18N_LOCALES.he.news.level = Object.assign(window.I18N_LOCALES.he.news.level || {}, {"original":"מקור"});
+window.I18N_LOCALES.he.news.versions = "גרסאות:";
+Object.assign(window.I18N_LOCALES.he.newsEditor.reason, {"ORIGINAL_MISMATCH":"גרסת „מקור” אינה תואמת את טקסט הכתבה (פחות מ־50%)","ROWS_OUT_OF_RANGE":"צריכות להיות 3 עד 120 שורות (במקור — 1 עד 400)","IMAGE_INVALID":"תמונה לא תקינה: פורמט, שם קובץ, כתובת שאינה https או קובץ חסר בחבילה"});
+window.I18N_LOCALES.he.news.retellingNote = "כתבות של אתר זה ללימוד השפה — הטקסט המקורי או עיבוד, עם קישור למקור.";

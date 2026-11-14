@@ -5763,3 +5763,11 @@ window.I18N_LOCALES.ru.news.manage = {"menu":"Действия со статьё
 Object.assign(window.I18N_LOCALES.ru.newsEditor, {"articles":"Статьи","view":{"feed":"В ленте","archive":"В архиве","deleted":"Удалённые"},"outlet":"Издание","allOutlets":"Все издания","search":"Поиск по заголовку","more":"Показать ещё","empty":"Здесь пока пусто","tooOld":"Статье больше трёх дней — в ленту её вернуть нельзя","confirmDelete":"Удалить? Нажмите ещё раз","purgeAt":"Удалится навсегда {date}","action":{"archive":"В архив","unarchive":"Вернуть в ленту","delete":"Удалить","restore":"Восстановить"},"doneAction":{"archive":"Статья перенесена в архив","unarchive":"Статья возвращена в ленту","delete":"Статья удалена — она в «Удалённых» 30 дней","restore":"Статья восстановлена"}});
 Object.assign(window.I18N_LOCALES.ru.newsEditor, {"withdrawPack":"Удалить пакет","withdrawnCount":"Удалено статей: {n}"});
 window.I18N_LOCALES.ru.newsEditor.total.withdrawn = "удалено";
+// News originals + photos (owner decision 2026-11-14)
+window.I18N_LOCALES.ru.news.lead = "Статьи израильских изданий — с таблицей, огласовкой, переводом и карточками слов. Текст оригинала или учебный пересказ; у каждой статьи ссылка на оригинал, у каждого фото — подпись источника.";
+Object.assign(window.I18N_LOCALES.ru.news.plate, {"headOriginal":"Текст оригинала: статья {outlet}","opinionOriginal":"Колонка мнений: позиция автора, не редакции LinguistPro"});
+window.I18N_LOCALES.ru.news.figure = {"credit":"Фото: {credit}{outlet}","source":"источник фото ↗","gallery":"Фото из статьи"};
+window.I18N_LOCALES.ru.news.level = Object.assign(window.I18N_LOCALES.ru.news.level || {}, {"original":"Оригинал"});
+window.I18N_LOCALES.ru.news.versions = "Версии:";
+Object.assign(window.I18N_LOCALES.ru.newsEditor.reason, {"ORIGINAL_MISMATCH":"Версия «Оригинал» не совпадает с текстом статьи (менее 50%)","ROWS_OUT_OF_RANGE":"Строк должно быть от 3 до 120 (у оригинала — от 1 до 400)","IMAGE_INVALID":"Неверная картинка: формат, имя файла, адрес не https или нет файла в пакете"});
+window.I18N_LOCALES.ru.news.retellingNote = "Статьи издания для изучения языка — текст оригинала или пересказ, со ссылкой на источник.";

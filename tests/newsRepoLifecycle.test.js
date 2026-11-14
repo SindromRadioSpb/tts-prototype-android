@@ -14,6 +14,7 @@ async function setup(t) {
   await exec(db, 'PRAGMA foreign_keys=ON');
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '078_news.sql'), 'utf8'));
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '079_news_manage.sql'), 'utf8'));
+  await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '080_news_images.sql'), 'utf8'));
   t.after(() => new Promise(r => db.close(r)));
   let now = NOW;
   return { db, repo: createNewsRepo({ db, now: () => now }), setNow: v => { now = v; } };

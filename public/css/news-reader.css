@@ -14,3 +14,22 @@
 }
 :root[data-theme="dark"] .reader-news-source { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); color: #b8c3d3; }
 :root[data-theme="dark"] .reader-news-source a { color: #8fb4ff; }
+/* Originals with photos (owner decision 2026-11-14): hero photo, subtitle, version switch, photo gallery. */
+.reader-news-versions { margin-top: 6px !important; }
+.reader-news-versions a, .reader-news-version-current { display: inline-block; padding: 4px 2px; }
+.reader-news-version-current { color: var(--lp-text, #1d2735); }
+.reader-news-hero, .reader-news-figure { margin: 10px 0 0; }
+.reader-news-hero img { display: block; width: 100%; max-height: min(420px, 56vw); object-fit: cover; border-radius: 8px; background: rgba(0,0,0,0.06); }
+.reader-news-figure img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 8px; background: rgba(0,0,0,0.06); }
+.reader-news-figcaption { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; font-size: 0.82rem; }
+.reader-news-caption-he { font-size: 0.95rem; color: var(--lp-text, #1d2735); }
+.reader-news-credit { opacity: 0.85; }
+.reader-news-subtitle { margin-top: 10px !important; font-size: 1.12rem; font-weight: 600; line-height: 1.5; color: var(--lp-text, #1d2735); }
+.reader-news-subtitle-ru { margin-top: 2px !important; }
+.reader-news-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 12px; margin-top: 10px; }
+.reader-news-gallery-title { grid-column: 1 / -1; font-weight: 600; }
+.reader-news-figure[hidden], .reader-news-hero[hidden] { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .reader-news-subtitle, :root:not([data-theme="light"]) .reader-news-caption-he, :root:not([data-theme="light"]) .reader-news-version-current { color: #e3e9f2; }
+}
+:root[data-theme="dark"] .reader-news-subtitle, :root[data-theme="dark"] .reader-news-caption-he, :root[data-theme="dark"] .reader-news-version-current { color: #e3e9f2; }

@@ -52,3 +52,24 @@ test('--check-only writes nothing; empty result is not ok', async t => {
   const bad = await buildPack(draftDir(t, [{ ...draft(), source_text_he: '' }]), { now: NOW });
   assert.equal(bad.ok, false); assert.equal(bad.written, undefined);
 });
+
+test('buildPack packs an original (OR) with its photos and reports fidelity', async t => {
+  const rows = [{ p: 1, he_plain: SOURCE.split(' ').slice(0, 17).join(' ') + '.', ru: 'Первая часть.' }, { p: 2, he_plain: SOURCE.split(' ').slice(17).join(' ') + '.', ru: 'Вторая часть.' }];
+  const orig = draft({ learning: { versions: [{ level: 'OR', rows }] }, prepared: { method: 'original' },
+    images: [{ file: 'img-1.jpg', role: 'hero', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg', credit_he: 'צילום: א' }] });
+  const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(16)]);
+  const r = await buildPack(draftDir(t, [{ ...orig, source_text_he: SOURCE }], { 'img-1.jpg': jpeg }), { now: NOW });
+  assert.equal(r.ok, true, JSON.stringify(r.articles)); assert.ok(r.articles[0].fidelity > 0.95);
+  const zip = new AdmZip(r.written);
+  assert.ok(zip.getEntries().some(e => /\/img-1\.jpg$/.test(e.entryName)));
+  // Two articles, each with its own img-1.jpg in a folder named after the draft.
+  const two = draftDir(t, [{ ...orig, source_text_he: SOURCE }, { ...orig, source: { ...orig.source, url: 'https://www.ynet.co.il/news/article/z2', canonical_url: 'https://www.ynet.co.il/news/article/z2' }, source_text_he: SOURCE }]);
+  for (const [n, fill] of [[1, 1], [2, 2]]) { fs.mkdirSync(path.join(two, 'ynet-' + n)); fs.writeFileSync(path.join(two, 'ynet-' + n, 'img-1.jpg'), Buffer.concat([jpeg, Buffer.alloc(8, fill)])); }
+  const z2 = new AdmZip((await buildPack(two, { now: NOW })).written);
+  const imgs = z2.getEntries().filter(e => e.entryName.endsWith('img-1.jpg')).map(e => e.getData().at(-1));
+  assert.deepEqual(imgs.sort(), [1, 2]);
+  const big = await buildPack(draftDir(t, [{ ...orig, source_text_he: SOURCE }], { 'img-1.jpg': Buffer.alloc(700 * 1024) }), { now: NOW, checkOnly: true });
+  assert.equal(big.articles[0].code, 'TOO_LARGE');
+  const wrong = draft({ learning: { versions: [{ level: 'OR', rows: [{ p: 1, he_plain: 'טקסט אחר לגמרי שאין לו שום קשר למאמר המקורי בכלל.', ru: 'x' }] }] } });
+  assert.equal((await buildPack(draftDir(t, [{ ...wrong, source_text_he: SOURCE }]), { now: NOW, checkOnly: true })).articles[0].code, 'ORIGINAL_MISMATCH');
+});

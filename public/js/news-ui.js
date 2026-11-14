@@ -30,6 +30,7 @@
     try { return new Intl.DateTimeFormat(locale || undefined, { day: "numeric", month: "short", year: "numeric" }).format(new Date(ms)); } catch (_) { return new Date(ms).toISOString().slice(0, 10); }
   }
   function sectionLabel(id, t) { return t("news.section." + id, id); }
+  function storedImage(url) { var s = String(url || ""); return /^\/api\/news\/images\/na_[0-9a-f]{24}\/img-\d{1,2}\.(jpg|jpeg|png|webp)\?v=[0-9a-f]{12}$/.test(s) ? s : null; }
   function readerHref(card, returnTo) {
     return "/library.html?news=" + encodeURIComponent(card.work_id) + "&from=news&return_to=" + encodeURIComponent(returnTo || "/news.html");
   }
@@ -45,11 +46,13 @@
     return cover;
   }
   function coverFor(doc, card, t) {
-    var img = card.image || {}, src = img.mode === "source_link" ? safeHttps(img.url) : null;
+    // A photo stored with the article (same-origin) wins over the outlet's og:image link.
+    var img = card.image || {}, stored = img.stored && storedImage(img.stored.url);
+    var src = stored || (img.mode === "source_link" ? safeHttps(img.url) : null);
     if (!src) return fallbackCover(doc, card, t);
     var cover = fallbackCover(doc, card, t);
     cover.className = "nw-cover nw-cover-photo";
-    var el = h(doc, "img", { src: src, alt: img.alt_ru || img.alt_he || "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
+    var el = h(doc, "img", { src: src, alt: (stored && (img.stored.alt_ru || img.stored.caption_ru)) || img.alt_ru || img.alt_he || "", loading: "lazy", decoding: "async", referrerpolicy: "no-referrer" });
     el.addEventListener && el.addEventListener("error", function () { el.remove(); cover.className = "nw-cover nw-cover-fallback nw-cover-failed"; });
     el.addEventListener && el.addEventListener("load", function () { cover.setAttribute("data-loaded", "true"); });
     cover.appendChild(el);
@@ -61,7 +64,7 @@
     var tag = h(doc, "span", { class: "nw-outlet-tag", text: o.name_latin });
     tag.style.setProperty("--nw-outlet", o.color);
     var meta = h(doc, "p", { class: "nw-card-meta" }, [tag, " · " + timeAgo(card.published_at, now, t, opts.locale), " · " + sectionLabel(card.section, t)]);
-    (card.levels || []).forEach(function (lv) { meta.appendChild(h(doc, "span", { class: "nw-level", text: lv })); });
+    (card.levels || []).forEach(function (lv) { meta.appendChild(h(doc, "span", { class: "nw-level" + (lv === "OR" ? " nw-level-original" : ""), text: lv === "OR" ? t("news.level.original", "Оригинал") : lv })); });
     if (card.heavy) meta.appendChild(h(doc, "span", { class: "nw-heavy", text: t("news.heavy", "Тяжёлая тема") }));
     var title = h(doc, "h3", { class: "nw-card-title", lang: "he", dir: "rtl", text: card.title_he });
     var body = h(doc, "div", { class: "nw-card-body" }, [meta, title,
@@ -70,8 +73,10 @@
     var main;
     if (card.readable && card.work_id) main = h(doc, "a", { class: "nw-card-main", href: readerHref(card, opts.returnTo) }, [coverFor(doc, card, t), body]);
     else { main = h(doc, "div", { class: "nw-card-main nw-card-static" }, [coverFor(doc, card, t), body]); body.appendChild(h(doc, "p", { class: "nw-card-only", text: t("news.cardOnly", "Только карточка — статья в глубоком архиве") })); }
-    var credit = (card.image && card.image.mode === "source_link" && card.image.credit_he) ? " · " + card.image.credit_he : "";
-    var hasPhoto = !!(card.image && card.image.mode === "source_link" && safeHttps(card.image.url));
+    var ci = card.image || {}, storedPhoto = !!(ci.stored && storedImage(ci.stored.url));
+    var creditText = storedPhoto ? ci.stored.credit_he : ci.credit_he;
+    var credit = creditText ? " · " + (String(creditText).replace(/^\s*(צילום|צלם|photo)\s*[:：]\s*/i, "").trim() || creditText) : "";
+    var hasPhoto = storedPhoto || !!(ci.mode === "source_link" && safeHttps(ci.url));
     var foot = h(doc, "p", { class: "nw-card-foot" }, [h(doc, "span", { text: hasPhoto ? fill(t("news.photo", "Фото: {outlet}"), { outlet: o.name_latin }) + credit : "", dir: "auto" })]);
     var orig = safeHttps(card.original_url);
     if (orig) foot.appendChild(h(doc, "a", { href: orig, target: "_blank", rel: "noopener noreferrer", text: t("news.original", "Оригинал ↗") }));
@@ -273,7 +278,7 @@
 
     async function renderHome(my) {
       var head = h(doc, "header", { class: "nw-heading" }, [h(doc, "h1", { text: t("news.heading", "Новости") }),
-        h(doc, "p", { class: "nw-lead", text: t("news.lead", "Учебные пересказы новостей израильских изданий — с таблицей, огласовкой, переводом и карточками слов. Это не тексты изданий: у каждой статьи есть ссылка на оригинал.") })]);
+        h(doc, "p", { class: "nw-lead", text: t("news.lead", "Статьи израильских изданий — с таблицей, огласовкой, переводом и карточками слов. Текст оригинала или учебный пересказ; у каждой статьи ссылка на оригинал, у каждого фото — подпись источника.") })]);
       root.replaceChildren(head, status("news.loading", "Загрузка новостей…"));
       var outlets;
       try { outlets = await loadOutlets(); } catch (_) { if (my === token) root.replaceChildren(head, status("news.error", "Не удалось загрузить новости", render)); return; }
@@ -303,7 +308,7 @@
       back.addEventListener("click", function (e) { e.preventDefault(); go({ tier: "fresh" }); });
       var titleTag = h(doc, "span", { class: "nw-outlet-tag nw-outlet-tag-big", text: o.name_latin }); titleTag.style.setProperty("--nw-outlet", o.color);
       var head = h(doc, "header", { class: "nw-heading" }, [back, h(doc, "h1", {}, [titleTag, " ", h(doc, "span", { lang: "he", dir: "rtl", text: o.name_he })]),
-        h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.retellingNote", "Пересказы для изучения языка по материалам издания, не тексты издания.") })]);
+        h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.retellingNote", "Статьи издания для изучения языка — текст оригинала или пересказ, со ссылкой на источник.") })]);
       var tabs = h(doc, "div", { class: "nw-tabs", role: "group", "aria-label": t("news.tierLabel", "Свежие или архив") }, ["fresh", "archive"].map(function (tier) {
         var b = h(doc, "button", { type: "button", class: "nw-tab", "aria-pressed": state.tier === tier ? "true" : "false", text: tier === "fresh" ? t("news.fresh", "Свежие") : t("news.archive", "Архив") });
         b.addEventListener("click", function () { if (state.tier !== tier) go({ outlet: state.outlet, section: state.section, tier: tier }); });

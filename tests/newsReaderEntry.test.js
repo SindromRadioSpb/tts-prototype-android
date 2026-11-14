@@ -50,3 +50,25 @@ test('library-ui wires the news entry, return route and plates', () => {
   for (const id of ['readerNewsSource', 'readerNewsSourceFoot']) assert.match(html, new RegExp('id="' + id + '"'));
   for (const f of ['news-outlets.js', 'news-reader.js', 'news-local-sweep.js']) assert.match(html, new RegExp('/js/' + f.replace('.', '\\.') + '\\?v='));
 });
+
+test('original plate: wording, hero photo with credit + source, subtitle, version switch, gallery; foreign image URLs never render', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const id = 'na_' + 'a'.repeat(24), url = n => '/api/news/images/' + id + '/img-' + n + '.jpg?v=' + 'c'.repeat(12);
+  const m = meta({ original: true, level: 'OR', levels: ['OR', 'B1'], subtitle_he: 'כותרת משנה', subtitle_ru: 'Подзаголовок', images: [
+    { url: url(1), role: 'hero', credit_he: 'צילום: א', caption_ru: 'Пленум', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg' },
+    { url: url(2), role: 'inline', after_p: 1, credit_he: 'צילום: ב', source_url: 'https://ynet-pic1.yit.co.il/p/2.jpg' },
+    { url: 'https://evil.example/x.jpg', role: 'inline', source_url: 'https://evil.example/x.jpg' }] });
+  const head = NR.renderPlate(document, m, { place: 'head', workId: id + '.or', search: '?news=' + id + '.or&from=news' });
+  assert.match(head.textContent, /Текст оригинала: статья ynet/);
+  assert.equal(head.querySelector('.reader-news-hero img').getAttribute('src'), url(1));
+  assert.match(head.querySelector('.reader-news-credit').textContent, /Фото: א · ynet · источник фото/);
+  assert.equal(head.querySelector('.reader-news-credit a').getAttribute('href'), 'https://ynet-pic1.yit.co.il/p/1.jpg');
+  assert.equal(head.querySelector('.reader-news-subtitle').textContent, 'כותרת משנה');
+  const sw = head.querySelector('.reader-news-versions');
+  assert.equal(sw.querySelector('[aria-current]').textContent, 'Оригинал');
+  assert.equal(sw.querySelector('a').getAttribute('href'), '/library.html?news=' + id + '.b1&from=news');
+  const foot = NR.renderPlate(document, m, { place: 'foot' });
+  assert.deepEqual([...foot.querySelectorAll('.reader-news-gallery img')].map(i => i.getAttribute('src')), [url(2)]);
+  assert.equal(foot.querySelector('.reader-news-hero'), null);
+  assert.equal(NR.renderPlate(document, meta(), { place: 'head' }).querySelector('figure, .reader-news-versions'), null);
+});

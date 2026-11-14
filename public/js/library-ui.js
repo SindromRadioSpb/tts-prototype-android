@@ -10717,13 +10717,15 @@ function renderReaderNewsSource(textRow, epoch) {
   try { const m = textRow && textRow.source_meta_json ? JSON.parse(textRow.source_meta_json) : null; meta = m && m.news && typeof m.news === 'object' ? m.news : null; } catch (_) { meta = null; }
   if (!meta || !window.NewsReader) return null;
   const locale = document.documentElement.lang || undefined;
+  const work = (() => { try { return JSON.parse(textRow.source_meta_json).public_corpus.public_work_id; } catch (_) { return null; } })();
+  // workId + search: the plate links the article's other versions («Оригинал · B1») on the same ?news= entry.
+  const plateOpts = { t: tt, locale, workId: work, search: location.search };
   const paint = withdrawn => {
     if (epoch !== readerOpenEpoch) return;
-    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { t: tt, place: 'head', locale, withdrawn })); head.hidden = false; }
-    if (foot) { foot.replaceChildren(window.NewsReader.renderPlate(document, meta, { t: tt, place: 'foot', locale, withdrawn })); foot.hidden = false; }
+    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'head', withdrawn })); head.hidden = false; }
+    if (foot) { foot.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'foot', withdrawn })); foot.hidden = false; }
   };
   paint(false);
-  const work = (() => { try { return JSON.parse(textRow.source_meta_json).public_corpus.public_work_id; } catch (_) { return null; } })();
   if (work) fetch('/api/news/feed?work=' + encodeURIComponent(work), { cache: 'no-cache' })
     .then(r => (r.status === 404 ? { card: { tier: 'withdrawn' } } : r.ok ? r.json() : null))
     .then(p => { if (p && p.card && p.card.tier === 'withdrawn') paint(true); }).catch(() => {});

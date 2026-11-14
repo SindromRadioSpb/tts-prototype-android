@@ -5748,3 +5748,11 @@ window.I18N_LOCALES.en.news.manage = {"menu":"Article actions","archive":"Move t
 Object.assign(window.I18N_LOCALES.en.newsEditor, {"articles":"Articles","view":{"feed":"In the feed","archive":"In the archive","deleted":"Deleted"},"outlet":"Outlet","allOutlets":"All outlets","search":"Search headlines","more":"Show more","empty":"Nothing here yet","tooOld":"The article is older than three days — it cannot return to the feed","confirmDelete":"Delete? Press again","purgeAt":"Erased for good on {date}","action":{"archive":"Move to archive","unarchive":"Back to the feed","delete":"Delete","restore":"Restore"},"doneAction":{"archive":"Article moved to the archive","unarchive":"Article returned to the feed","delete":"Article deleted — it stays in “Deleted” for 30 days","restore":"Article restored"}});
 Object.assign(window.I18N_LOCALES.en.newsEditor, {"withdrawPack":"Delete pack","withdrawnCount":"Articles deleted: {n}"});
 window.I18N_LOCALES.en.newsEditor.total.withdrawn = "deleted";
+// News originals + photos (owner decision 2026-11-14)
+window.I18N_LOCALES.en.news.lead = "Articles from Israeli outlets — with a table, vowel points, translation and word cards. The original text or a learning paraphrase; every article links to the original and every photo credits its source.";
+Object.assign(window.I18N_LOCALES.en.news.plate, {"headOriginal":"Original text: article from {outlet}","opinionOriginal":"Opinion column: the author's position, not LinguistPro's"});
+window.I18N_LOCALES.en.news.figure = {"credit":"Photo: {credit}{outlet}","source":"photo source ↗","gallery":"Photos from the article"};
+window.I18N_LOCALES.en.news.level = Object.assign(window.I18N_LOCALES.en.news.level || {}, {"original":"Original"});
+window.I18N_LOCALES.en.news.versions = "Versions:";
+Object.assign(window.I18N_LOCALES.en.newsEditor.reason, {"ORIGINAL_MISMATCH":"The “Original” version does not match the article text (under 50%)","ROWS_OUT_OF_RANGE":"There must be 3 to 120 rows (an original: 1 to 400)","IMAGE_INVALID":"Invalid image: format, file name, non-https URL or file missing from the pack"});
+window.I18N_LOCALES.en.news.retellingNote = "This outlet's articles for language learning — the original text or a retelling, linked to the source.";

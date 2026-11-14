@@ -62,6 +62,7 @@ a.nw-card-main:hover .nw-card-title{text-decoration:underline;text-underline-off
 .nw-outlet-tag{display:inline-block;padding:1px 8px;border-radius:6px;background:var(--nw-outlet,#3d4a5c);color:#fff;font-weight:600}
 .nw-outlet-tag-big{font-size:1.1rem;padding:4px 12px}
 .nw-level,.nw-heavy{display:inline-block;margin-inline-start:6px;padding:0 6px;border:1px solid var(--nw-line);border-radius:6px;font-size:.75rem}
+.nw-level-original{font-weight:600;border-color:var(--nw-accent);color:var(--nw-accent)}
 .nw-heavy{border-color:#b7791f;color:#8a5a12}body.nw-dark .nw-heavy{color:#f0c27a}
 .nw-card-title{margin:2px 0 0;font-size:1.3rem;line-height:1.5;font-weight:650;overflow-wrap:anywhere}
 .nw-card-translation{margin:0;font-weight:600;line-height:1.45}

@@ -17,6 +17,7 @@ async function setup(t, { packLimit } = {}) {
   await exec(db, 'PRAGMA foreign_keys=ON');
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '078_news.sql'), 'utf8'));
   await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '079_news_manage.sql'), 'utf8'));
+  await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', '080_news_images.sql'), 'utf8'));
   const repo = createNewsRepo({ db, now: () => NOW }), auth = createNewsEditorAuth({ db, now: () => NOW });
   const app = express(), audits = [], userLookups = [];
   // The owner session is resolved by the app; an editor key must never reach this resolver as a session.
@@ -150,4 +151,18 @@ test('manage: soft role probe answers 200 for everyone (no console error for rea
   const anon = await call('GET', '/api/news/editor/me?soft=1');
   assert.equal(anon.status, 200); assert.equal(anon.body.kind, null);
   assert.equal((await call('GET', '/api/news/editor/me?soft=1', { headers: { cookie: OWNER_COOKIE } })).body.kind, 'owner');
+});
+
+test('GET /api/news/images serves a stored photo same-origin, immutable only at its hash address', async t => {
+  const { repo, call } = await setup(t);
+  const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(32, 2)]);
+  const a = fixtureArticle({ images: [{ file: 'img-1.jpg', role: 'hero', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg' }], __files: { 'img-1.jpg': JPEG } });
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([a]));
+  const url = (await repo.getCard(r.items[0].article_id + '.b1')).image.stored.url;
+  const ok = await call('GET', url);
+  assert.equal(ok.status, 200); assert.equal(ok.headers.get('content-type'), 'image/jpeg');
+  assert.equal(ok.headers.get('cross-origin-resource-policy'), 'same-origin'); assert.match(ok.headers.get('cache-control'), /immutable/);
+  assert.doesNotMatch((await call('GET', url.split('?')[0])).headers.get('cache-control'), /immutable/);
+  assert.equal((await call('GET', '/api/news/images/' + r.items[0].article_id + '/img-9.jpg')).status, 404);
+  assert.equal((await call('GET', '/api/news/images/na_x/..%2Fetc')).status, 404);
 });

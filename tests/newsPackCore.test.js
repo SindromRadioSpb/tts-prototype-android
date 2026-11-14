@@ -58,6 +58,35 @@ test('validateArticle: required fields, clock skew, image scheme', () => {
   assert.equal(C.validateArticle({ ...a, learning: { ...a.learning, title_he: 'Budget' } }, { now: NOW }).code, 'HEBREW_MISSING');
   assert.equal(C.validateArticle({ ...a, check: undefined }, { now: NOW }).code, 'CHECK_MISSING');
   assert.equal(C.validateArticle({ ...a, revision: 0 }, { now: NOW }).code, 'SCHEMA_INVALID');
-  assert.equal(C.validateArticle(src({ original_title_he: 'א'.repeat(161) }), { now: NOW }).code, 'SCHEMA_INVALID');
+  assert.equal(C.validateArticle(src({ original_title_he: 'א'.repeat(301) }), { now: NOW }).code, 'SCHEMA_INVALID');
   assert.deepEqual(C.validateArticle({ ...a, extra_field: 1 }, { now: NOW }).warnings, ['UNKNOWN_FIELD:extra_field']);
+});
+
+// Owner decision 2026-11-14: the 'OR' version carries the original text one-to-one, with photos.
+const originalRows = () => [{ p: 1, he_plain: SOURCE.split(' ').slice(0, 17).join(' ') + '.', ru: 'Первая часть.' },
+  { p: 2, he_plain: SOURCE.split(' ').slice(17).join(' ') + '.', ru: 'Вторая часть.' }];
+const withOriginal = (over = {}) => fixtureArticle({ learning: { title_he: 'הכנסת אישרה בקריאה ראשונה את תקציב המדינה',
+  versions: [{ level: 'OR', rows: originalRows() }, fixtureArticle().learning.versions[0]] }, prepared: { method: 'original' }, ...over });
+test('OR version: verbatim is allowed, the original title may be kept, short rows are fine', () => {
+  const a = withOriginal();
+  assert.deepEqual(C.validateArticle(a, { now: NOW }), { ok: true, warnings: [] });
+  assert.ok(C.articleOverlap(a) < 0.08, 'overlap counts paraphrase versions only');
+  assert.ok(C.articleFidelity(a) > 0.95);
+  assert.equal(C.articleFidelity(fixtureArticle()), null);
+});
+test('OR version: fidelity drops when the text is not the source', () => {
+  const a = withOriginal(); a.learning.versions[0].rows = [{ p: 1, he_plain: 'טקסט אחר לגמרי שאין לו שום קשר למאמר המקורי בכלל.', ru: 'Другое.' }];
+  assert.ok(C.articleFidelity(a) < 0.1);
+});
+test('paraphrase-only article still may not copy the title', () => {
+  const a = fixtureArticle({ learning: { title_he: 'הכנסת אישרה בקריאה ראשונה את תקציב המדינה' } });
+  assert.equal(C.validateArticle(a, { now: NOW }).code, 'TITLE_COPIES_ORIGINAL');
+});
+test('images[]: hero + inline with credit and source are valid; bad entries are IMAGE_INVALID', () => {
+  const img = (o = {}) => ({ file: 'img-1.jpg', role: 'hero', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg', credit_he: 'צילום: א', caption_he: 'כיתוב', caption_ru: 'Подпись', ...o });
+  const ok = withOriginal({ images: [img(), img({ file: 'img-2.webp', role: 'inline', after_p: 1 })] });
+  assert.equal(C.validateArticle(ok, { now: NOW }).ok, true);
+  for (const images of [[img(), img({ file: 'img-2.jpg' })], [img({ file: '../x.jpg' })], [img({ source_url: 'http://x/a.jpg' })], [img(), img()],
+    [img({ role: 'banner' })], [img({ after_p: -1 })], Array.from({ length: 13 }, (_, i) => img({ file: 'img-' + i + '.jpg', role: 'inline' }))])
+    assert.equal(C.validateArticle(withOriginal({ images }), { now: NOW }).code, 'IMAGE_INVALID');
 });

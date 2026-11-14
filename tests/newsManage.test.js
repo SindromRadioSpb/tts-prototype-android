@@ -14,7 +14,7 @@ const exec = (db, sql) => new Promise((res, rej) => db.exec(sql, e => e ? rej(e)
 async function setup(t) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
   await exec(db, 'PRAGMA foreign_keys=ON');
-  for (const m of ['078_news.sql', '079_news_manage.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
+  for (const m of ['078_news.sql', '079_news_manage.sql', '080_news_images.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
   t.after(() => new Promise(r => db.close(r)));
   let now = NOW;
   return { db, repo: createNewsRepo({ db, now: () => now }), setNow: v => { now = v; } };
