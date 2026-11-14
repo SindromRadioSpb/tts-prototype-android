@@ -1878,14 +1878,14 @@ function renderReaderLearningNiqqud() {
   button.addEventListener('click', () => {
     if (readerLearningNiqqud !== state) return;
     const mount = $('roomReaderTable');
-    const anchor = Array.from(mount?.querySelectorAll('tbody tr') || []).find(row => row.getBoundingClientRect().bottom > 100);
-    const anchorIndex = anchor ? Array.from(anchor.parentNode.children).indexOf(anchor) : -1;
+    const anchor = Array.from(mount?.querySelectorAll('tbody tr[data-row-idx]') || []).find(row => row.getBoundingClientRect().bottom > 100);
+    const anchorIndex = anchor ? Array.from(anchor.parentNode.querySelectorAll('tr[data-row-idx]')).indexOf(anchor) : -1;
     const anchorTop = anchor?.getBoundingClientRect().top;
     state.original = !state.original;
     readerRows = state.original ? state.sourceRows : state.learningRows;
     _programmaticProgressUntil = Date.now() + 600;
     update(); rerenderReader();
-    const target = anchorIndex >= 0 ? mount?.querySelectorAll('tbody tr')[anchorIndex] : null;
+    const target = anchorIndex >= 0 ? mount?.querySelectorAll('tbody tr[data-row-idx]')[anchorIndex] : null;
     if (target && Number.isFinite(anchorTop)) window.scrollBy(0, target.getBoundingClientRect().top - anchorTop);
   });
   box.appendChild(button); box.hidden = false;
@@ -10726,10 +10726,31 @@ function renderReaderNewsSource(textRow, epoch) {
     if (foot) { foot.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'foot', withdrawn })); foot.hidden = false; }
   };
   paint(false);
+  wireNewsFigures(meta, epoch);
   if (work) fetch('/api/news/feed?work=' + encodeURIComponent(work), { cache: 'no-cache' })
     .then(r => (r.status === 404 ? { card: { tier: 'withdrawn' } } : r.ok ? r.json() : null))
     .then(p => { if (p && p.card && p.card.tier === 'withdrawn') paint(true); }).catch(() => {});
   return meta;
+}
+// Inline article photos live inside the table (news-reader.js placeInlineFigures). The table is repainted by
+// innerHTML on many paths (columns, translit, learning niqqud), so one observer re-places missing figures;
+// placing is idempotent and writes nothing when every figure is already there.
+let _newsFigureObserver = null;
+function wireNewsFigures(meta, epoch) {
+  if (_newsFigureObserver) { _newsFigureObserver.disconnect(); _newsFigureObserver = null; }
+  const mount = $('roomReaderTable');
+  if (!meta || !mount || !window.NewsReader || !window.NewsReader.placeInlineFigures) return;
+  if (!(meta.images || []).some(im => im && im.role === 'inline' && Number.isInteger(im.after_row))) return;
+  let queued = false;
+  const observer = new MutationObserver(() => { if (!queued) { queued = true; requestAnimationFrame(place); } });
+  function place() {
+    queued = false;
+    if (epoch !== readerOpenEpoch) { observer.disconnect(); if (_newsFigureObserver === observer) _newsFigureObserver = null; return; }
+    try { window.NewsReader.placeInlineFigures(document, mount, meta, { t: tt }); } catch (_) {}
+  }
+  observer.observe(mount, { childList: true, subtree: true });
+  _newsFigureObserver = observer;
+  place();
 }
 // ?news=<work_id>: opens a news article on the public-work path (no corpus catalog needed).
 // Offline or withdrawn articles fall back to this device's copy, which stays the learner's.

@@ -72,3 +72,22 @@ test('original plate: wording, hero photo with credit + source, subtitle, versio
   assert.equal(foot.querySelector('.reader-news-hero'), null);
   assert.equal(NR.renderPlate(document, meta(), { place: 'head' }).querySelector('figure, .reader-news-versions'), null);
 });
+
+test('inline photos go into the table after their paragraph row, idempotently, and leave the gallery', () => {
+  const id = 'na_' + 'a'.repeat(24), url = n => '/api/news/images/' + id + '/img-' + n + '.jpg?v=' + 'c'.repeat(12);
+  const { document } = parseHTML('<html><body><div id="m"><table id="proTable"><tbody>' +
+    [0, 1, 2].map(i => '<tr data-row-idx="' + i + '"><td>a</td><td>b</td><td>c</td></tr>').join('') + '</tbody></table></div></body></html>');
+  const mount = document.getElementById('m');
+  const m = meta({ original: true, images: [{ url: url(1), role: 'hero', source_url: 'https://x.co.il/1.jpg' },
+    { url: url(2), role: 'inline', after_row: 1, source_url: 'https://x.co.il/2.jpg' }, { url: url(3), role: 'inline', after_row: 1, source_url: 'https://x.co.il/3.jpg' },
+    { url: url(4), role: 'inline', after_row: -1, source_url: 'https://x.co.il/4.jpg' }, { url: url(5), role: 'inline', after_row: null, source_url: 'https://x.co.il/5.jpg' },
+    { url: url(6), role: 'inline', after_row: 9, source_url: 'https://x.co.il/6.jpg' }] });
+  assert.equal(NR.placeInlineFigures(document, mount, m, {}), 3);
+  const order = () => [...mount.querySelectorAll('tbody tr')].map(tr => tr.getAttribute('data-row-idx') || 'f' + tr.getAttribute('data-figure'));
+  assert.deepEqual(order(), ['f3', '0', '1', 'f1', 'f2', '2']);
+  assert.equal(mount.querySelector('tr.reader-news-figrow td').getAttribute('colspan'), '3');
+  assert.equal(NR.placeInlineFigures(document, mount, m, {}), 3);
+  assert.deepEqual(order(), ['f3', '0', '1', 'f1', 'f2', '2'], 'second pass changes nothing');
+  const foot = NR.renderPlate(document, m, { place: 'foot' });
+  assert.deepEqual([...foot.querySelectorAll('.reader-news-gallery img')].map(i => i.getAttribute('src')), [url(5)]);
+});

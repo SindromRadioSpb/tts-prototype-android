@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.888";
+const CACHE_VERSION = "v3.11.889";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,15 +150,15 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=888",
+  "/js/library-ui.js?v=889",
   // News section (3.11.885)
   "/js/news-outlets.js?v=885",
-  "/js/news-reader.js?v=888",
+  "/js/news-reader.js?v=889",
   "/js/news-local-sweep.js?v=885",
-  "/css/news-reader.css?v=888",
+  "/css/news-reader.css?v=889",
   "/news.html",
-  "/js/news-ui.js?v=888",
-  "/css/news.css?v=888",
+  "/js/news-ui.js?v=889",
+  "/css/news.css?v=889",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=880",
   "/js/corpus-registry.js?v=876",
@@ -389,9 +389,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=888",
-  "/i18n/locales/en.js?v=888",
-  "/i18n/locales/he.js?v=888",
+  "/i18n/locales/ru.js?v=889",
+  "/i18n/locales/en.js?v=889",
+  "/i18n/locales/he.js?v=889",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",

@@ -63,6 +63,34 @@
     fig.appendChild(cap);
     return fig;
   }
+  function placed(im) { return !!im && im.role === "inline" && typeof im.after_row === "number" && im.after_row >= -1 && Math.floor(im.after_row) === im.after_row; }
+  // Inline photos inside the Room table, each in its own full-width row after the last row of its paragraph.
+  // Idempotent: called again after every table re-render; inserts only figures that are missing.
+  // → the number of figures now in the table.
+  function placeInlineFigures(doc, mount, meta, opts) {
+    var t = (opts && opts.t) || function (k, f) { return f; };
+    var tbody = mount && mount.querySelector("#proTable tbody");
+    if (!tbody || !meta) return 0;
+    var count = 0;
+    (Array.isArray(meta.images) ? meta.images : []).forEach(function (im, i) {
+      if (!placed(im) || !safeImage(im.url)) return;
+      if (tbody.querySelector('tr.reader-news-figrow[data-figure="' + i + '"]')) { count++; return; }
+      var first = tbody.querySelector("tr[data-row-idx]");
+      var anchor = im.after_row === -1 ? null : tbody.querySelector('tr[data-row-idx="' + im.after_row + '"]');
+      if (!first || (im.after_row !== -1 && !anchor)) return;   // that row is not painted yet: the next render places it
+      var fig = figure(doc, im, meta, t, "reader-news-figure reader-news-figure-inline");
+      if (!fig) return;
+      var tr = doc.createElement("tr"); tr.className = "reader-news-figrow"; tr.setAttribute("data-figure", String(i));
+      var td = doc.createElement("td"); td.setAttribute("colspan", String(Math.max(1, (anchor || first).children.length))); td.appendChild(fig); tr.appendChild(td);
+      if (anchor) {
+        var ref = anchor;
+        while (ref.nextElementSibling && ref.nextElementSibling.classList.contains("reader-news-figrow")) ref = ref.nextElementSibling;
+        tbody.insertBefore(tr, ref.nextElementSibling);
+      } else tbody.insertBefore(tr, first);
+      count++;
+    });
+    return count;
+  }
   // «Версии: Оригинал · B1» — the same article's other versions, opened on the same ?news= entry.
   function versionSwitch(doc, meta, opts, t) {
     var levels = meta.levels || [], m = String(opts.workId || "").match(/^(na_[0-9a-f]{24})\.[a-z0-9]{2}$/);
@@ -110,7 +138,8 @@
       if (meta.subtitle_he) { var sub = el(doc, "p", "reader-news-subtitle", meta.subtitle_he); sub.setAttribute("lang", "he"); sub.setAttribute("dir", "rtl"); box.appendChild(sub); }
       if (meta.subtitle_ru) box.appendChild(el(doc, "p", "reader-news-subtitle-ru", meta.subtitle_ru));
     } else {
-      var inline = images.filter(function (im) { return im && im.role === "inline"; });
+      // Photos with a place in the table (after_row) are shown there by placeInlineFigures; the rest here.
+      var inline = images.filter(function (im) { return im && im.role === "inline" && !placed(im); });
       if (inline.length) {
         var gallery = el(doc, "div", "reader-news-gallery");
         gallery.appendChild(el(doc, "p", "reader-news-gallery-title", t("news.figure.gallery", "Фото из статьи")));
@@ -132,5 +161,5 @@
     extra.forEach(function (text) { var p = doc.createElement("p"); p.className = "reader-news-source-note"; p.textContent = text; box.appendChild(p); });
     return box;
   }
-  return { parseEntry: parseEntry, returnHref: returnHref, renderPlate: renderPlate, dateLabel: dateLabel, levelLabel: levelLabel, safeImage: safeImage, creditText: creditText, WORK: WORK };
+  return { parseEntry: parseEntry, returnHref: returnHref, renderPlate: renderPlate, dateLabel: dateLabel, levelLabel: levelLabel, safeImage: safeImage, creditText: creditText, placeInlineFigures: placeInlineFigures, WORK: WORK };
 });

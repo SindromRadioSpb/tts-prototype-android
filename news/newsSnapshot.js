@@ -29,6 +29,12 @@ function buildNewsSnapshot(article, version, { workId, glossLayer = null } = {})
     const sep = i === 0 ? '' : (r.p != null && r.p !== paragraph ? '\n' : ' ');
     paragraph = r.p; return sep + r.he_plain;
   }).join('');
+  // Inline photos sit in the table after the last row of paragraph after_p (after_p 0 = before the first row).
+  // Only the 'OR' version keeps the original paragraphs; a paraphrase shows its photos as a gallery.
+  const lastRowOfP = new Map();
+  version.rows.forEach((r, i) => { if (r.p != null) lastRowOfP.set(r.p, i); });
+  const afterRow = im => (version.level !== 'OR' || im.role !== 'inline' || !Number.isInteger(im.after_p)) ? null
+    : im.after_p === 0 ? -1 : lastRowOfP.has(im.after_p) ? lastRowOfP.get(im.after_p) : null;
   const text = {
     title: l.title_he, text_key: 'news:' + workId, source_text: sourceText, table_model_meta: null, rows,
     source_meta: { news: {
@@ -39,6 +45,7 @@ function buildNewsSnapshot(article, version, { workId, glossLayer = null } = {})
       // Owner decision 2026-11-14: 'OR' = the original text one-to-one; photos from the article, stored by us.
       original: version.level === 'OR', subtitle_he: l.subtitle_he || null, subtitle_ru: l.subtitle_ru || null,
       images: (article.images || []).filter(im => im && im.url).map(im => ({ url: im.url, role: im.role, after_p: im.after_p == null ? null : im.after_p,
+        after_row: afterRow(im),
         caption_he: im.caption_he || null, caption_ru: im.caption_ru || null, credit_he: im.credit_he || null, alt_he: im.alt_he || null, alt_ru: im.alt_ru || null, source_url: im.source_url })),
     } },
   };

@@ -1450,12 +1450,12 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/studio-media-editor.js?v=628",
   "/js/learning-compass-core.js",
   "/library.html",
-  "/js/library-ui.js?v=888",
+  "/js/library-ui.js?v=889",
   // News section (3.11.885)
   "/js/news-outlets.js?v=885",
-  "/js/news-reader.js?v=888",
+  "/js/news-reader.js?v=889",
   "/js/news-local-sweep.js?v=885",
-  "/css/news-reader.css?v=888",
+  "/css/news-reader.css?v=889",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=880",
   "/js/atlas-train-ui.js?v=876",
@@ -1539,9 +1539,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=888",
-  "/i18n/locales/en.js?v=888",
-  "/i18n/locales/he.js?v=888",
+  "/i18n/locales/ru.js?v=889",
+  "/i18n/locales/en.js?v=889",
+  "/i18n/locales/he.js?v=889",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {

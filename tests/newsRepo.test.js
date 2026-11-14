@@ -210,3 +210,12 @@ test('photos leave with the article: card tier and trash purge drop them; getIma
   await repo.runLifecycle(NOW + 200 * 24 * 3600 * 1000);
   assert.equal((await get(db, 'SELECT COUNT(*) n FROM news_images WHERE article_id=?', [id2])).n, 0);
 });
+test('snapshot maps after_p to the last row of that paragraph for the original only', async t => {
+  const { repo } = await setup(t);
+  const a = original({ images: [{ file: 'img-1.jpg', role: 'hero', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg' },
+    { file: 'img-2.jpg', role: 'inline', after_p: 1, source_url: 'https://ynet-pic1.yit.co.il/p/2.jpg' }] });
+  const id = (await repo.ingestPack(OWNER, fixturePack([a]))).items[0].article_id;
+  const imgs = async lv => (await repo.getWork('ynet', id + '.' + lv)).item.snapshot.library.texts[0].source_meta.news.images.map(i => i.after_row);
+  assert.deepEqual(await imgs('or'), [null, 0]);
+  assert.deepEqual(await imgs('b1'), [null, null]);
+});
