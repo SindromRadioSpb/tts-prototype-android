@@ -79,6 +79,13 @@ test('extract: no photo above the body → the og:image photo in the body become
   assert.equal(a.images.length, 1);
   assert.equal(a.images[0].role, 'hero'); assert.equal(a.images[0].caption_he, 'יו״ר ישר! גדי איזנקוט'); assert.equal(a.images[0].after_p, undefined);
 });
+test('extract: the author avatar in the byline is not the main photo (mako wraps it in a <figure>)', () => {
+  const html = `<html><head><meta property="og:image" content="https://img.mako.co.il/2015/06/10/story_i.jpg"><script type="application/ld+json">{"@type":"NewsArticle","datePublished":"2026-11-14T21:00:00+02:00"}</script></head>
+  <body><article><h1>כותרת N12</h1><div class="ArticleCredits_root__x"><div class="Avatar_root__y"><figure><img class="Avatar_avatar__z" src="https://img.mako.co.il/2026/02/11/reporter.png" alt="שם הכתב"></figure></div></div>
+  <div class="ArticleBodyWrapper_news__a"><div><p>${P1}</p><p>${P2}</p></div></div></article></body></html>`;
+  const a = extractArticle(html, { url: 'https://www.mako.co.il/news-israel/2026_q4/Article-abc123.htm', source: sourceFor('n12') }).article;
+  assert.deepEqual(a.images.map(i => [i.role, i.src]), [['hero', 'https://img.mako.co.il/2015/06/10/story_i.jpg']]);
+});
 test('extract: a page without body paragraphs is skipped', () => {
   assert.equal(extractArticle('<html><body><h1>כותרת בלבד</h1><p>טקסט</p></body></html>', { url: 'https://www.ynet.co.il/news/article/x', source: sourceFor('ynet') }).reason, 'NO_BODY');
 });

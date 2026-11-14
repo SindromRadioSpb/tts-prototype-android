@@ -65,7 +65,8 @@ function imageKey(u) {
 function absolute(u, base) { if (!u || !String(u).trim()) return null; try { const x = new URL(u, base); return x.protocol === 'https:' || x.protocol === 'http:' ? x.href.replace(/^http:/, 'https:') : null; } catch (_) { return null; } }
 
 // Logos, author photos, icons and placeholders are not article photos.
-const NOT_A_PHOTO = /^data:|\.svg(\?|$)|logo|avatar|placeholder|default[_-]?image/i;
+const BYLINE = /avatar|author|writer|byline|reporter|ArticleCredits/i;
+const NOT_A_PHOTO =/^data:|\.svg(\?|$)|logo|avatar|placeholder|default[_-]?image/i;
 const skipped = (src, source) => NOT_A_PHOTO.test(src) || !!(source.skipImage && source.skipImage.test(src));
 function bestSrc(img, base) {
   const set = img.getAttribute('srcset') || img.getAttribute('data-srcset') || '';
@@ -80,6 +81,9 @@ function bestSrc(img, base) {
 function parseFigure(fig, base, source) {
   const img = fig.querySelector('img');
   if (!img) return null;
+  // The author's avatar in the byline (mako wraps it in a <figure> above the body) is not an article photo.
+  for (let el = img; el && el !== fig.ownerDocument.body; el = el.parentElement)
+    if (BYLINE.test(el.getAttribute && el.getAttribute('class') || '')) return null;
   const src = bestSrc(img, base);
   if (!src || skipped(src, source)) return null;
   const capEl = fig.querySelector('figcaption');
