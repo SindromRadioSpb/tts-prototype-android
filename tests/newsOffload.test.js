@@ -119,3 +119,25 @@ test('routes: owner-only storage, export with sha header, release, restore', asy
   const back = await fetch(base + '/api/news/editor/offload/restore', { method: 'POST', headers: { ...w, 'content-type': 'application/zip' }, body: buf });
   assert.equal(back.status, 200); assert.equal((await back.json()).restored, 2);
 });
+
+test('script: offloads the suggested days into a folder and brings them back', async t => {
+  const express = require('express');
+  const { mountNewsRoutes } = require('../news/newsRoutes');
+  const script = require('../scripts/news/offload');
+  const { off, repo, db, works } = await setup(t);
+  const app = express();
+  const resolveUser = async req => String(req.headers.cookie || '').includes('owner') ? { user: { id: 'o', role: 'owner' }, session: { csrf: 'c' } } : null;
+  mountNewsRoutes(app, { repo, editorAuth: { resolve: async () => null }, resolveUser, offload: off });
+  const s = await new Promise(r => { const x = app.listen(0, () => r(x)); });
+  t.after(() => new Promise(r => s.close(r)));
+  const base = 'http://127.0.0.1:' + s.address().port, dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-off-cli-'));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const r = await script.offload({ base, cookie: 'lp=owner', csrf: 'c', dir });
+  assert.deepEqual(r, { done: ['2026-11-12'], failed: [] });
+  assert.ok(fs.existsSync(path.join(dir, 'news-2026-11-12.lpnews-archive.zip')));
+  assert.ok(fs.existsSync(path.join(dir, 'ПРОЧТИ.txt')));
+  assert.equal((await all(db, 'SELECT COUNT(*) n FROM news_images'))[0].n, 0);
+  const back = await script.restore({ base, cookie: 'lp=owner', csrf: 'c', dir });
+  assert.deepEqual(back, { done: ['2026-11-12'], failed: [] });
+  assert.equal((await repo.getWork('ynet', works[0])).item.public_work_id, works[0]);
+});
