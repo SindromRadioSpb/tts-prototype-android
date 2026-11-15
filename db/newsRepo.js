@@ -11,6 +11,7 @@ const { buildNewsSnapshot, workIdFor } = require('../news/newsSnapshot');
 const { wordGlossLayerReport } = require('../publication/materialArchive');
 const { withTxnLock } = require('./txnLock');
 const { createOverviewItems } = require('./newsOverviewItems');
+const { fingerprintOf, paragraphsOfRows } = require('../news/newsFingerprint');
 
 const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 1024 * 1024, image: 1024 * 1024, newsImage: 600 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, overview: 8 * 1024 * 1024, total: 400 * 1024 * 1024 };
 const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000, PHOTO_MS = 61 * 24 * 3600 * 1000;
@@ -98,6 +99,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   // Since migration 083 «Обзор дня» is kept by article; before it, one body per day.
   let byRows = null;
   const hasRows = async () => byRows != null ? byRows : (byRows = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_overview_items'")));
+  let byPrints = null; // migration 084: fingerprints of the original
+  const hasPrints = async () => byPrints != null ? byPrints : (byPrints = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_article_fingerprints'")));
   const serialize = task => { const r = queue.then(task, task); queue = r.catch(() => {}); return r; };
   // Every explicit transaction on the shared connection goes through the process-wide lock (db/txnLock.js).
   const transaction = task => withTxnLock(async () => {
@@ -202,6 +205,14 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
         await dbRun(db, `INSERT INTO news_articles(outlet_id,canonical_url,revision,section,section_original_he,content_type,published_at,retrieved_at,
           title_he,title_ru,summary_ru,title_norm,original_title_he,author,story_key,heavy,levels_json,image_json,provenance_json,body_json,tier,overlap,flagged,pack_id,updated_at,
           article_id,created_at) VALUES(${Array(27).fill('?').join(',')})`, [...values, articleId, t]);
+      }
+      // The original's fingerprint (title + each paragraph): a later re-check sees what the outlet changed.
+      const orv = l.versions.find(C.isOriginal);
+      if (orv && await hasPrints()) {
+        const fp = fingerprintOf(l.title_he, paragraphsOfRows(orv.rows));
+        await dbRun(db, `INSERT INTO news_article_fingerprints(article_id, url, title_hash, para_hashes_json, created_at) VALUES (?,?,?,?,?)
+          ON CONFLICT(article_id) DO UPDATE SET url=excluded.url, title_hash=excluded.title_hash, para_hashes_json=excluded.para_hashes_json, last_seen_json=NULL`,
+          [articleId, canonical, fp.title_hash, JSON.stringify(fp.para_hashes), t]);
       }
       await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [articleId]);
       if (tier !== 'card') for (const ph of photos)
