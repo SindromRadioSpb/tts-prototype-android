@@ -6281,6 +6281,7 @@ function attachReaderAudio() {
   roomPaintColWidths();    // ширины из persisted-состояния
   try { applyStudyModeClass(); } catch (_) {}   // режим + скролл-окно после каждого рендера
   try { roomPlaceProvNote(); } catch (_) {}       // дисклеймер — последним в окне таблицы
+  try { roomPlaceNewsPlate(); } catch (_) {}      // плашка статьи — первой в окне таблицы
   try { if (_sessionLastRow >= 0) setCurrentWorkingRow(_sessionLastRow); } catch (_) {}   // rerender keeps the derived working-row projection
   try { roomSyncActionOverlay(); } catch (_) {}   // пересборка таблицы уносит оверлей
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
@@ -10709,8 +10710,18 @@ async function openPublicCorpusWork(slug, card, openOpts = {}) {
 // News section (plan Task 6): «Учебный пересказ LinguistPro по материалам {издание}» above and
 // below a news text, and a note when the article was withdrawn after this copy was made.
 // → the text's source_meta.news, or null for any other text (both plates are then hidden).
+// The head plate is the first child of the table window (owner 2026-11-15): it scrolls away with the rows, so
+// on a phone the table gets the whole screen once the reader scrolls past the photo. A table repaint
+// (mount.innerHTML) detaches it — the kept reference is put back after every render (roomPlaceNewsPlate).
+let _newsHeadEl = null;
+function newsHeadEl() { if (!_newsHeadEl) _newsHeadEl = $('readerNewsSource'); return _newsHeadEl; }
+function roomPlaceNewsPlate() {
+  const wrap = $('roomReaderTable'), head = newsHeadEl();
+  if (!wrap || !head || head.hidden) return;
+  if (wrap.firstChild !== head) wrap.insertBefore(head, wrap.firstChild);
+}
 function renderReaderNewsSource(textRow, epoch) {
-  const head = $('readerNewsSource'), foot = $('readerNewsSourceFoot');
+  const head = newsHeadEl(), foot = $('readerNewsSourceFoot');
   if (head) { head.replaceChildren(); head.hidden = true; }
   if (foot) { foot.replaceChildren(); foot.hidden = true; }
   let meta = null;
@@ -10722,7 +10733,7 @@ function renderReaderNewsSource(textRow, epoch) {
   const plateOpts = { t: tt, locale, workId: work, search: location.search };
   const paint = withdrawn => {
     if (epoch !== readerOpenEpoch) return;
-    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'head', withdrawn })); head.hidden = false; }
+    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'head', withdrawn })); head.hidden = false; roomPlaceNewsPlate(); }
     if (foot) { foot.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'foot', withdrawn })); foot.hidden = false; }
   };
   paint(false);

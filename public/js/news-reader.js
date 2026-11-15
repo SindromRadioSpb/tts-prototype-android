@@ -106,6 +106,24 @@
     return box;
   }
 
+  // The head plate can be folded to its source line (owner 2026-11-15): one choice for every article, kept
+  // on this device across sessions. Storage may be blocked (private mode) — then the plate simply opens.
+  var COLLAPSE_KEY = "lp.news.plateCollapsed";
+  function store() { try { return typeof localStorage !== "undefined" ? localStorage : null; } catch (_) { return null; } }
+  function plateCollapsed() { try { var s = store(); return !!s && s.getItem(COLLAPSE_KEY) === "1"; } catch (_) { return false; } }
+  function setPlateCollapsed(on) { try { var s = store(); if (!s) return; if (on) s.setItem(COLLAPSE_KEY, "1"); else s.removeItem(COLLAPSE_KEY); } catch (_) {} }
+  function collapseButton(doc, box, t) {
+    var b = doc.createElement("button"); b.type = "button"; b.className = "reader-news-collapse";
+    function sync() {
+      var on = box.classList.contains("is-collapsed");
+      b.textContent = on ? t("news.plate.expand", "Фото и подзаголовок ▾") : t("news.plate.collapse", "Свернуть ▴");
+      b.setAttribute("aria-expanded", String(!on));
+    }
+    b.addEventListener("click", function () { var on = !box.classList.contains("is-collapsed"); box.classList.toggle("is-collapsed", on); setPlateCollapsed(on); sync(); });
+    sync();
+    return b;
+  }
+
   // meta: text.source_meta.news; t(key, fallback); place: 'head' | 'foot'.
   function renderPlate(doc, meta, opts) {
     opts = opts || {};
@@ -137,6 +155,11 @@
       var heroFig = hero && figure(doc, hero, meta, t, "reader-news-hero"); if (heroFig) box.appendChild(heroFig);
       if (meta.subtitle_he) { var sub = el(doc, "p", "reader-news-subtitle", meta.subtitle_he); sub.setAttribute("lang", "he"); sub.setAttribute("dir", "rtl"); box.appendChild(sub); }
       if (meta.subtitle_ru) box.appendChild(el(doc, "p", "reader-news-subtitle-ru", meta.subtitle_ru));
+      if (heroFig || meta.subtitle_he || meta.subtitle_ru) {
+        if (plateCollapsed()) box.classList.add("is-collapsed");
+        line.appendChild(doc.createTextNode(" "));
+        line.appendChild(collapseButton(doc, box, t));
+      }
     } else {
       // Photos with a place in the table (after_row) are shown there by placeInlineFigures; the rest here.
       var inline = images.filter(function (im) { return im && im.role === "inline" && !placed(im); });
@@ -161,5 +184,5 @@
     extra.forEach(function (text) { var p = doc.createElement("p"); p.className = "reader-news-source-note"; p.textContent = text; box.appendChild(p); });
     return box;
   }
-  return { parseEntry: parseEntry, returnHref: returnHref, renderPlate: renderPlate, dateLabel: dateLabel, levelLabel: levelLabel, safeImage: safeImage, creditText: creditText, placeInlineFigures: placeInlineFigures, WORK: WORK };
+  return { parseEntry: parseEntry, returnHref: returnHref, renderPlate: renderPlate, dateLabel: dateLabel, levelLabel: levelLabel, safeImage: safeImage, creditText: creditText, placeInlineFigures: placeInlineFigures, COLLAPSE_KEY: COLLAPSE_KEY, WORK: WORK };
 });

@@ -29,12 +29,15 @@
 #proTable tbody tr.reader-news-figrow td { padding: 14px 10px; background: transparent; border-inline: 0; }
 .reader-news-figure-inline { max-width: 560px; margin: 0 auto; color: var(--text-faint, #64748b); }
 .reader-news-figure-inline img { aspect-ratio: auto; max-height: min(380px, 60vw); object-fit: contain; }
-/* Study mode: the reader is one fixed screen-high column (library.html body.room-study). The plate must not
-   take that screen: it gets at most a third of it and scrolls inside itself, steps aside while the «Аа» panel
-   is open, and the foot plate stays out (the head already names the outlet and links the original) — the
-   table always keeps its room. */
-body.room-study #readerNewsSource { flex: 0 0 auto; max-height: 34vh; max-height: 34dvh; overflow-y: auto; overscroll-behavior: contain; }
-body.room-study #roomReader:has(#readerAids:not([hidden])) #readerNewsSource,
+/* The head plate lives inside the table window (library-ui.js roomPlaceNewsPlate) and scrolls away with the
+   rows, so in study mode the table gets the whole phone screen. The plate can fold to its source line; the
+   choice is one for every article (news-reader.js COLLAPSE_KEY). In study mode the foot plate stays out:
+   the head already names the outlet and links the original. */
+.reader-news-collapse { display: inline-block; margin: 0; padding: 4px 10px; border: 1px solid var(--border-soft, #dce3ee); border-radius: 999px;
+  background: var(--bg-muted, #eef2f7); color: var(--text-primary, #0f172a); font: inherit; font-size: 0.82rem; line-height: 1.3; min-height: 32px; cursor: pointer; white-space: nowrap; }
+.reader-news-collapse:focus-visible { outline: 2px solid var(--accent, #1B4FB8); outline-offset: 2px; }
+.reader-news-source.is-collapsed .reader-news-hero,
+.reader-news-source.is-collapsed .reader-news-subtitle,
+.reader-news-source.is-collapsed .reader-news-subtitle-ru { display: none; }
+#roomReaderTable > #readerNewsSource .reader-news-source { margin-top: 4px; }
 body.room-study #readerNewsSourceFoot { display: none; }
-body.room-study #readerNewsSource .reader-news-source { margin: 4px 0 6px; }
-body.room-study .reader-news-hero img { max-height: min(200px, 22vh); }

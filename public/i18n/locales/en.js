@@ -5750,7 +5750,7 @@ Object.assign(window.I18N_LOCALES.en.newsEditor, {"withdrawPack":"Delete pack","
 window.I18N_LOCALES.en.newsEditor.total.withdrawn = "deleted";
 // News originals + photos (owner decision 2026-11-14)
 window.I18N_LOCALES.en.news.lead = "Articles from Israeli outlets — with a table, vowel points, translation and word cards. The original text or a learning paraphrase; every article links to the original and every photo credits its source.";
-Object.assign(window.I18N_LOCALES.en.news.plate, {"headOriginal":"Original text: article from {outlet}","opinionOriginal":"Opinion column: the author's position, not LinguistPro's"});
+Object.assign(window.I18N_LOCALES.en.news.plate, {"headOriginal":"Original text: article from {outlet}","opinionOriginal":"Opinion column: the author's position, not LinguistPro's","collapse":"Collapse ▴","expand":"Photo and subtitle ▾"});
 window.I18N_LOCALES.en.news.figure = {"credit":"Photo: {credit}{outlet}","source":"photo source ↗","gallery":"Photos from the article"};
 window.I18N_LOCALES.en.news.level = Object.assign(window.I18N_LOCALES.en.news.level || {}, {"original":"Original"});
 window.I18N_LOCALES.en.news.versions = "Versions:";

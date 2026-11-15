@@ -91,3 +91,23 @@ test('inline photos go into the table after their paragraph row, idempotently, a
   const foot = NR.renderPlate(document, m, { place: 'foot' });
   assert.deepEqual([...foot.querySelectorAll('.reader-news-gallery img')].map(i => i.getAttribute('src')), [url(5)]);
 });
+test('head plate folds to its source line; the choice is kept for every article', () => {
+  const mem = new Map();
+  global.localStorage = { getItem: k => (mem.has(k) ? mem.get(k) : null), setItem: (k, v) => mem.set(k, String(v)), removeItem: k => mem.delete(k) };
+  try {
+    const { document } = parseHTML('<html><body></body></html>');
+    const plain = NR.renderPlate(document, meta(), { place: 'head' });
+    assert.equal(plain.querySelector('.reader-news-collapse'), null, 'nothing to fold without photo or subtitle');
+    const head = NR.renderPlate(document, meta({ original: true, subtitle_he: 'כותרת משנה', subtitle_ru: 'Подзаголовок' }), { place: 'head' });
+    const btn = head.querySelector('.reader-news-collapse');
+    assert.ok(btn); assert.equal(btn.getAttribute('aria-expanded'), 'true'); assert.ok(!head.classList.contains('is-collapsed'));
+    btn.dispatchEvent(new document.defaultView.Event('click'));
+    assert.ok(head.classList.contains('is-collapsed')); assert.equal(btn.getAttribute('aria-expanded'), 'false');
+    assert.equal(mem.get(NR.COLLAPSE_KEY), '1');
+    const next = NR.renderPlate(document, meta({ original: true, subtitle_he: 'אחר' }), { place: 'head' });
+    assert.ok(next.classList.contains('is-collapsed'), 'the next article opens folded');
+    next.querySelector('.reader-news-collapse').dispatchEvent(new document.defaultView.Event('click'));
+    assert.equal(mem.has(NR.COLLAPSE_KEY), false);
+    assert.equal(NR.renderPlate(document, meta({ subtitle_he: 'x' }), { place: 'foot' }).querySelector('.reader-news-collapse'), null);
+  } finally { delete global.localStorage; }
+});

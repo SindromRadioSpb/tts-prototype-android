@@ -5759,7 +5759,7 @@ Object.assign(window.I18N_LOCALES.he.newsEditor, {"withdrawPack":"מחיקת ה�
 window.I18N_LOCALES.he.newsEditor.total.withdrawn = "נמחקו";
 // News originals + photos (owner decision 2026-11-14)
 window.I18N_LOCALES.he.news.lead = "כתבות מאתרי חדשות בישראל — עם טבלה, ניקוד, תרגום וכרטיסי מילים. הטקסט המקורי או עיבוד לימודי; לכל כתבה קישור למקור ולכל תמונה קרדיט.";
-Object.assign(window.I18N_LOCALES.he.news.plate, {"headOriginal":"הטקסט המקורי: כתבה מ־{outlet}","opinionOriginal":"טור דעה: עמדת הכותב, לא של LinguistPro"});
+Object.assign(window.I18N_LOCALES.he.news.plate, {"headOriginal":"הטקסט המקורי: כתבה מ־{outlet}","opinionOriginal":"טור דעה: עמדת הכותב, לא של LinguistPro","collapse":"כיווץ ▴","expand":"תמונה וכותרת משנה ▾"});
 window.I18N_LOCALES.he.news.figure = {"credit":"צילום: {credit}{outlet}","source":"מקור התמונה ↗","gallery":"תמונות מהכתבה"};
 window.I18N_LOCALES.he.news.level = Object.assign(window.I18N_LOCALES.he.news.level || {}, {"original":"מקור"});
 window.I18N_LOCALES.he.news.versions = "גרסאות:";

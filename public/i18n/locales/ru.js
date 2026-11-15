@@ -5765,7 +5765,7 @@ Object.assign(window.I18N_LOCALES.ru.newsEditor, {"withdrawPack":"Удалить
 window.I18N_LOCALES.ru.newsEditor.total.withdrawn = "удалено";
 // News originals + photos (owner decision 2026-11-14)
 window.I18N_LOCALES.ru.news.lead = "Статьи израильских изданий — с таблицей, огласовкой, переводом и карточками слов. Текст оригинала или учебный пересказ; у каждой статьи ссылка на оригинал, у каждого фото — подпись источника.";
-Object.assign(window.I18N_LOCALES.ru.news.plate, {"headOriginal":"Текст оригинала: статья {outlet}","opinionOriginal":"Колонка мнений: позиция автора, не редакции LinguistPro"});
+Object.assign(window.I18N_LOCALES.ru.news.plate, {"headOriginal":"Текст оригинала: статья {outlet}","opinionOriginal":"Колонка мнений: позиция автора, не редакции LinguistPro","collapse":"Свернуть ▴","expand":"Фото и подзаголовок ▾"});
 window.I18N_LOCALES.ru.news.figure = {"credit":"Фото: {credit}{outlet}","source":"источник фото ↗","gallery":"Фото из статьи"};
 window.I18N_LOCALES.ru.news.level = Object.assign(window.I18N_LOCALES.ru.news.level || {}, {"original":"Оригинал"});
 window.I18N_LOCALES.ru.news.versions = "Версии:";
