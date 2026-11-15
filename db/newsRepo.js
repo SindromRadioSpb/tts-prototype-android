@@ -10,6 +10,7 @@ const Outlets = require('../public/js/news-outlets');
 const { buildNewsSnapshot, workIdFor } = require('../news/newsSnapshot');
 const { wordGlossLayerReport } = require('../publication/materialArchive');
 const { withTxnLock } = require('./txnLock');
+const { createOverviewItems } = require('./newsOverviewItems');
 
 const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 1024 * 1024, image: 1024 * 1024, newsImage: 600 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, overview: 8 * 1024 * 1024, total: 400 * 1024 * 1024 };
 const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000, PHOTO_MS = 61 * 24 * 3600 * 1000;
@@ -91,6 +92,10 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   const nowMs = () => { const v = now(); return typeof v === 'number' ? v : Date.parse(v); };
   const iso = () => new Date(nowMs()).toISOString();
   let queue = Promise.resolve();
+  const overviewItems = createOverviewItems({ db, now });
+  // Since migration 083 «Обзор дня» is kept by article; before it, one body per day.
+  let byRows = null;
+  const hasRows = async () => byRows != null ? byRows : (byRows = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_overview_items'")));
   const serialize = task => { const r = queue.then(task, task); queue = r.catch(() => {}); return r; };
   // Every explicit transaction on the shared connection goes through the process-wide lock (db/txnLock.js).
   const transaction = task => withTxnLock(async () => {
@@ -223,6 +228,10 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     let o; try { o = JSON.parse(buf.toString('utf8').replace(/^﻿/, '')); } catch (_) { return { status: 'rejected', code: 'OVERVIEW_INVALID' }; }
     const v = C.validateOverview(o);
     if (!v.ok) return { status: 'rejected', code: v.code };
+    if (await hasRows()) {
+      const u = await overviewItems.upsert(o, { packId: manifest.pack_id });
+      return { status: 'published', day: o.day, stories: v.stories, items: v.items, warnings: v.warnings, inserted: u.inserted, updated: u.updated };
+    }
     const t = iso(), body = { day: o.day, created_at: o.created_at || null, stories: o.stories };
     await dbRun(db, `INSERT INTO news_overviews(day, pack_id, body_json, stories, items, created_at, updated_at) VALUES (?,?,?,?,?,?,?)
       ON CONFLICT(day) DO UPDATE SET pack_id=excluded.pack_id, body_json=excluded.body_json, stories=excluded.stories, items=excluded.items, updated_at=excluded.updated_at`,
@@ -232,6 +241,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   // → { day, prev, next, stories:[{ story_key, main, items:[{…, work_id? }]}] } or null. An item links to
   // its full study article while that one is readable (feed or archive).
   async function getOverview(day) {
+    if (await hasRows()) return overviewItems.day(day);
     const row = day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? await dbGet(db, 'SELECT * FROM news_overviews WHERE day=?', [day])
       : await dbGet(db, 'SELECT * FROM news_overviews ORDER BY day DESC LIMIT 1');
     if (!row) return null;

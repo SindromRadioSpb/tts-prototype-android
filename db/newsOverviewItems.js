@@ -1,0 +1,118 @@
+'use strict';
+// «Обзор дня» kept by article (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.4): each
+// edition's pack adds rows and fills translations, nothing is ever removed; a day is assembled from its
+// rows. Days before 3.11.894 are read from news_overviews (one body per day).
+const C = require('../news/newsPackCore');
+const { GROUPS } = require('../news/harvest/newsStories');
+
+const ORDER = ['politics', 'security', 'society', 'economy', 'world', 'culture', 'opinion'];
+const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
+const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
+const dbRun = (db, sql, p = []) => new Promise((res, rej) => db.run(sql, p, function (e) { e ? rej(e) : res(this); }));
+const keyOf = it => { try { return C.articleKey(it.outlet_id, C.canonicalizeUrl(it.url)); } catch (_) { return null; } };
+const filled = v => typeof v === 'string' && v.trim() ? v : null;
+
+function createOverviewItems({ db, now = () => Date.now() }) {
+  const iso = () => new Date(now()).toISOString();
+
+  // o: a validated overview (v1 or v2) → { inserted, updated, kept }.
+  async function upsert(o, { packId = null } = {}) {
+    let inserted = 0, updated = 0, kept = 0;
+    const edition = o.schema_version === 2 ? o.edition_id || null : null, t = iso(), done = [];
+    for (const s of o.stories) for (const it of s.items) {
+      const key = keyOf(it);
+      if (!key) continue;
+      done.push(key);
+      const prev = await dbGet(db, 'SELECT item_key FROM news_overview_items WHERE item_key=?', [key]);
+      if (!prev) {
+        await dbRun(db, `INSERT INTO news_overview_items(item_key, day, story_key, edition_id, outlet_id, url, published_at, section, title_he, title_ru, subtitle_he, subtitle_ru,
+          lead_he, lead_ru, paywalled, pack_id, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          [key, o.day, s.story_key, edition, it.outlet_id, it.url, it.published_at || null, it.section || null, it.title_he, filled(it.title_ru), it.subtitle_he || null, filled(it.subtitle_ru),
+            it.lead_he || null, filled(it.lead_ru), it.paywalled ? 1 : 0, packId, t, t]);
+        inserted++;
+        continue;
+      }
+      // A later pack fills translations; empty values never overwrite; a changed title (the outlet
+      // updated the article) comes with its new Hebrew and translation.
+      const r = await dbRun(db, `UPDATE news_overview_items SET title_ru=COALESCE(?, title_ru), subtitle_ru=COALESCE(?, subtitle_ru), lead_ru=COALESCE(?, lead_ru),
+        title_he=CASE WHEN ? IS NOT NULL THEN ? ELSE title_he END, pack_id=?, updated_at=? WHERE item_key=?
+        AND (COALESCE(?, title_ru) IS NOT title_ru OR COALESCE(?, subtitle_ru) IS NOT subtitle_ru OR COALESCE(?, lead_ru) IS NOT lead_ru OR (? IS NOT NULL AND ? IS NOT title_he))`,
+        [filled(it.title_ru), filled(it.subtitle_ru), filled(it.lead_ru), it.changed ? it.title_he : null, it.title_he, packId, t, key,
+          filled(it.title_ru), filled(it.subtitle_ru), filled(it.lead_ru), it.changed ? it.title_he : null, it.title_he]);
+      if (r.changes) updated++; else kept++;
+    }
+    for (let i = 0; i < done.length; i += 200) {
+      const part = done.slice(i, i + 200), q = part.map(() => '?').join(',');
+      await dbRun(db, `UPDATE news_harvest_items SET overview_state='done', lease_until=NULL WHERE url_key IN (${q}) OR canonical_key IN (${q})`, [...part, ...part]).catch(() => {});
+    }
+    return { inserted, updated, kept };
+  }
+
+  async function days(day) {
+    const q = (op, dir) => `SELECT day FROM (SELECT day FROM news_overview_items UNION SELECT day FROM news_overviews) WHERE day ${op} ? ORDER BY day ${dir} LIMIT 1`;
+    const prev = await dbGet(db, q('<', 'DESC'), [day]), next = await dbGet(db, q('>', 'ASC'), [day]);
+    return { prev: prev ? prev.day : null, next: next ? next.day : null };
+  }
+  async function linkWorks(byKey) {
+    const ids = [...byKey.keys()];
+    for (let i = 0; i < ids.length; i += 400) {
+      const part = ids.slice(i, i + 400);
+      const works = await dbAll(db, `SELECT w.article_id, w.work_id FROM news_works w JOIN news_articles a ON a.article_id=w.article_id
+        WHERE w.position_no=1 AND a.tier IN ('fresh','archive') AND w.article_id IN (${part.map(() => '?').join(',')})`, part);
+      for (const w of works) for (const it of byKey.get(w.article_id)) it.work_id = w.work_id;
+    }
+  }
+
+  // → { day, prev, next, updated_at, editions:[{ edition_id, slot, published_at, target_ready_at }], stories:[{ story_key, main, continued?, items }] } | null
+  async function day(wanted) {
+    const valid = wanted && /^\d{4}-\d{2}-\d{2}$/.test(wanted);
+    let d = valid ? wanted : null;
+    if (!d) {
+      const latest = await dbGet(db, 'SELECT MAX(day) day FROM (SELECT day FROM news_overview_items UNION SELECT day FROM news_overviews)');
+      d = latest && latest.day;
+      if (!d) return null;
+    }
+    const rows = await dbAll(db, `SELECT i.*, e.slot edition_slot, e.published_at edition_published_at FROM news_overview_items i
+      LEFT JOIN news_editions e ON e.edition_id = i.edition_id WHERE i.day=?`, [d]);
+    if (!rows.length) {
+      const old = await dbGet(db, 'SELECT * FROM news_overviews WHERE day=?', [d]);
+      if (!old) return null;
+      const body = JSON.parse(old.body_json), byKey = new Map();
+      for (const s of body.stories) for (const it of s.items) { const k = keyOf(it); if (k) { if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(it); } }
+      await linkWorks(byKey);
+      return { day: d, ...(await days(d)), updated_at: old.updated_at, editions: [], stories: body.stories };
+    }
+    const editions = await dbAll(db, `SELECT edition_id, slot, published_at, target_ready_at FROM news_editions WHERE day=? AND published_at IS NOT NULL ORDER BY published_at`, [d]);
+    const stories = new Map(), byKey = new Map();
+    for (const r of rows) {
+      const it = { item_key: r.item_key, outlet_id: r.outlet_id, url: r.url, published_at: r.published_at, section: r.section, title_he: r.title_he, title_ru: r.title_ru || '',
+        ...(r.subtitle_he ? { subtitle_he: r.subtitle_he, subtitle_ru: r.subtitle_ru || '' } : {}), ...(r.lead_he ? { lead_he: r.lead_he, lead_ru: r.lead_ru || '' } : {}),
+        ...(r.paywalled ? { paywalled: true } : {}), edition_slot: r.edition_slot || null, edition_published_at: r.edition_published_at || null,
+        ...(r.changed_at ? { changed_at: r.changed_at } : {}) };
+      if (!stories.has(r.story_key)) stories.set(r.story_key, []);
+      stories.get(r.story_key).push(it);
+      if (!byKey.has(r.item_key)) byKey.set(r.item_key, []);
+      byKey.get(r.item_key).push(it);
+    }
+    await linkWorks(byKey);
+    const keys = [...stories.keys()];
+    const firstDay = new Map();
+    for (let i = 0; i < keys.length; i += 400) {
+      const part = keys.slice(i, i + 400);
+      for (const s of await dbAll(db, `SELECT story_key, first_day FROM news_stories WHERE story_key IN (${part.map(() => '?').join(',')})`, part)) firstDay.set(s.story_key, s.first_day);
+    }
+    const at = it => Date.parse(it.published_at || '') || 0;
+    const list = keys.map(k => {
+      const items = stories.get(k).sort((a, b) => (!!b.work_id - !!a.work_id) || (at(b) - at(a)));
+      const main = items.some(x => x.work_id);
+      return { story_key: k, main, ...(firstDay.get(k) && firstDay.get(k) < d ? { continued: true } : {}), items };
+    });
+    const outlets = s => new Set(s.items.map(x => x.outlet_id)).size, group = s => ORDER.indexOf(GROUPS[s.items[0].section] || 'society');
+    list.sort((a, b) => (b.main - a.main) || (a.main && b.main ? group(a) - group(b) : 0) || (outlets(b) - outlets(a)) || (Math.max(...b.items.map(at)) - Math.max(...a.items.map(at))));
+    const updated = rows.reduce((m, r) => r.updated_at > m ? r.updated_at : m, '');
+    return { day: d, ...(await days(d)), updated_at: updated, editions, stories: list };
+  }
+  return { upsert, day };
+}
+
+module.exports = { createOverviewItems };

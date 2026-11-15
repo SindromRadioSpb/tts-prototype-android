@@ -1,18 +1,10 @@
 'use strict';
 // News editions (docs/superpowers/specs/2026-11-15-news-editions-design.md): one day, four editions.
 const test = require('node:test'), assert = require('node:assert/strict');
-const fs = require('node:fs'), path = require('node:path');
-const sqlite3 = require('sqlite3');
 const { DEFAULT_SCHEDULE, normalizeSchedule, israelAt, dayOf, slotTimes, dueSlot } = require('../news/harvest/newsEditions');
 
-const exec = (db, sql) => new Promise((res, rej) => db.exec(sql, e => e ? rej(e) : res()));
 const all = (db, sql) => new Promise((res, rej) => db.all(sql, (e, r) => e ? rej(e) : res(r)));
-const MIGRATIONS = ['078_news.sql', '079_news_manage.sql', '080_news_images.sql', '081_news_harvest.sql', '082_news_harvest_items.sql', '083_news_editions.sql'];
-async function openDb() {
-  const db = new sqlite3.Database(':memory:');
-  for (const m of MIGRATIONS) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
-  return db;
-}
+const { openDb } = require('./helpers/newsDb.cjs');
 
 test('dayOf: before the morning cut-off is still yesterday', () => {
   assert.equal(dayOf(Date.parse('2026-11-16T03:59:00Z'), DEFAULT_SCHEDULE), '2026-11-15'); // 05:59 Israel
@@ -143,4 +135,3 @@ test('selectEdition morning keeps the rubric quota and total 22', () => {
   assert.deepEqual(r.map(x => x.story.id), selectStories(stories, { total: 22 }).map(x => x.story.id));
 });
 
-module.exports = { openDb, MIGRATIONS };
