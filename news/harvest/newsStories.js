@@ -29,7 +29,9 @@ function tokens(text) {
 // items: [{ id, outlet_id, title, text, at }] → Map id → story id (the id of the story's first item).
 // Greedy, newest first: an item joins the most similar story (weighted overlap of rare words with the
 // story's words) when the score passes the threshold; otherwise it starts a new story.
-function clusterStories(items, { threshold = 0.3, titleWeight = 2 } = {}) {
+// `seeds` — stories kept from earlier editions ({ id, words: Map, mass }): they are joined by the same rule
+// and keep their id. The returned Map also carries `.stories` ([{ id, words, mass, members, seed }]).
+function clusterStories(items, { threshold = 0.3, titleWeight = 2, seeds = [] } = {}) {
   const docs = items.map(it => {
     const t = tokens(it.title), all = tokens([it.title, it.text].join(' '));
     return { it, t, all };
@@ -38,7 +40,7 @@ function clusterStories(items, { threshold = 0.3, titleWeight = 2 } = {}) {
   for (const d of docs) for (const w of d.all) df.set(w, (df.get(w) || 0) + 1);
   const N = docs.length || 1, idf = w => Math.log(1 + N / (df.get(w) || 1));
   const weight = d => { const m = new Map(); for (const w of d.all) m.set(w, idf(w) * (d.t.has(w) ? titleWeight : 1)); return m; };
-  const stories = [], of = new Map();
+  const stories = seeds.map(s => ({ id: s.id, members: [], words: new Map(s.words), mass: s.mass || 1, seed: true })), of = new Map();
   for (const d of docs.slice().sort((a, b) => (b.it.at || 0) - (a.it.at || 0))) {
     const v = weight(d), mass = [...v.values()].reduce((a, b) => a + b, 0) || 1;
     let best = null, bestScore = 0;
@@ -58,6 +60,7 @@ function clusterStories(items, { threshold = 0.3, titleWeight = 2 } = {}) {
       stories.push(s); of.set(d.it.id, s.id);
     }
   }
+  Object.defineProperty(of, 'stories', { value: stories, enumerable: false });
   return of;
 }
 
