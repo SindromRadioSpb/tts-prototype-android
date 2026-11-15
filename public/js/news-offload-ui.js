@@ -31,7 +31,7 @@
       var day = o.days[i], name = null;
       try {
         progress({ day: day, step: "download", i: i, n: o.days.length });
-        var r = await o.fetchImpl("/api/news/editor/offload/" + day, { credentials: "same-origin", cache: "no-store" });
+        var r = await o.fetchImpl("/api/news/editor/offload/" + day, { method: "POST", credentials: "same-origin", cache: "no-store", headers: { "x-lp-csrf": o.csrf || "" } });
         if (!r.ok) { var j = null; try { j = await r.json(); } catch (_) {} failed.push({ day: day, code: (j && j.error) || "HTTP_" + r.status }); continue; }
         var want = r.headers.get("x-pack-sha256"), buf = await r.arrayBuffer();
         // Never replace a file: the name carries the archive's own hash.

@@ -190,8 +190,9 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       const actor = await actorFor(req, res, { ownerOnly: true }); if (!actor) return;
       try { res.json({ ok: true, ...(await offload.storage()) }); } catch (e) { sendOff(res, e); }
     });
-    app.get('/api/news/editor/offload/:day(\\d{4}-\\d{2}-\\d{2})', read, noStore, async (req, res) => {
-      const actor = await actorFor(req, res, { ownerOnly: true }); if (!actor) return;
+    // A POST with CSRF: building the archive records its hash (a cross-site GET must not change that).
+    app.post('/api/news/editor/offload/:day(\\d{4}-\\d{2}-\\d{2})', write, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
       try {
         const x = await offload.exportDay(req.params.day);
         res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="' + x.name + '"', 'X-Pack-Sha256': x.sha256,

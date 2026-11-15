@@ -110,7 +110,7 @@ test('routes: owner-only storage, export with sha header, release, restore', asy
   assert.equal((await fetch(base + '/api/news/editor/storage', { headers: { cookie: 'lp=editor' } })).status, 403);
   const st = await (await fetch(base + '/api/news/editor/storage', { headers: owner })).json();
   assert.deepEqual(st.suggest.days, ['2026-11-12']);
-  const x = await fetch(base + '/api/news/editor/offload/2026-11-12', { headers: owner });
+  const x = await fetch(base + '/api/news/editor/offload/2026-11-12', { method: 'POST', headers: w });
   assert.equal(x.status, 200);
   const buf = Buffer.from(await x.arrayBuffer());
   assert.equal(x.headers.get('x-pack-sha256'), sha(buf));
@@ -217,4 +217,52 @@ test('review: the restore route refuses strangers before reading the body', asyn
     setTimeout(() => reject(new Error('no answer before the body')), 3000);
   });
   assert.equal(status, 401);
+});
+
+// ---- 897 debt, part D ------------------------------------------------------------------------------------
+test('debt D: restore checks the day of each article and that works belong to it', async t => {
+  const { db, off, ids } = await setup(t);
+  const x = await off.exportDay('2026-11-12');
+  await off.release('2026-11-12', x.sha256);
+  await run(db, "UPDATE news_articles SET offloaded_day='2026-11-01' WHERE article_id=?", [ids[0]]);
+  const r = await off.restore(OWNER, x.buf);
+  assert.deepEqual(r, { day: '2026-11-12', restored: 1, duplicate: 0, missing: 0, mismatch: 1 });
+  const zip = new AdmZip(x.buf), m = JSON.parse(zip.readAsText('manifest.json'));
+  m.articles[1].works[0].work_id = ids[0] + '.b1';
+  zip.updateFile('manifest.json', Buffer.from(JSON.stringify(m)));
+  await assert.rejects(off.restore(OWNER, zip.toBuffer()), e => e.code === 'OFFLOAD_DAMAGED');
+});
+test('debt D: the export is a POST with CSRF (a GET changes nothing)', async t => {
+  const express = require('express');
+  const { mountNewsRoutes } = require('../news/newsRoutes');
+  const { off, repo, db } = await setup(t);
+  const app = express();
+  const resolveUser = async req => String(req.headers.cookie || '').includes('owner') ? { user: { id: 'o', role: 'owner' }, session: { csrf: 'c' } } : null;
+  mountNewsRoutes(app, { repo, editorAuth: { resolve: async () => null }, resolveUser, offload: off });
+  const s = await new Promise(r => { const x = app.listen(0, () => r(x)); });
+  t.after(() => new Promise(r => s.close(r)));
+  const base = 'http://127.0.0.1:' + s.address().port;
+  assert.equal((await fetch(base + '/api/news/editor/offload/2026-11-12', { headers: { cookie: 'lp=owner' } })).status, 404);
+  assert.equal((await all(db, 'SELECT COUNT(*) n FROM news_offloads'))[0].n, 0);
+  assert.equal((await fetch(base + '/api/news/editor/offload/2026-11-12', { method: 'POST', headers: { cookie: 'lp=owner' } })).status, 403);
+  const ok = await fetch(base + '/api/news/editor/offload/2026-11-12', { method: 'POST', headers: { cookie: 'lp=owner', 'x-lp-csrf': 'c' } });
+  assert.equal(ok.status, 200); assert.ok(ok.headers.get('x-pack-sha256'));
+});
+test('debt D: restore brings back the overview rows of the day that are missing', async t => {
+  const { db, off } = await setup(t);
+  await run(db, `INSERT INTO news_overview_items(item_key, day, story_key, outlet_id, url, title_he, created_at, updated_at) VALUES ('na_${'c'.repeat(24)}','2026-11-12','S','ynet','https://www.ynet.co.il/news/article/c','כותרת','t','t')`);
+  const x = await off.exportDay('2026-11-12');
+  await off.release('2026-11-12', x.sha256);
+  await run(db, 'DELETE FROM news_overview_items');
+  await off.restore(OWNER, x.buf);
+  assert.equal((await all(db, 'SELECT COUNT(*) n FROM news_overview_items'))[0].n, 1);
+});
+test('debt D: suggestions prefer days that still hold photos and skip days about to become cards', async t => {
+  const { db, off, clock, ids } = await setup(t);
+  // a second, older day without photos, 5 days before it becomes a card
+  await run(db, "UPDATE news_articles SET published_at='2026-05-30T07:40:00.000Z' WHERE article_id=?", [ids[1]]);
+  await run(db, 'DELETE FROM news_images WHERE article_id=?', [ids[1]]);
+  clock.now = Date.parse('2026-11-25T08:00:00+02:00');
+  const st = await off.storage();
+  assert.deepEqual(st.suggest.days, ['2026-11-12']);
 });

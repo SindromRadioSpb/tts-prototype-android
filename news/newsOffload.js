@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const AdmZip = require('adm-zip');
 const { israelIso } = require('./harvest/newsExtract');
 
-const FRESH_MS = 72 * 3600e3, PHOTO_MS = 61 * 86400e3, LOW_BYTES = 2e9, SUGGEST_BYTES = 1e9, MAX_ARCHIVE = 120 * 1024 * 1024, CACHE_MS = 10 * 60e3;
+const FRESH_MS = 72 * 3600e3, PHOTO_MS = 61 * 86400e3, CARD_SOON_MS = (183 - 14) * 86400e3, LOW_BYTES = 2e9, SUGGEST_BYTES = 1e9, MAX_ARCHIVE = 120 * 1024 * 1024, CACHE_MS = 10 * 60e3;
 const DAY = /^\d{4}-\d{2}-\d{2}$/, ID = /^na_[0-9a-f]{24}$/, WORK = /^na_[0-9a-f]{24}\.[a-z0-9]{2}$/, IMG = /^img-\d{1,2}\.(jpg|jpeg|png|webp)$/;
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
@@ -66,13 +66,14 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       WHERE a.body_json IS NOT NULL AND a.tier IN ('fresh','archive') AND a.offloaded_day IS NULL ORDER BY a.published_at`);
     const byDay = new Map();
     for (const c of cands) { const d = dayOfIso(c.published_at); const x = byDay.get(d) || { rows: [], bytes: 0 }; x.rows.push(c); x.bytes += (c.b || 0) + (c.p || 0); byDay.set(d, x); }
-    const days = [];
-    let bytes = 0;
-    for (const [d, x] of [...byDay.entries()].sort()) {
+    // The days that free the most (still with photos) first; not days about to become cards anyway (2 weeks).
+    let days = [], bytes = 0;
+    for (const [d, x] of [...byDay.entries()].sort((a, b) => b[1].bytes - a[1].bytes)) {
       if (bytes >= SUGGEST_BYTES) break;
-      if (released.has(d) || !offloadable(x.rows, d)) continue;
+      if (released.has(d) || !offloadable(x.rows, d) || now() - Date.parse(d + 'T12:00:00Z') > CARD_SOON_MS) continue;
       days.push(d); bytes += x.bytes;
     }
+    days = days.sort();
     // «Low» is about the disk itself (builds, WAL and images cannot use SQLite's free pages); no disk figure → no alarm.
     return { disk, db_free: dbFree, low: !!disk && disk.free < LOW_BYTES, by_month: [...months.values()].sort((a, b) => a.month < b.month ? 1 : -1),
       offloaded: offloaded.map(o => ({ day: o.day, state: o.state, sha256: o.sha256, articles: o.articles, photos: o.photos, bytes: o.bytes, released_at: o.released_at })),
@@ -149,16 +150,17 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       if (!a || !ID.test(String(a.article_id))) fail('OFFLOAD_DAMAGED', 400);
       const dir = 'articles/' + a.article_id + '/', body = read(dir + 'body.json');
       if (!body || sha(body) !== a.body_sha256) fail('OFFLOAD_DAMAGED', 400);
-      const works = (a.works || []).map(w => { if (!WORK.test(String(w.work_id))) fail('OFFLOAD_DAMAGED', 400); const b = read(dir + 'works/' + w.work_id + '.json'); if (!b || sha(b) !== w.file_sha256) fail('OFFLOAD_DAMAGED', 400); return { ...w, json: b.toString('utf8') }; });
+      const works = (a.works || []).map(w => { if (!WORK.test(String(w.work_id)) || !String(w.work_id).startsWith(a.article_id + '.')) fail('OFFLOAD_DAMAGED', 400); const b = read(dir + 'works/' + w.work_id + '.json'); if (!b || sha(b) !== w.file_sha256) fail('OFFLOAD_DAMAGED', 400); return { ...w, json: b.toString('utf8') }; });
       const images = (a.images || []).map(im => { if (!IMG.test(String(im.name))) fail('OFFLOAD_DAMAGED', 400); const b = read(dir + im.name); if (!b || sha(b) !== im.sha256) fail('OFFLOAD_DAMAGED', 400); return { ...im, bytes: b }; });
       plan.push({ id: a.article_id, body: body.toString('utf8'), works, images });
     }
-    let restored = 0, duplicate = 0, missing = 0, expired = 0;
+    let restored = 0, duplicate = 0, missing = 0, expired = 0, mismatch = 0;
     await tx(async () => {
       for (const p of plan) {
         const row = await dbGet(db, 'SELECT offloaded_day, body_json, tier, published_at FROM news_articles WHERE article_id=?', [p.id]);
         if (!row) { missing++; continue; }
         if (!row.offloaded_day || row.body_json) { duplicate++; continue; }
+        if (row.offloaded_day !== m.day) { mismatch++; continue; } // offloaded with another day's archive
         // Past the archive's 6 months the article is only a card: nothing to bring back.
         if (row.tier !== 'archive') { expired++; continue; }
         if (now() - Date.parse(row.published_at) > PHOTO_MS) p.images = []; // photos live 2 months
@@ -168,9 +170,16 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
         restored++;
       }
       if (restored) await dbRun(db, `UPDATE news_offloads SET state='restored', restored_at=? WHERE day=?`, [iso(now()), m.day]);
+      // «Обзор дня» rows of the day that are missing on the server come back too (the present ones stay).
+      let ov = null; try { ov = JSON.parse(zip.readAsText('overview.json')); } catch (_) { ov = null; }
+      const OV = ['item_key', 'day', 'story_key', 'edition_id', 'outlet_id', 'url', 'published_at', 'section', 'title_he', 'title_ru', 'subtitle_he', 'subtitle_ru', 'lead_he', 'lead_ru', 'paywalled', 'changed_at', 'change_json', 'pack_id', 'created_at', 'updated_at'];
+      for (const r of (ov && ov.day === m.day && Array.isArray(ov.rows)) ? ov.rows : []) {
+        if (!r || !ID.test(String(r.item_key)) || r.day !== m.day || !r.title_he) continue;
+        await dbRun(db, `INSERT OR IGNORE INTO news_overview_items(${OV.join(',')}) VALUES (${OV.map(() => '?').join(',')})`, OV.map(k => r[k] == null ? (k === 'paywalled' ? 0 : null) : r[k])).catch(() => {});
+      }
     });
     cached = null;
-    return { day: m.day, restored, duplicate, missing, ...(expired ? { expired } : {}) };
+    return { day: m.day, restored, duplicate, missing, ...(expired ? { expired } : {}), ...(mismatch ? { mismatch } : {}) };
   }
   return { storage, exportDay, release, restore, README };
 }
