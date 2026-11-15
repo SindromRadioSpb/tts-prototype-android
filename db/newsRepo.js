@@ -99,6 +99,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   // Since migration 083 «Обзор дня» is kept by article; before it, one body per day.
   let byRows = null;
   const hasRows = async () => byRows != null ? byRows : (byRows = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_overview_items'")));
+  let byOffload = null; // migration 086: days offloaded to the owner's PC
+  const hasOffload = async () => byOffload != null ? byOffload : (byOffload = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_offloads'")));
   let byPrints = null; // migration 084: fingerprints of the original
   const hasPrints = async () => byPrints != null ? byPrints : (byPrints = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_article_fingerprints'")));
   const serialize = task => { const r = queue.then(task, task); queue = r.catch(() => {}); return r; };
@@ -408,6 +410,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     if (row.tier === 'withdrawn') return { article_id: row.article_id, tier: 'withdrawn', readable: false };
     const work = await dbGet(db, 'SELECT work_id, snapshot_sha256 FROM news_works WHERE work_id=?', [workId]);
     const card = toCard(row, work);
+    if (await hasOffload()) { const o = await dbGet(db, 'SELECT offloaded_day FROM news_articles WHERE article_id=?', [row.article_id]); if (o && o.offloaded_day) { card.offloaded = true; card.readable = false; card.work_id = null; } }
     if (work) { card.work_id = work.work_id; card.snapshot_sha256 = work.snapshot_sha256; }
     // The outlet updated the article after we took it (migration 084): the latest significant change.
     if (await hasPrints()) {
@@ -422,7 +425,12 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   async function getWork(outletId, workId) {
     const row = await dbGet(db, `SELECT w.work_id, w.position_no, w.snapshot_json, w.snapshot_sha256, a.title_he, a.published_at, a.outlet_id
       FROM news_works w JOIN news_articles a ON a.article_id=w.article_id WHERE w.work_id=? AND a.outlet_id=? AND a.tier IN ('fresh','archive')`, [String(workId || ''), String(outletId || '')]);
-    if (!row) fail('NEWS_NOT_FOUND', 404);
+    if (!row) {
+      // Offloaded to the owner's PC (§5.11): the article exists, its material is in the owner's archive.
+      const m = String(workId || '').match(/^(na_[0-9a-f]{24})\./);
+      if (m && await hasOffload()) { const o = await dbGet(db, 'SELECT offloaded_day FROM news_articles WHERE article_id=? AND outlet_id=?', [m[1], String(outletId || '')]); if (o && o.offloaded_day) fail('NEWS_OFFLOADED', 410); }
+      fail('NEWS_NOT_FOUND', 404);
+    }
     const outlet = Outlets.byId(row.outlet_id), slug = 'news-' + row.outlet_id;
     return {
       corpus: { corpus_id: slug, slug, title: outlet.name_latin, description: '' },

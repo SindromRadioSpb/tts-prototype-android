@@ -10,7 +10,7 @@ const { NewsError, LIMITS } = require('../db/newsRepo');
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -183,6 +183,31 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       res.json({ ok: true, ...r });
     } catch (e) { send(res, e); }
   });
+  // Offloading archived days to the owner's PC and back (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.11). Owner only.
+  if (offload) {
+    const sendOff = (res, e) => e && e.code && e.status ? res.status(e.status).json({ ok: false, error: e.code }) : send(res, e);
+    app.get('/api/news/editor/storage', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { ownerOnly: true }); if (!actor) return;
+      try { res.json({ ok: true, ...(await offload.storage()) }); } catch (e) { sendOff(res, e); }
+    });
+    app.get('/api/news/editor/offload/:day(\\d{4}-\\d{2}-\\d{2})', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { ownerOnly: true }); if (!actor) return;
+      try {
+        const x = await offload.exportDay(req.params.day);
+        res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="' + x.name + '"', 'X-Pack-Sha256': x.sha256,
+          'Access-Control-Expose-Headers': 'X-Pack-Sha256', 'X-Content-Type-Options': 'nosniff' });
+        res.send(x.buf);
+      } catch (e) { sendOff(res, e); }
+    });
+    app.post('/api/news/editor/offload/:day(\\d{4}-\\d{2}-\\d{2})/release', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+      try { const r = await offload.release(req.params.day, req.body && req.body.sha256); audit('news_offload_release', actor.id, r, req.ip); res.json({ ok: true, ...r }); } catch (e) { sendOff(res, e); }
+    });
+    app.post('/api/news/editor/offload/restore', write, express.raw({ type: 'application/zip', limit: '200mb' }), noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+      try { const r = await offload.restore(actor, req.body); audit('news_offload_restore', actor.id, r, req.ip); res.json({ ok: true, ...r }); } catch (e) { sendOff(res, e); }
+    });
+  }
   // The daily harvester (§16): archives of fresh articles one-to-one for dot. Owner or editor.
   if (harvester) {
     app.get('/api/news/editor/harvests', read, noStore, async (req, res) => {
