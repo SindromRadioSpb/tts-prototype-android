@@ -215,6 +215,17 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
           res.download(file.path, file.name);
         } catch (e) { send(res, e); }
       });
+      // dot's own choice (spec §5.6): drafts of up to `extras` articles per edition, made by the server.
+      const EXTRAS_STATUS = { EXTRAS_LIMIT: 409, ALREADY_TAKEN: 409, PAYWALL: 409, NO_BODY: 409, EDITION_NOT_OPEN: 409, UNKNOWN_ITEM: 404, NOTE_REQUIRED: 400 };
+      app.post('/api/news/editor/editions/:id/extras', write, json, noStore, async (req, res) => {
+        const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+        try {
+          const r = await harvester.orderExtras(req.params.id, req.body && req.body.items);
+          audit('news_extras', actor.id, { edition_id: req.params.id, items: (r.items || []).map(i => i.item_key) }, req.ip);
+          res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="' + r.name + '"', 'X-Content-Type-Options': 'nosniff' });
+          res.send(r.buffer);
+        } catch (e) { if (e && EXTRAS_STATUS[e.code]) return res.status(EXTRAS_STATUS[e.code]).json({ ok: false, error: e.code }); send(res, e); }
+      });
       app.get('/api/news/editor/schedule', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;
         try { res.json({ ok: true, schedule: await harvester.loadSchedule() }); } catch (e) { send(res, e); }

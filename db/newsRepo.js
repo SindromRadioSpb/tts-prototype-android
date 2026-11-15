@@ -168,6 +168,14 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const orIndex = article.learning.versions.findIndex(C.isOriginal);
     const study = orIndex >= 0 ? C.checkStudyLayers(article, { glossLayer: glossLayers[orIndex] }) : [];
     if (study.length) return { ...item, article_id: articleId, code: 'STUDY_LAYER_INVALID', detail: study };
+    // «выбрано dot» only for an article dot actually ordered (spec §5.6); otherwise the label is dropped.
+    let selected = null;
+    if (article.learning.selected_by === 'dot') {
+      const o = await dbGet(db, "SELECT selection_note_ru FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND selected_by='dot' LIMIT 1", [articleId, articleId]).catch(() => null);
+      if (o) selected = { selected_by: 'dot', selection_note_ru: String(article.learning.selection_note_ru || o.selection_note_ru || '').slice(0, 200) };
+      else warnings.push('SELECTED_BY_UNVERIFIED');
+    }
+    if (!selected) { delete article.learning.selected_by; delete article.learning.selection_note_ru; }
     if (manifest.edition_id && photos.length) {
       const h = await dbGet(db, 'SELECT draft_images_json FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND draft_images_json IS NOT NULL', [articleId, articleId]).catch(() => null);
       let want = null; try { want = h && JSON.parse(h.draft_images_json); } catch (_) { want = null; }
@@ -191,7 +199,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       const body = { ...article }; delete body.check;
       if (images.length) body.images = images;
       const s = article.source, l = article.learning, t = iso();
-      const provenance = { prepared: article.prepared, quality: article.quality || null, producer: manifest.producer, pack_id: manifest.pack_id, uploaded_by: String(actor.id), paywalled: !!s.paywalled, url: s.url };
+      const provenance = { prepared: article.prepared, quality: article.quality || null, producer: manifest.producer, pack_id: manifest.pack_id, uploaded_by: String(actor.id), paywalled: !!s.paywalled, url: s.url,
+        ...(selected || {}) };
       const values = [s.outlet_id, canonical, article.revision, s.section, s.section_original_he, s.content_type, new Date(publishedMs).toISOString(),
         new Date(Date.parse(s.retrieved_at)).toISOString(), l.title_he, l.title_ru, l.summary_ru, C.normalizeHebrewText(l.title_he + ' ' + l.title_ru).toLowerCase(),
         s.original_title_he, s.author || null, l.story_key || null, l.sensitive.heavy ? 1 : 0, JSON.stringify(l.versions.map(x => x.level)),
@@ -353,6 +362,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       published_at: row.published_at, title_he: row.title_he, title_ru: row.title_ru, summary_ru: row.summary_ru, author: row.author,
       levels: JSON.parse(row.levels_json), image, heavy: !!row.heavy, story_key: row.story_key,
       tier: row.tier, readable, original_url: row.canonical_url, prepared_by: prov.prepared && prov.prepared.by || null,
+      ...(prov.selected_by === 'dot' ? { selected_by: 'dot', selection_note_ru: prov.selection_note_ru || '' } : {}),
     };
   }
   async function firstWorks(articleIds) {

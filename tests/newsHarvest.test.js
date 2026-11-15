@@ -164,7 +164,7 @@ test('hourly poll keeps every new article; an edition makes main drafts + «Об
   assert.equal(r.overview_items, 2); assert.equal(r.stories, 2);
   assert.equal(r.slot, 'extra'); assert.match(r.edition_id, /^ne_[0-9a-f]{18}$/);
   const zip = new AdmZip((await harvester.runFile(r.run_id)).path), names = zip.getEntries().map(e => e.entryName).sort();
-  assert.deepEqual(names, ['README-dot.md', 'harvest.json', 'overview.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
+  assert.deepEqual(names, ['README-dot.md', 'candidates.json', 'harvest.json', 'overview.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
   const img = await sharp(zip.readFile('ynet-0001/img-1.jpg')).metadata();
   assert.equal(img.width, 1600); assert.ok(zip.readFile('ynet-0001/img-1.jpg').length <= 600 * 1024);
   const draft = JSON.parse(zip.readAsText('ynet-0001.draft.json'));
@@ -489,4 +489,62 @@ test('recheck: only articles of the last 24 h, robots respected', async t => {
   const b = await recheckSetup(t);
   b.clock.now += 25 * 3600e3;
   assert.deepEqual(await b.harvester.recheckPublished({}), { checked: 0, changed: 0 });
+});
+
+// ---- C1: dot orders extra drafts (spec §4.5, §5.6) ------------------------------------------------------
+async function extrasSetup(t) {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const s = await harvesterSetup(t, { clock });
+  const m = await s.harvester.tick();
+  const q = (sql, p = []) => new Promise((res, rej) => s.db.all(sql, p, (e, x) => e ? rej(e) : res(x)));
+  const base = (await q("SELECT * FROM news_harvest_items WHERE url LIKE '%abc123%'"))[0];
+  // Clones of the main article under other addresses: articles of the edition nobody picked.
+  const clone = async (n, extra = {}) => {
+    const url = 'https://www.ynet.co.il/news/article/xyz' + n, k = C.articleKey('ynet', url);
+    const row = { ...base, url_key: k, url, canonical_key: k, main_state: 'none', main_edition_id: null, draft_images_json: null, story_key: 'X' + n,
+      data_json: base.data_json.replace(/abc123/g, 'xyz' + n), ...extra };
+    const cols = Object.keys(row);
+    await q(`INSERT INTO news_harvest_items(${cols.join(',')}) VALUES (${cols.map(() => '?').join(',')})`, cols.map(c => row[c]));
+    return k;
+  };
+  return { ...s, clock, m, q, clone, base };
+}
+test('extras: the draft is verbatim from the stored body with photos and the dot label', async t => {
+  const { harvester, m, clone, q } = await extrasSetup(t);
+  const k = await clone(1);
+  const r = await harvester.orderExtras(m.edition_id, [{ item_key: k, note_ru: 'Владелец просил больше экономики' }]);
+  const zip = new AdmZip(r.buffer), names = zip.getEntries().map(e => e.entryName).sort();
+  assert.deepEqual(names, ['ynet-x01.draft.json', 'ynet-x01/img-1.jpg', 'ynet-x01/img-2.jpg']);
+  const d = JSON.parse(zip.readAsText('ynet-x01.draft.json'));
+  assert.equal(d.learning.selected_by, 'dot'); assert.equal(d.learning.selection_note_ru, 'Владелец просил больше экономики');
+  assert.equal(d.learning.versions[0].rows.map(x => x.he_plain).join(' '), [P1, 'האופוזיציה מגיבה', 'תגובה חריפה', P2, P3].join(' '));
+  const row = (await q('SELECT main_state, main_edition_id, selected_by, draft_images_json FROM news_harvest_items WHERE url_key=?', [k]))[0];
+  assert.equal(row.main_state, 'drafted'); assert.equal(row.main_edition_id, m.edition_id); assert.equal(row.selected_by, 'dot');
+  assert.deepEqual(Object.keys(JSON.parse(row.draft_images_json)), ['img-1.jpg', 'img-2.jpg']);
+  assert.equal((await q('SELECT extras_count FROM news_editions WHERE edition_id=?', [m.edition_id]))[0].extras_count, 1);
+});
+test('extras: up to 5 per edition, the sixth is EXTRAS_LIMIT', async t => {
+  const { harvester, m, clone } = await extrasSetup(t);
+  const keys = []; for (let i = 1; i <= 6; i++) keys.push(await clone(i));
+  await harvester.orderExtras(m.edition_id, keys.slice(0, 3).map(k => ({ item_key: k, note_ru: 'интересно' })));
+  await harvester.orderExtras(m.edition_id, keys.slice(3, 5).map(k => ({ item_key: k, note_ru: 'интересно' })));
+  await assert.rejects(harvester.orderExtras(m.edition_id, [{ item_key: keys[5], note_ru: 'интересно' }]), e => e.code === 'EXTRAS_LIMIT');
+});
+test('extras: paywalled / no body / already taken / unknown / no note are refused with their codes', async t => {
+  const { harvester, m, clone, base } = await extrasSetup(t);
+  const pay = await clone(1, { paywalled: 1 }), nobody = await clone(2, { data_json: null });
+  const order = (k, note = 'причина') => harvester.orderExtras(m.edition_id, [{ item_key: k, note_ru: note }]);
+  await assert.rejects(order(pay), e => e.code === 'PAYWALL');
+  await assert.rejects(order(nobody), e => e.code === 'NO_BODY');
+  await assert.rejects(order(base.url_key), e => e.code === 'ALREADY_TAKEN');
+  await assert.rejects(order('na_' + '0'.repeat(24)), e => e.code === 'UNKNOWN_ITEM');
+  await assert.rejects(order(await clone(3), ' '), e => e.code === 'NOTE_REQUIRED');
+});
+test('extras: the edition archive lists the candidates nobody picked', async t => {
+  const { harvester, m } = await extrasSetup(t);
+  const zip = new AdmZip((await harvester.downloadEdition(m.edition_id)).path);
+  const c = JSON.parse(zip.readAsText('candidates.json'));
+  assert.equal(c.edition_id, m.edition_id);
+  assert.deepEqual(c.items.map(i => [i.title_he, i.full_ok]), [['קצר', false]]);
+  assert.ok(c.items[0].item_key && c.items[0].story_key);
 });

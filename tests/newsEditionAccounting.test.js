@@ -199,3 +199,35 @@ test('review: a slot whose build failed twice is not shown as late; the next slo
   const s = await h.status();
   assert.equal(s.next.slot, 'evening'); assert.equal(s.next.state, 'preparing');
 });
+
+// ---- C1: dot's own choice — route and the label check -------------------------------------------------
+test('routes: extras returns a zip; refusals keep their code', async t => {
+  const calls = [];
+  const h = { isRunning: () => false, listRuns: async () => [], orderExtras: async (id, items) => {
+    calls.push([id, items]);
+    if (items[0].item_key === 'bad') { const e = new Error('EXTRAS_LIMIT'); e.code = 'EXTRAS_LIMIT'; throw e; }
+    return { buffer: Buffer.from('PKzip'), name: 'news-extras-x.zip', items: [] };
+  } };
+  const base = await server(t, h), editor = { cookie: 'lp=editor', 'content-type': 'application/json' };
+  const ok = await fetch(base + '/api/news/editor/editions/' + ED + '/extras', { method: 'POST', headers: editor, body: JSON.stringify({ items: [{ item_key: 'k', note_ru: 'почему' }] }) });
+  assert.equal(ok.status, 200); assert.equal(ok.headers.get('content-type'), 'application/zip');
+  assert.equal(Buffer.from(await ok.arrayBuffer()).toString(), 'PKzip');
+  const bad = await fetch(base + '/api/news/editor/editions/' + ED + '/extras', { method: 'POST', headers: editor, body: JSON.stringify({ items: [{ item_key: 'bad', note_ru: 'x' }] }) });
+  assert.equal(bad.status, 409); assert.equal((await bad.json()).error, 'EXTRAS_LIMIT');
+  assert.equal((await fetch(base + '/api/news/editor/editions/' + ED + '/extras', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).status, 401);
+});
+test('ingest: a dot label without an order is dropped with SELECTED_BY_UNVERIFIED; with an order it is kept', async t => {
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const db = await openDb(['084_news_fingerprints.sql']); t.after(() => db.close());
+  const repo = createNewsRepo({ db, now: () => Date.parse('2026-11-12T08:00:00+02:00') });
+  const label = { learning: { selected_by: 'dot', selection_note_ru: 'Про экономику' } };
+  const r1 = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle(label)]));
+  assert.ok(r1.items[0].warnings.includes('SELECTED_BY_UNVERIFIED'));
+  assert.equal((await repo.getCard(r1.items[0].work_id)).selected_by, undefined);
+  const url2 = 'https://www.ynet.co.il/news/article/ord1', k2 = C.articleKey('ynet', url2);
+  await run(db, `INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status, main_state, selected_by, selection_note_ru) VALUES (?,?,?,?,'ready','drafted','dot','Про экономику')`, [k2, 'ynet', url2, '2026-11-12T07:00:00Z']);
+  const r2 = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle({ ...label, source: { url: url2, canonical_url: url2 } })]));
+  const card = await repo.getCard(r2.items[0].work_id);
+  assert.equal(card.selected_by, 'dot'); assert.equal(card.selection_note_ru, 'Про экономику');
+});

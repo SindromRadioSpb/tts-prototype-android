@@ -19,7 +19,7 @@ const { splitSentences } = require('./newsText');
 const { refineSection } = require('./newsStories');
 const { createStoryStore } = require('./newsStoryStore');
 const { normalizeSchedule, dayOf, dueSlot, slotTimes } = require('./newsEditions');
-const { buildEdition } = require('./newsEditionBuild');
+const { buildEdition, makeDraft } = require('./newsEditionBuild');
 const { fingerprintOf, diffPrints } = require('../newsFingerprint');
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
@@ -368,6 +368,44 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const file = path.join(dir, path.basename(r.file_name));
     return fs.existsSync(file) ? { path: file, name: path.basename(r.file_name) } : null;
   }
+  // ---- dot's own choice (spec §4.5, §5.6): drafts of articles the selection left out, at most
+  // schedule.extras per edition; the server makes them one-to-one, dot only says which and why.
+  function extrasError(code) { const e = new Error(code); e.code = code; return e; }
+  async function orderExtras(editionId, items) {
+    const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId || '')]);
+    if (!e || e.closed_at || !['archived', 'downloaded', 'partial', 'published'].includes(e.status)) throw extrasError('EDITION_NOT_OPEN');
+    const schedule = await loadSchedule(), list = Array.isArray(items) ? items : [];
+    if (!list.length) throw extrasError('UNKNOWN_ITEM');
+    if ((e.extras_count || 0) + list.length > schedule.extras) throw extrasError('EXTRAS_LIMIT');
+    const rows = [];
+    for (const it of list) {
+      const note = String((it && it.note_ru) || '').trim();
+      if (!note || note.length > 200) throw extrasError('NOTE_REQUIRED');
+      const k = String((it && it.item_key) || '');
+      const row = await dbGet(db, 'SELECT * FROM news_harvest_items WHERE url_key=? OR canonical_key=? LIMIT 1', [k, k]);
+      if (!row) throw extrasError('UNKNOWN_ITEM');
+      if (row.main_state !== 'none') throw extrasError('ALREADY_TAKEN');
+      if (row.paywalled) throw extrasError('PAYWALL');
+      if (!row.data_json || !row.full_ok) throw extrasError('NO_BODY');
+      rows.push({ ...row, selected_by: 'dot', selection_note_ru: note });
+    }
+    const sharp = loadSharp();
+    try { sharp.concurrency(1); sharp.cache(false); } catch (_) {}
+    const zip = new AdmZip(), out = [], retrievedAt = israelIso(now());
+    let n = e.extras_count || 0;
+    for (const row of rows) {
+      n++;
+      const folder = row.outlet_id + '-x' + String(n).padStart(2, '0');
+      const { shas } = await makeDraft({ zip, row, a: parse(row.data_json), folder, storyKey: row.story_key, photo: src => photo(src, sharp), draftOf, retrievedAt,
+        imagesPerArticle: L.imagesPerArticle, sleep: () => sleep(Math.round(delayMs / 3)) });
+      await dbRun(db, `UPDATE news_harvest_items SET main_state='drafted', main_edition_id=?, selected_by='dot', selection_note_ru=?, draft_images_json=?, lease_until=? WHERE url_key=?`,
+        [e.edition_id, row.selection_note_ru, JSON.stringify(shas), e.lease_until || null, row.url_key]);
+      out.push({ item_key: row.url_key, draft: folder + '.draft.json', images: shas });
+    }
+    await dbRun(db, 'UPDATE news_editions SET extras_count=? WHERE edition_id=?', [n, e.edition_id]);
+    return { edition_id: e.edition_id, items: out, buffer: zip.toBuffer(), name: `news-extras-${e.day}-${e.slot}-${e.edition_id.slice(-6)}-${n}.zip` };
+  }
+
   // ---- re-check published articles (spec §4.4, §5.5): the outlet may update an article after we took it.
   // The published article is never changed; the change is recorded, shown as a note, and a new title of
   // the overview row goes to dot in the next edition.
@@ -513,7 +551,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), recheckPublished, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
+    closeExpired: () => closeExpired(), recheckPublished, orderExtras, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

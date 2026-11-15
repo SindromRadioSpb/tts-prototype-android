@@ -28,6 +28,24 @@ const memberOf = r => ({ id: r.url_key, row: r, outlet_id: r.outlet_id, section:
   text: [r.subtitle_he, r.lead_he].filter(Boolean).join(' '), at: Date.parse(r.published_at || r.first_seen_at) || 0,
   full_ok: !!r.full_ok && !!r.data_json, paywalled: r.paywalled ? 1 : 0, images: r.images, chars: r.chars });
 
+// One draft with its photos into the zip (used by the edition build and by dot's extra orders).
+async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle, sleep = async () => {} }) {
+  const files = [], shas = {};
+  for (const im of a.images.slice(0, imagesPerArticle)) {
+    try {
+      const bytes = await photo(im.src), file = 'img-' + (files.length + 1) + '.jpg';
+      zip.addFile(folder + '/' + file, bytes);
+      files.push({ ...im, file, source_url: im.src }); shas[file] = sha(bytes);
+    } catch (_) { /* a photo that does not load is left out; the article stays */ }
+    await sleep();
+  }
+  if (files.length && !files.some(f => f.role === 'hero')) files[0] = { ...files[0], role: 'hero' };
+  const draft = draftOf(a, { outletId: row.outlet_id, images: files, retrievedAt, storyKey });
+  if (row.selected_by) Object.assign(draft.learning, { selected_by: row.selected_by, selection_note_ru: row.selection_note_ru || '' });
+  zip.addFile(folder + '.draft.json', Buffer.from(JSON.stringify(draft, null, 1)));
+  return { draft, shas, files };
+}
+
 async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs, photo, dir, draftOf, readme, limits, log = () => {}, sleep = async () => {} }) {
   const now = nowMs, retrievedAt = israelIso(now), L = limits;
   // 1. New articles join their stories.
@@ -63,19 +81,8 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
     const a = parse(row.data_json);
     if (!a) { await dbRun(db, `UPDATE news_harvest_items SET main_state='dropped', main_reason='NO_BODY' WHERE url_key=?`, [row.url_key]); return; }
     n++;
-    const base = row.outlet_id + '-' + String(n).padStart(4, '0'), folder = (row.main_reason ? 'rework/' : '') + base, files = [], shas = {};
-    for (const im of a.images.slice(0, L.imagesPerArticle)) {
-      try {
-        const bytes = await photo(im.src), file = 'img-' + (files.length + 1) + '.jpg';
-        zip.addFile(folder + '/' + file, bytes);
-        files.push({ ...im, file, source_url: im.src }); shas[file] = sha(bytes);
-      } catch (_) { /* a photo that does not load is left out; the article stays */ }
-      await sleep();
-    }
-    if (files.length && !files.some(f => f.role === 'hero')) files[0] = { ...files[0], role: 'hero' };
-    const draft = draftOf(a, { outletId: row.outlet_id, images: files, retrievedAt, storyKey });
-    if (row.selected_by) Object.assign(draft.learning, { selected_by: row.selected_by, selection_note_ru: row.selection_note_ru || '' });
-    zip.addFile(folder + '.draft.json', Buffer.from(JSON.stringify(draft, null, 1)));
+    const base = row.outlet_id + '-' + String(n).padStart(4, '0'), folder = (row.main_reason ? 'rework/' : '') + base;
+    const { draft, shas, files } = await makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle: L.imagesPerArticle, sleep });
     images += files.length;
     draftOfKey.set(row.url_key, folder + '.draft.json');
     const entry = { draft: folder + '.draft.json', story_key: storyKey, kind, outlet_id: row.outlet_id, title_he: a.title_he, url: a.canonical_url,
@@ -128,9 +135,16 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
   const report = { day, slot, items: rows.length, stories: overviewStories.size, main: main.length, rework: rework.length, outlets: {},
     overview_keys: rows.map(r => r.url_key), main_keys: [...draftOfKey.keys()] };
   for (const r of rows) { const o = report.outlets[r.outlet_id] = report.outlets[r.outlet_id] || { items: 0, main: 0 }; o.items++; if (drafted.has(r.url_key)) o.main++; }
+  // For dot's own choice (spec §4.5): the edition's articles nobody picked for the full treatment.
+  const candidates = { edition_id: editionId, day, slot, items: rows.filter(r => r.main_state === 'none' && !drafted.has(r.url_key)).map(r => {
+    const m = memberOf(r), url = canonicalOf(r);
+    return { item_key: itemKeyOf(r.outlet_id, url), story_key: r.story_key, outlet_id: r.outlet_id, section: m.section, title_he: m.title, lead_he: r.lead_he || null,
+      full_ok: m.full_ok, paywalled: !!r.paywalled, images: r.images || 0, url };
+  }) };
   let fileName = null, bytes = 0;
   if (rows.length || draftOfKey.size) {
     zip.addFile('overview.json', Buffer.from(JSON.stringify(overview, null, 1)));
+    zip.addFile('candidates.json', Buffer.from(JSON.stringify(candidates, null, 1)));
     zip.addFile('README-dot.md', Buffer.from(readme));
     zip.addFile('harvest.json', Buffer.from(JSON.stringify({ schema: 'linguistpro-news-harvest', schema_version: 3, edition_id: editionId, day, slot, created_at: retrievedAt,
       items: rows.length, stories: overviewStories.size, main, rework, outlets: report.outlets }, null, 1)));
@@ -145,4 +159,4 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
     stories: overviewStories.size, file_name: fileName, bytes, report };
 }
 
-module.exports = { buildEdition, itemKeyOf };
+module.exports = { buildEdition, makeDraft, itemKeyOf };
