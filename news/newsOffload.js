@@ -12,7 +12,7 @@ const fs = require('node:fs');
 const AdmZip = require('adm-zip');
 const { israelIso } = require('./harvest/newsExtract');
 
-const FRESH_MS = 72 * 3600e3, LOW_BYTES = 2e9, SUGGEST_BYTES = 1e9, MAX_ARCHIVE = 200 * 1024 * 1024;
+const FRESH_MS = 72 * 3600e3, PHOTO_MS = 61 * 86400e3, LOW_BYTES = 2e9, SUGGEST_BYTES = 1e9, MAX_ARCHIVE = 120 * 1024 * 1024, CACHE_MS = 10 * 60e3;
 const DAY = /^\d{4}-\d{2}-\d{2}$/, ID = /^na_[0-9a-f]{24}$/, WORK = /^na_[0-9a-f]{24}\.[a-z0-9]{2}$/, IMG = /^img-\d{1,2}\.(jpg|jpeg|png|webp)$/;
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
@@ -39,9 +39,17 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
   }
   const offloadable = (rows, day) => rows.length > 0 && rows.every(r => r.tier === 'archive') && now() - Date.parse(day + 'T22:00:00Z') > FRESH_MS;
 
+  // Heavy (it measures what news take by month): cached for 10 minutes, dropped after a release or a restore.
+  let cached = null;
   async function storage() {
-    let disk = { free: 0, total: 0 };
-    try { const s = statfs(dataDir); disk = { free: Number(s.bavail) * Number(s.bsize), total: Number(s.blocks) * Number(s.bsize) }; } catch (_) {}
+    if (cached && now() - cached.at < CACHE_MS) return cached.value;
+    const value = await measure();
+    cached = { at: now(), value };
+    return value;
+  }
+  async function measure() {
+    let disk = null;
+    try { const s = statfs(dataDir); disk = { free: Number(s.bavail) * Number(s.bsize), total: Number(s.blocks) * Number(s.bsize) }; } catch (_) { disk = null; }
     const pc = await dbGet(db, 'PRAGMA page_count'), ps = await dbGet(db, 'PRAGMA page_size'), fl = await dbGet(db, 'PRAGMA freelist_count');
     const pageSize = ps ? Number(Object.values(ps)[0]) : 4096, dbFree = fl ? Number(Object.values(fl)[0]) * pageSize : 0;
     const photos = await dbAll(db, `SELECT substr(a.published_at,1,7) month, SUM(length(i.bytes)) bytes FROM news_images i JOIN news_articles a ON a.article_id=i.article_id GROUP BY month`);
@@ -51,6 +59,7 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
     for (const r of photos) months.set(r.month, { month: r.month, photos: r.bytes || 0, bodies: 0 });
     for (const r of bodies) { const m = months.get(r.month) || { month: r.month, photos: 0, bodies: 0 }; m.bodies = r.bytes || 0; months.set(r.month, m); }
     const offloaded = await dbAll(db, 'SELECT * FROM news_offloads ORDER BY day');
+    const released = new Set(offloaded.filter(o => o.state === 'released').map(o => o.day));
     // Suggested: the oldest archived days that still hold something, until about 1 GB.
     const cands = await dbAll(db, `SELECT a.article_id, a.published_at, a.tier, length(a.body_json) b, COALESCE((SELECT SUM(length(bytes)) FROM news_images i WHERE i.article_id=a.article_id), 0)
       + COALESCE((SELECT SUM(length(snapshot_json)) FROM news_works w WHERE w.article_id=a.article_id), 0) p FROM news_articles a
@@ -61,16 +70,20 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
     let bytes = 0;
     for (const [d, x] of [...byDay.entries()].sort()) {
       if (bytes >= SUGGEST_BYTES) break;
-      if (!offloadable(x.rows, d)) continue;
+      if (released.has(d) || !offloadable(x.rows, d)) continue;
       days.push(d); bytes += x.bytes;
     }
-    return { disk, db_free: dbFree, low: disk.free + dbFree < LOW_BYTES, by_month: [...months.values()].sort((a, b) => a.month < b.month ? 1 : -1),
+    // «Low» is about the disk itself (builds, WAL and images cannot use SQLite's free pages); no disk figure → no alarm.
+    return { disk, db_free: dbFree, low: !!disk && disk.free < LOW_BYTES, by_month: [...months.values()].sort((a, b) => a.month < b.month ? 1 : -1),
       offloaded: offloaded.map(o => ({ day: o.day, state: o.state, sha256: o.sha256, articles: o.articles, photos: o.photos, bytes: o.bytes, released_at: o.released_at })),
       suggest: { days, bytes } };
   }
 
   async function exportDay(day) {
     if (!DAY.test(String(day || ''))) fail('OFFLOAD_DAY_INVALID', 400);
+    // A released day's archive is the only copy: never make another file for that day.
+    const prevOff = await dbGet(db, 'SELECT state FROM news_offloads WHERE day=?', [day]);
+    if (prevOff && prevOff.state === 'released') fail('OFFLOAD_DAY_RELEASED');
     const rows = (await articlesOfDay(day)).filter(r => !r.offloaded_day && r.body_json);
     if (!offloadable(rows, day)) fail('OFFLOAD_DAY_NOT_ARCHIVED');
     const zip = new AdmZip(), manifest = { schema: 'linguistpro-news-offload', schema_version: 1, day, created_at: israelIso(now()), articles: [] };
@@ -81,7 +94,7 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       const works = await dbAll(db, 'SELECT work_id, level, position_no, snapshot_json, snapshot_sha256 FROM news_works WHERE article_id=? ORDER BY position_no', [r.article_id]);
       for (const w of works) zip.addFile(dir + 'works/' + w.work_id + '.json', Buffer.from(w.snapshot_json, 'utf8'));
       const imgs = await dbAll(db, 'SELECT name, mime, sha256, bytes, created_at FROM news_images WHERE article_id=? ORDER BY name', [r.article_id]);
-      for (const im of imgs) zip.addFile(dir + im.name, Buffer.from(im.bytes));
+      for (const im of imgs) { zip.addFile(dir + im.name, Buffer.from(im.bytes)); zip.getEntry(dir + im.name).header.method = 0; } // JPEGs: stored, not deflated
       photos += imgs.length;
       manifest.articles.push({ article_id: r.article_id, body_sha256: sha(body), works: works.map(w => ({ work_id: w.work_id, level: w.level, position_no: w.position_no, snapshot_sha256: w.snapshot_sha256,
         file_sha256: sha(Buffer.from(w.snapshot_json, 'utf8')) })), images: imgs.map(im => ({ name: im.name, mime: im.mime, sha256: im.sha256, created_at: im.created_at })) });
@@ -91,9 +104,10 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
     zip.addFile('README.txt', Buffer.from(README));
     zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 1)));
     const buf = zip.toBuffer(), digest = sha(buf);
-    await dbRun(db, `INSERT INTO news_offloads(day, sha256, state, articles, photos, bytes, exported_at) VALUES (?,?,?,?,?,?,?)
-      ON CONFLICT(day) DO UPDATE SET sha256=excluded.sha256, state=CASE WHEN news_offloads.state='released' THEN 'released' ELSE 'exported' END, articles=excluded.articles,
-      photos=excluded.photos, bytes=excluded.bytes, exported_at=excluded.exported_at`, [day, digest, 'exported', rows.length, photos, buf.length, iso(now())]);
+    const held = JSON.stringify(manifest.articles.map(a => ({ article_id: a.article_id, body_sha256: a.body_sha256 })));
+    await dbRun(db, `INSERT INTO news_offloads(day, sha256, state, articles, photos, bytes, exported_at, manifest_json) VALUES (?,?,?,?,?,?,?,?)
+      ON CONFLICT(day) DO UPDATE SET sha256=excluded.sha256, state='exported', articles=excluded.articles,
+      photos=excluded.photos, bytes=excluded.bytes, exported_at=excluded.exported_at, manifest_json=excluded.manifest_json`, [day, digest, 'exported', rows.length, photos, buf.length, iso(now()), held]);
     return { day, buf, sha256: digest, articles: rows.length, photos, name: `news-${day}.lpnews-archive.zip` };
   }
 
@@ -102,10 +116,14 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
     const o = await dbGet(db, 'SELECT * FROM news_offloads WHERE day=?', [String(day || '')]);
     if (!o || o.state !== 'exported') fail('OFFLOAD_NOT_EXPORTED');
     if (String(digest || '') !== o.sha256) fail('OFFLOAD_SHA_MISMATCH');
-    const rows = (await articlesOfDay(day)).filter(r => !r.offloaded_day && r.body_json);
-    let photos = 0;
+    // Only what the archive holds, and only if it is still what was exported (a revision since keeps its data).
+    const held = JSON.parse(o.manifest_json || '[]');
+    let photos = 0, released = 0, skipped = 0;
     await tx(async () => {
-      for (const r of rows) {
+      for (const h of held) {
+        const r = await dbGet(db, 'SELECT article_id, body_json, offloaded_day FROM news_articles WHERE article_id=?', [h.article_id]);
+        if (!r || r.offloaded_day || !r.body_json || sha(Buffer.from(r.body_json, 'utf8')) !== h.body_sha256) { skipped++; continue; }
+        released++;
         const n = await dbGet(db, 'SELECT COUNT(*) n FROM news_images WHERE article_id=?', [r.article_id]);
         photos += n ? n.n : 0;
         await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [r.article_id]);
@@ -114,7 +132,8 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       }
       await dbRun(db, `UPDATE news_offloads SET state='released', released_at=? WHERE day=?`, [iso(now()), day]);
     });
-    return { day, articles: rows.length, photos };
+    cached = null;
+    return { day, articles: released, photos, ...(skipped ? { skipped } : {}) };
   }
 
   // Only the owner. Every file is checked against the manifest before anything is written.
@@ -134,12 +153,15 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       const images = (a.images || []).map(im => { if (!IMG.test(String(im.name))) fail('OFFLOAD_DAMAGED', 400); const b = read(dir + im.name); if (!b || sha(b) !== im.sha256) fail('OFFLOAD_DAMAGED', 400); return { ...im, bytes: b }; });
       plan.push({ id: a.article_id, body: body.toString('utf8'), works, images });
     }
-    let restored = 0, duplicate = 0, missing = 0;
+    let restored = 0, duplicate = 0, missing = 0, expired = 0;
     await tx(async () => {
       for (const p of plan) {
-        const row = await dbGet(db, 'SELECT offloaded_day, body_json FROM news_articles WHERE article_id=?', [p.id]);
+        const row = await dbGet(db, 'SELECT offloaded_day, body_json, tier, published_at FROM news_articles WHERE article_id=?', [p.id]);
         if (!row) { missing++; continue; }
-        if (!row.offloaded_day) { duplicate++; continue; }
+        if (!row.offloaded_day || row.body_json) { duplicate++; continue; }
+        // Past the archive's 6 months the article is only a card: nothing to bring back.
+        if (row.tier !== 'archive') { expired++; continue; }
+        if (now() - Date.parse(row.published_at) > PHOTO_MS) p.images = []; // photos live 2 months
         await dbRun(db, 'UPDATE news_articles SET body_json=?, offloaded_day=NULL, updated_at=? WHERE article_id=?', [p.body, iso(now()), p.id]);
         for (const w of p.works) await dbRun(db, 'INSERT OR REPLACE INTO news_works(work_id, article_id, level, position_no, snapshot_json, snapshot_sha256) VALUES (?,?,?,?,?,?)', [w.work_id, p.id, w.level, w.position_no, w.json, w.snapshot_sha256]);
         for (const im of p.images) await dbRun(db, 'INSERT OR REPLACE INTO news_images(article_id, name, mime, sha256, bytes, created_at) VALUES (?,?,?,?,?,?)', [p.id, im.name, im.mime, im.sha256, im.bytes, im.created_at || iso(now())]);
@@ -147,7 +169,8 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       }
       if (restored) await dbRun(db, `UPDATE news_offloads SET state='restored', restored_at=? WHERE day=?`, [iso(now()), m.day]);
     });
-    return { day: m.day, restored, duplicate, missing };
+    cached = null;
+    return { day: m.day, restored, duplicate, missing, ...(expired ? { expired } : {}) };
   }
   return { storage, exportDay, release, restore, README };
 }

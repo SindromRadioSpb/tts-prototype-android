@@ -212,6 +212,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
           title_he=?,title_ru=?,summary_ru=?,title_norm=?,original_title_he=?,author=?,story_key=?,heavy=?,levels_json=?,image_json=?,provenance_json=?,body_json=?,
           tier=?,overlap=?,flagged=?,pack_id=?,updated_at=?,withdrawn_reason=NULL WHERE article_id=?`, [...values, articleId]);
         await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [articleId]);
+        if (await hasOffload()) await dbRun(db, 'UPDATE news_articles SET offloaded_day=NULL WHERE article_id=?', [articleId]); // a new revision is here again
       } else {
         await dbRun(db, `INSERT INTO news_articles(outlet_id,canonical_url,revision,section,section_original_he,content_type,published_at,retrieved_at,
           title_he,title_ru,summary_ru,title_norm,original_title_he,author,story_key,heavy,levels_json,image_json,provenance_json,body_json,tier,overlap,flagged,pack_id,updated_at,
@@ -410,7 +411,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     if (row.tier === 'withdrawn') return { article_id: row.article_id, tier: 'withdrawn', readable: false };
     const work = await dbGet(db, 'SELECT work_id, snapshot_sha256 FROM news_works WHERE work_id=?', [workId]);
     const card = toCard(row, work);
-    if (await hasOffload()) { const o = await dbGet(db, 'SELECT offloaded_day FROM news_articles WHERE article_id=?', [row.article_id]); if (o && o.offloaded_day) { card.offloaded = true; card.readable = false; card.work_id = null; } }
+    if (await hasOffload()) { const o = await dbGet(db, 'SELECT offloaded_day FROM news_articles WHERE article_id=?', [row.article_id]); if (o && o.offloaded_day && row.tier === 'archive') { card.offloaded = true; card.readable = false; card.work_id = null; } }
     if (work) { card.work_id = work.work_id; card.snapshot_sha256 = work.snapshot_sha256; }
     // The outlet updated the article after we took it (migration 084): the latest significant change.
     if (await hasPrints()) {
@@ -461,6 +462,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       const toCardRows = await dbAll(db, "SELECT article_id FROM news_articles WHERE tier IN ('fresh','archive') AND published_at<?", [cardCut]);
       for (const r of toCardRows) { await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [r.article_id]); await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [r.article_id]); }
       const card = await dbRun(db, "UPDATE news_articles SET tier='card', body_json=NULL, updated_at=? WHERE tier IN ('fresh','archive') AND published_at<?", [t, cardCut]);
+      // An offloaded article that became a card has nothing left to bring back (§5.11).
+      if (await hasOffload()) await dbRun(db, "UPDATE news_articles SET offloaded_day=NULL WHERE tier='card' AND offloaded_day IS NOT NULL");
       const arch = await dbRun(db, "UPDATE news_articles SET tier='archive', updated_at=? WHERE tier='fresh' AND published_at<?", [t, freshCut]);
       const purgeCut = new Date(atMs - TRASH_MS).toISOString();
       await dbRun(db, "DELETE FROM news_images WHERE article_id IN (SELECT article_id FROM news_articles WHERE tier='withdrawn' AND COALESCE(deleted_at, updated_at)<?)", [purgeCut]);

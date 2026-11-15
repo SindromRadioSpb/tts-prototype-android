@@ -38,7 +38,9 @@ test('offload: each day is written, read back, verified, then released', async (
   const dir = fakeDir(), srv = fakeServer(), progress = [];
   const r = await OU.run({ fetchImpl: srv.fetchImpl, csrf: 'c', pickDir: async () => dir, days: ['2026-11-12', '2026-11-13'], crypto: webcrypto, onProgress: p => progress.push(p.day + ':' + p.step), now: () => '2026-11-20T10:00:00.000Z' });
   assert.deepEqual(r, { done: ['2026-11-12', '2026-11-13'], failed: [] });
-  assert.equal(dir.files.get('news-2026-11-12.lpnews-archive.zip').toString(), 'PK-day-12');
+  const file = [...dir.files.keys()].find(n => n.startsWith('news-2026-11-12-'));
+  assert.equal(file, 'news-2026-11-12-' + sha(srv.packs['2026-11-12']).slice(0, 12) + '.lpnews-archive.zip');
+  assert.equal(dir.files.get(file).toString(), 'PK-day-12');
   assert.deepEqual(srv.calls.filter(c => c[1].endsWith('/release')).map(c => JSON.parse(c[2]).sha256), [sha(srv.packs['2026-11-12']), sha(srv.packs['2026-11-13'])]);
   assert.ok(progress.includes('2026-11-12:released'));
   assert.match(dir.files.get('ПРОЧТИ.txt').toString(), /Вернуть выгруженное на сервер/);
@@ -62,7 +64,7 @@ test('restore: every file of the index is uploaded', async () => {
   await OU.run({ fetchImpl: srv.fetchImpl, csrf: 'c', pickDir: async () => dir, days: ['2026-11-12', '2026-11-13'], crypto: webcrypto });
   srv.calls.length = 0;
   const r = await OU.restore({ fetchImpl: srv.fetchImpl, csrf: 'c', pickDir: async () => dir });
-  assert.deepEqual(r, { done: ['2026-11-12', '2026-11-13'], failed: [] });
+  assert.deepEqual(r, { done: ['2026-11-12', '2026-11-13'], already: [], failed: [] });
   assert.deepEqual(srv.calls.map(c => [c[0], c[1]]), [['POST', '/api/news/editor/offload/restore'], ['POST', '/api/news/editor/offload/restore']]);
 });
 test('banner: only the owner sees it, only when low', () => {
@@ -83,4 +85,41 @@ test('no File System Access → the desktop hint instead of buttons', () => {
   const ok = OU.renderStorageCard(document, { disk: { free: 1e9, total: 38e9 }, db_free: 2e8, low: true, by_month: [], offloaded: [{ day: '2026-11-01', state: 'released', sha256: 'a'.repeat(64), articles: 30, photos: 70, bytes: 4e7 }], suggest: { days: ['2026-11-12'], bytes: 3e8 } }, { win: { showDirectoryPicker() {} } });
   assert.equal(ok.querySelectorAll('button').length, 2);
   assert.match(ok.textContent, /2026-11-01/);
+});
+
+// ---- D review fixes ------------------------------------------------------------------------------------
+test('review: an archive file is never replaced — a second file of the same day gets its own name', async () => {
+  const dir = fakeDir(), srv = fakeServer();
+  await OU.run({ fetchImpl: srv.fetchImpl, csrf: 'c', pickDir: async () => dir, days: ['2026-11-12'], crypto: webcrypto });
+  const first = [...dir.files.keys()].find(n => n.endsWith('.lpnews-archive.zip'));
+  srv.packs['2026-11-12'] = Buffer.from('PK-day-12-part-two');
+  await OU.run({ fetchImpl: srv.fetchImpl, csrf: 'c', pickDir: async () => dir, days: ['2026-11-12'], crypto: webcrypto });
+  const zips = [...dir.files.keys()].filter(n => n.endsWith('.lpnews-archive.zip'));
+  assert.equal(zips.length, 2);
+  assert.equal(dir.files.get(first).toString(), 'PK-day-12');
+  assert.equal(JSON.parse(dir.files.get('offload-index.json').toString()).days.length, 2);
+});
+test('review: the index entry is written before the release (a closed tab cannot lose a released day)', async () => {
+  const dir = fakeDir(), srv = fakeServer();
+  const order = [], f = srv.fetchImpl;
+  const fetchImpl = async (url, init) => {
+    if (url.endsWith('/release')) order.push('release:' + (dir.files.has('offload-index.json') ? JSON.parse(dir.files.get('offload-index.json').toString()).days[0].state : 'none'));
+    return f(url, init);
+  };
+  await OU.run({ fetchImpl, csrf: 'c', pickDir: async () => dir, days: ['2026-11-12'], crypto: webcrypto });
+  assert.deepEqual(order, ['release:pending']);
+  assert.equal(JSON.parse(dir.files.get('offload-index.json').toString()).days[0].state, 'released');
+});
+test('review: restore reports what came back, not just that the request went through', async () => {
+  const dir = fakeDir(), srv = fakeServer();
+  await OU.run({ fetchImpl: srv.fetchImpl, csrf: 'c', pickDir: async () => dir, days: ['2026-11-12'], crypto: webcrypto });
+  const r = await OU.restore({ fetchImpl: async () => new Response(JSON.stringify({ ok: true, restored: 0, duplicate: 2, missing: 0, expired: 0 })), csrf: 'c', pickDir: async () => dir });
+  assert.deepEqual(r.done, []); assert.deepEqual(r.already, ['2026-11-12']);
+});
+test('review: the reminder without anything to offload has no button', () => {
+  const UI = require('../public/js/news-ui');
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderStorageBanner(document, { low: true, suggest: { days: [], bytes: 0 } }, { owner: true });
+  assert.match(el.textContent, /Выгружать пока нечего/);
+  assert.equal(el.querySelector('a'), null);
 });

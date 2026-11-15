@@ -194,6 +194,7 @@
     var t = opts.t || function (k, f) { return f; };
     if (!opts.owner || !st || !st.low) return null;
     var days = (st.suggest && st.suggest.days) || [], bytes = (st.suggest && st.suggest.bytes) || 0;
+    if (!days.length) return h(doc, "div", { class: "nw-storage-banner", role: "status" }, [h(doc, "span", { text: t("news.offload.nothing", "Место на сервере заканчивается. Выгружать пока нечего: в архиве нет дней старше трёх суток.") })]);
     var size = bytes >= 1e9 ? (Math.round(bytes / 1e8) / 10).toString().replace(".", ",") + " ГБ" : Math.max(1, Math.round(bytes / 1e6)) + " МБ";
     return h(doc, "div", { class: "nw-storage-banner", role: "status" }, [
       h(doc, "span", { text: fill(t("news.offload.banner", "Место на сервере заканчивается. Можно выгрузить на этот компьютер {days} дн. архива (≈{size})."), { days: days.length, size: size }) + " " }),

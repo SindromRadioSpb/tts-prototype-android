@@ -203,8 +203,10 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
       try { const r = await offload.release(req.params.day, req.body && req.body.sha256); audit('news_offload_release', actor.id, r, req.ip); res.json({ ok: true, ...r }); } catch (e) { sendOff(res, e); }
     });
-    app.post('/api/news/editor/offload/restore', write, express.raw({ type: 'application/zip', limit: '200mb' }), noStore, async (req, res) => {
-      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+    // The owner is checked before the body is read: nobody else can make the server hold a large upload.
+    const ownerFirst = async (req, res, next) => { const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return; req.newsActor = actor; next(); };
+    app.post('/api/news/editor/offload/restore', write, ownerFirst, express.raw({ type: 'application/zip', limit: '120mb' }), noStore, async (req, res) => {
+      const actor = req.newsActor;
       try { const r = await offload.restore(actor, req.body); audit('news_offload_restore', actor.id, r, req.ip); res.json({ ok: true, ...r }); } catch (e) { sendOff(res, e); }
     });
   }
