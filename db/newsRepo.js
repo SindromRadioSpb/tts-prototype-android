@@ -173,7 +173,9 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     // «выбрано dot» only for an article dot actually ordered (spec §5.6); otherwise the label is dropped.
     let selected = null;
     if (article.learning.selected_by === 'dot') {
-      const o = await dbGet(db, "SELECT selection_note_ru FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND selected_by='dot' LIMIT 1", [articleId, articleId]).catch(() => null);
+      let o = await dbGet(db, "SELECT selection_note_ru FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND selected_by='dot' LIMIT 1", [articleId, articleId]).catch(() => null);
+      // A later revision of an article dot chose keeps the label after the harvest rows are pruned (45 days).
+      if (!o) { const prev = await dbGet(db, 'SELECT provenance_json FROM news_articles WHERE article_id=?', [articleId]); let pv = null; try { pv = prev && JSON.parse(prev.provenance_json); } catch (_) {} if (pv && pv.selected_by === 'dot') o = { selection_note_ru: pv.selection_note_ru || '' }; }
       if (o) selected = { selected_by: 'dot', selection_note_ru: String(article.learning.selection_note_ru || o.selection_note_ru || '').slice(0, 200) };
       else warnings.push('SELECTED_BY_UNVERIFIED');
     }

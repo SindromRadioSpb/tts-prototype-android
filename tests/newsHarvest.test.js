@@ -753,3 +753,28 @@ test('debt B: a new revision drops the old change note', async t => {
   await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([mk(2)]));
   assert.equal((await repo.getCard(r.items[0].work_id)).source_change, undefined);
 });
+
+// ---- 897 debt, part C ------------------------------------------------------------------------------------
+test('debt C: dot can order only the edition\'s own candidates', async t => {
+  const { harvester, m, clone } = await extrasSetup(t);
+  const other = await clone(9, { edition_id: 'ne_' + '9'.repeat(18) });
+  await assert.rejects(harvester.orderExtras(m.edition_id, [{ item_key: other, note_ru: 'x' }]), e => e.code === 'NOT_A_CANDIDATE');
+  const own = await clone(8);
+  assert.ok((await harvester.orderExtras(m.edition_id, [{ item_key: own, note_ru: 'x' }])).buffer.length > 0);
+});
+test('debt C: the dot label survives a later revision after the harvest rows are gone', async t => {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const db = await openDb(); t.after(() => db.close());
+  const repo = createNewsRepo({ db, now: () => Date.parse('2026-11-12T08:00:00+02:00') });
+  const url = 'https://www.ynet.co.il/news/article/ord1', k = C.articleKey('ynet', url);
+  await new Promise((res, rej) => db.run(`INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status, main_state, selected_by, selection_note_ru) VALUES (?,?,?,?,'ready','drafted','dot','Про экономику')`,
+    [k, 'ynet', url, '2026-11-12T07:00:00Z'], e => e ? rej(e) : res()));
+  const label = { learning: { selected_by: 'dot', selection_note_ru: 'Про экономику' }, source: { url, canonical_url: url } };
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle(label)]));
+  await new Promise((res, rej) => db.run('DELETE FROM news_harvest_items', e => e ? rej(e) : res()));
+  const r2 = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle({ ...label, revision: 2 })]));
+  assert.ok(!(r2.items[0].warnings || []).includes('SELECTED_BY_UNVERIFIED'));
+  assert.equal((await repo.getCard(r.items[0].work_id)).selected_by, 'dot');
+});

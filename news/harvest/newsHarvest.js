@@ -455,6 +455,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       const row = await dbGet(db, 'SELECT * FROM news_harvest_items WHERE url_key=? OR canonical_key=? LIMIT 1', [k, k]);
       if (!row) throw extrasError('UNKNOWN_ITEM');
       if (row.main_state !== 'none') throw extrasError('ALREADY_TAKEN');
+      // Only this edition's own articles (its overview), not another edition's material.
+      if (row.edition_id !== e.edition_id && !(rep.overview_keys || []).includes(row.url_key)) throw extrasError('NOT_A_CANDIDATE');
       if (row.paywalled) throw extrasError('PAYWALL');
       const a = row.full_ok ? parse(row.data_json) : null;
       if (!a || !Array.isArray(a.paragraphs) || !Array.isArray(a.images)) throw extrasError('NO_BODY');

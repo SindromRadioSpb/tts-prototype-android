@@ -10721,6 +10721,7 @@ function roomPlaceNewsPlate() {
   if (wrap.firstChild !== head) wrap.insertBefore(head, wrap.firstChild);
 }
 function renderReaderNewsSource(textRow, epoch) {
+  stopNewsReading(); // a text that is not news (or another article) ends the previous article's watch
   const head = newsHeadEl(), foot = $('readerNewsSourceFoot');
   if (head) { head.replaceChildren(); head.hidden = true; }
   if (foot) { foot.replaceChildren(); foot.hidden = true; }
@@ -10765,13 +10766,21 @@ function wireNewsFigures(meta, epoch) {
   place();
 }
 // The owner's reading signal for dot (news-reader.js watchReading; the server keeps it only for the owner).
-let _newsReadingStop = null;
+let _newsReadingStop = null, _newsOwnerProbe = null;
+// Only the owner's reading is kept: ask once whether this is the owner, other readers send nothing.
+function newsReaderIsOwner() {
+  if (!_newsOwnerProbe) _newsOwnerProbe = fetch('/api/news/editor/me?soft=1', { cache: 'no-store', credentials: 'same-origin' })
+    .then(r => (r.ok ? r.json() : null)).then(j => !!(j && j.kind === 'owner')).catch(() => false);
+  return _newsOwnerProbe;
+}
+function stopNewsReading() { if (_newsReadingStop) { _newsReadingStop(); _newsReadingStop = null; } }
 function wireNewsReading(work, epoch) {
-  if (_newsReadingStop) { _newsReadingStop(); _newsReadingStop = null; }
+  stopNewsReading();
   const mount = $('roomReaderTable');
   if (!work || !mount || !window.NewsReader || !window.NewsReader.watchReading) return;
-  _newsReadingStop = window.NewsReader.watchReading(window, mount, work, event => {
-    if (epoch !== readerOpenEpoch) return;
+  _newsReadingStop = window.NewsReader.watchReading(window, mount, work, async event => {
+    if (epoch !== readerOpenEpoch) { stopNewsReading(); return; }
+    if (!(await newsReaderIsOwner())) return;
     fetch('/api/news/read', { method: 'POST', credentials: 'same-origin', keepalive: true, headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ work_id: work, event }) }).catch(() => {});
   });
