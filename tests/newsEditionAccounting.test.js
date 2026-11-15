@@ -157,3 +157,45 @@ test('repo: a pack of an edition tells the harvester what was published and what
   assert.equal(got[0].items[1].article_id, C.articleKey('ynet', 'https://www.ynet.co.il/news/article/zz9'), 'a refused article still names its key');
   assert.equal(got[0].rejected[0].code, 'TRANSLIT');
 });
+
+// ---- final review fixes ----------------------------------------------------------------------------
+test('review: an overview upload keeps the lease of drafts still in work', async t => {
+  const { createOverviewItems } = require('../db/newsOverviewItems');
+  const { db, clock } = await setup(t);
+  const until = new Date(clock.now + 3 * 3600e3).toISOString();
+  await drafted(db, 1, ED);
+  await run(db, `UPDATE news_harvest_items SET lease_until=?, overview_state='sent' WHERE url_key=?`, [until, key(1)]);
+  await run(db, `INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status, overview_state, lease_until) VALUES (?,?,?,?,'ready','sent',?)`, [key(2), 'ynet', url(2), '2026-11-16T07:00:00Z', until]);
+  const ov = createOverviewItems({ db, now: () => clock.now });
+  await ov.upsert({ schema: 'linguistpro-news-overview', schema_version: 2, edition_id: ED, day: '2026-11-16', slot: 'midday', stories: [{ story_key: 'S', items: [1, 2].map(n => ({ outlet_id: 'ynet', url: url(n), title_he: 'כותרת', title_ru: 'Заголовок' })) }] });
+  const rows = await all(db, 'SELECT url_key, lease_until, overview_state FROM news_harvest_items ORDER BY url_key=?', [key(2)]);
+  assert.deepEqual(rows.map(r => [r.overview_state, r.lease_until]), [['done', until], ['done', null]]);
+});
+test('review: a superseded or skipped edition is not served for download and keeps its status', async t => {
+  const { db, h, dataDir } = await setup(t);
+  fs.mkdirSync(path.join(dataDir, 'news-harvest'), { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'news-harvest', 'a.zip'), 'PK');
+  await edition(db, ED, { status: 'superseded', file: 'a.zip', lease: null });
+  assert.equal(await h.downloadEdition(ED), null);
+  await drafted(db, 1, ED);
+  await h.accountPack({ edition_id: ED, items: [{ status: 'published', article_id: key(1) }], rejected: [], overview: false });
+  assert.equal((await get(db, 'SELECT status FROM news_editions WHERE edition_id=?', [ED])).status, 'superseded');
+});
+test('review: a pack where every article was refused does not move «Обновлено в»', async t => {
+  const { db, h } = await setup(t);
+  await edition(db, ED);
+  await drafted(db, 1, ED);
+  await h.accountPack({ edition_id: ED, items: [{ status: 'rejected', code: 'X', article_id: key(1) }], rejected: [], overview: false });
+  const e = await get(db, 'SELECT published_at, first_upload_at FROM news_editions WHERE edition_id=?', [ED]);
+  assert.equal(e.published_at, null); assert.ok(e.first_upload_at);
+});
+test('review: a slot whose build failed twice is not shown as late; the next slot is', async t => {
+  const { db, h } = await setup(t, { now: Date.parse('2026-11-16T17:00:00+02:00') });
+  await edition(db, 'ne_' + 'f'.repeat(18), { slot: 'morning', status: 'published', cutoff: '2026-11-16T04:00:00Z', ready: '2026-11-16T06:00:00Z' });
+  await run(db, `UPDATE news_editions SET published_at='2026-11-16T05:40:00.000Z' WHERE slot='morning'`);
+  await edition(db, 'ne_' + 'd'.repeat(18), { slot: 'midday', status: 'failed', lease: null });
+  await edition(db, 'ne_' + 'e'.repeat(18), { slot: 'midday', status: 'failed', lease: null });
+  await edition(db, ED, { slot: 'evening', status: 'downloaded', cutoff: '2026-11-16T14:30:00Z', ready: '2026-11-16T16:00:00Z' });
+  const s = await h.status();
+  assert.equal(s.next.slot, 'evening'); assert.equal(s.next.state, 'preparing');
+});

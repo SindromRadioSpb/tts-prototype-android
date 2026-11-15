@@ -81,7 +81,8 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
     const entry = { draft: folder + '.draft.json', story_key: storyKey, kind, outlet_id: row.outlet_id, title_he: a.title_he, url: a.canonical_url,
       published_at: a.published_at, rows: draft.learning.versions[0].rows.length, images: shas, warnings: draft.quality.warnings };
     if (row.main_reason) rework.push({ ...entry, reason: row.main_reason, attempts: row.main_attempts }); else main.push(entry);
-    await dbRun(db, `UPDATE news_harvest_items SET main_state='drafted', main_edition_id=?, draft_images_json=? WHERE url_key=?`, [editionId, JSON.stringify(shas), row.url_key]);
+    // Guarded: a pack ingested while the photos were fetched may have published it meanwhile.
+    await dbRun(db, `UPDATE news_harvest_items SET main_state='drafted', main_edition_id=?, draft_images_json=? WHERE url_key=? AND main_state IN ('none','drafted')`, [editionId, JSON.stringify(shas), row.url_key]);
     log('[news-edition] ' + folder + ' ' + String(a.title_he).slice(0, 60));
   }
   for (const row of carried) await addDraft(row, { kind: 'carried', storyKey: row.story_key });
@@ -113,7 +114,7 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
     }) };
   for (let i = 0; i < rows.length; i += 200) {
     const ids = rows.slice(i, i + 200).map(r => r.url_key);
-    await dbRun(db, `UPDATE news_harvest_items SET overview_state='sent', edition_id=COALESCE(edition_id, ?) WHERE url_key IN (${ids.map(() => '?').join(',')})`, [editionId, ...ids]);
+    await dbRun(db, `UPDATE news_harvest_items SET overview_state='sent', edition_id=COALESCE(edition_id, ?) WHERE overview_state<>'done' AND url_key IN (${ids.map(() => '?').join(',')})`, [editionId, ...ids]);
   }
 
   // 5. The archive.

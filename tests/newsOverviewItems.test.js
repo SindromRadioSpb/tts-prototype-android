@@ -101,3 +101,13 @@ test('repo: a pack with a v2 overview adds rows; getOverview assembles the day a
   assert.match(got.stories[0].items[0].work_id, /^na_[0-9a-f]{24}\.b1$/);
   db.close();
 });
+test('review: a day with an old overview body and new rows shows both', async () => {
+  const { db, ov } = await setup();
+  const old = { day: '2026-11-16', stories: [{ story_key: 'old', main: true, items: [{ outlet_id: 'ynet', url: 'https://www.ynet.co.il/news/article/o1', title_he: 'ישן', title_ru: 'Старое' }, it(1, { item_key: undefined })] }] };
+  await run(db, `INSERT INTO news_overviews(day, pack_id, body_json, stories, items, created_at, updated_at) VALUES ('2026-11-16','p',?,1,2,'t','2026-11-16T06:00:00Z')`, [JSON.stringify(old)]);
+  await ov.upsert(v2('evening', [{ story_key: 'S1', items: [it(1)] }, { story_key: 'S2', items: [it(2)] }]), { packId: 'p2' });
+  const d = await ov.day('2026-11-16');
+  const titles = d.stories.flatMap(s => s.items.map(x => x.title_he)).sort();
+  assert.deepEqual(titles, ['ישן', 'כותרת 1', 'כותרת 2'], 'the old body is merged, the row that is in both is shown once');
+  db.close();
+});

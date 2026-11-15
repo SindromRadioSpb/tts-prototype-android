@@ -318,7 +318,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   // dot took the archive: its articles are «in work» for leaseHours and go in no other archive meanwhile.
   async function downloadEdition(editionId) {
     const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId)]);
-    if (!e || !e.file_name) return null;
+    // A superseded edition's material is in the newer archive: never served (dot would translate it twice).
+    if (!e || !e.file_name || ['superseded', 'skipped', 'failed', 'building'].includes(e.status)) return null;
     const file = path.join(dir, path.basename(e.file_name));
     if (!fs.existsSync(file)) return null;
     if (!e.downloaded_at && e.status === 'archived') {
@@ -379,7 +380,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   async function refreshEdition(editionId) {
     const c = await dbGet(db, `SELECT SUM(main_state='drafted') open, SUM(main_state='published') done FROM news_harvest_items WHERE main_edition_id=?`, [editionId]);
     const e = await dbGet(db, 'SELECT status, first_upload_at FROM news_editions WHERE edition_id=?', [editionId]);
-    if (!e || !e.first_upload_at) return;
+    if (!e || !e.first_upload_at || ['superseded', 'skipped', 'failed'].includes(e.status)) return;
     await dbRun(db, `UPDATE news_editions SET status=?, published_count=? WHERE edition_id=?`, [(c && c.open) ? 'partial' : 'published', (c && c.done) || 0, editionId]);
   }
   // receipt of one pack: { edition_id, items:[{ status, article_id, code }], rejected:[{ outlet_id, canonical_url, code }], overview: bool }
@@ -404,7 +405,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       seen.add(row.url_key);
       await attempt(row, r.code, schedule);
     }
-    const any = published || items.length || rejected.length || overview;
+    const any = published || overview; // «Обновлено в …» moves only when readers got something
     await dbRun(db, `UPDATE news_editions SET first_upload_at=COALESCE(first_upload_at, ?), published_at=CASE WHEN ? THEN COALESCE(published_at, ?) ELSE published_at END, report_json=? WHERE edition_id=?`,
       [t, any ? 1 : 0, t, JSON.stringify({ ...rep, accounted: [...seen], packs: (rep.packs || 0) + 1 }), e.edition_id]);
     await refreshEdition(e.edition_id);
@@ -457,7 +458,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       const eds = await dbAll(db, 'SELECT * FROM news_editions WHERE day=?', [day]);
       const slots = slotTimes(day, schedule);
       const lastDone = Math.max(-1, ...slots.map((s, i) => eds.some(e => e.slot === s.slot && e.published_at) ? i : -1));
-      const s = slots.slice(lastDone + 1).find(x => !eds.some(e => e.slot === x.slot && ['skipped', 'superseded'].includes(e.status)) || x.cutoffMs > t);
+      const passedOver = x => { const mine = eds.filter(e => e.slot === x.slot); return mine.some(e => ['skipped', 'superseded'].includes(e.status)) || mine.filter(e => e.status === 'failed').length >= 2; };
+      const s = slots.slice(lastDone + 1).find(x => !passedOver(x) || x.cutoffMs > t);
       if (!s) continue;
       const ed = eds.find(e => e.slot === s.slot && !['skipped', 'superseded', 'failed'].includes(e.status));
       const readyAt = iso(ed && ed.target_ready_at ? Date.parse(ed.target_ready_at) : s.readyMs);

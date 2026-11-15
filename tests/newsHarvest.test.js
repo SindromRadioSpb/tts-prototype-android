@@ -120,7 +120,7 @@ test('RSS items and robots.txt', () => {
 });
 
 // ---- end to end with a fake web ---------------------------------------------------------------------
-async function harvesterSetup(t, { clock, pages = {} } = {}) {
+async function harvesterSetup(t, { clock, pages = {}, onFetch = null } = {}) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
   for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql', '083_news_editions.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-harvest-'));
@@ -139,6 +139,7 @@ async function harvesterSetup(t, { clock, pages = {} } = {}) {
   const requests = [];
   const fetchImpl = async url => {
     requests.push(url);
+    if (onFetch) await onFetch(url);
     if (/yit\.co\.il\/picserver6\/crop_images/.test(url) || /Second5678/.test(url)) return new Response(photo, { headers: { 'content-type': 'image/jpeg' } });
     if (url.includes('c14.co.il')) return new Response('<title>Just a moment...</title>', { status: 403 });
     return web[url] != null ? new Response(web[url], { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 });
@@ -418,4 +419,20 @@ test('rework: a refused draft goes to rework/ of the next edition with its reaso
   const hj = JSON.parse(zip.readAsText('harvest.json'));
   assert.deepEqual(hj.rework.map(r => [r.draft, r.reason, r.attempts]), [['rework/ynet-0001.draft.json', 'STUDY_LAYER_INVALID', 1]]);
   assert.ok(zip.getEntry('rework/ynet-0001/img-1.jpg'));
+});
+
+test('review: a pack ingested while the edition fetches photos is not undone by the build', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  let db = null, fired = false;
+  const onFetch = async url => {
+    if (fired || !/picserver6\/crop_images/.test(url)) return;
+    fired = true; // dot's pack lands now: the article is published, its overview row is done
+    await new Promise((res, rej) => db.run("UPDATE news_harvest_items SET main_state='published', overview_state='done' WHERE url LIKE '%abc123%'", e => e ? rej(e) : res()));
+  };
+  const s = await harvesterSetup(t, { clock, onFetch });
+  db = s.db;
+  await s.harvester.tick();
+  assert.ok(fired);
+  const row = await new Promise((res, rej) => db.get("SELECT main_state, overview_state FROM news_harvest_items WHERE url LIKE '%abc123%'", (e, r) => e ? rej(e) : res(r)));
+  assert.deepEqual(row, { main_state: 'published', overview_state: 'done' });
 });

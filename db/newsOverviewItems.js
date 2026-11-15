@@ -11,6 +11,7 @@ const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, 
 const dbRun = (db, sql, p = []) => new Promise((res, rej) => db.run(sql, p, function (e) { e ? rej(e) : res(this); }));
 const keyOf = it => { try { return C.articleKey(it.outlet_id, C.canonicalizeUrl(it.url)); } catch (_) { return null; } };
 const filled = v => typeof v === 'string' && v.trim() ? v : null;
+const parse = s => { try { return JSON.parse(s || 'null'); } catch (_) { return null; } };
 
 function createOverviewItems({ db, now = () => Date.now() }) {
   const iso = () => new Date(now()).toISOString();
@@ -43,7 +44,9 @@ function createOverviewItems({ db, now = () => Date.now() }) {
     }
     for (let i = 0; i < done.length; i += 200) {
       const part = done.slice(i, i + 200), q = part.map(() => '?').join(',');
-      await dbRun(db, `UPDATE news_harvest_items SET overview_state='done', lease_until=NULL WHERE url_key IN (${q}) OR canonical_key IN (${q})`, [...part, ...part]).catch(() => {});
+      // A main draft still in work keeps its lease: dot may upload the overview before the articles.
+      await dbRun(db, `UPDATE news_harvest_items SET overview_state='done', lease_until=CASE WHEN main_state='drafted' THEN lease_until ELSE NULL END
+        WHERE url_key IN (${q}) OR canonical_key IN (${q})`, [...part, ...part]).catch(() => {});
     }
     return { inserted, updated, kept };
   }
@@ -81,6 +84,19 @@ function createOverviewItems({ db, now = () => Date.now() }) {
       for (const s of body.stories) for (const it of s.items) { const k = keyOf(it); if (k) { if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(it); } }
       await linkWorks(byKey);
       return { day: d, ...(await days(d)), updated_at: old.updated_at, editions: [], stories: body.stories };
+    }
+    // The day of the release: its morning overview was stored the old way (one body) — merged, rows win.
+    const old = await dbGet(db, 'SELECT body_json FROM news_overviews WHERE day=?', [d]);
+    if (old) {
+      const have = new Set(rows.map(r => r.item_key));
+      for (const s of (parse(old.body_json) || { stories: [] }).stories || []) for (const it of s.items || []) {
+        const k = keyOf(it);
+        if (!k || have.has(k)) continue;
+        have.add(k);
+        rows.push({ item_key: k, story_key: s.story_key, outlet_id: it.outlet_id, url: it.url, published_at: it.published_at || null, section: it.section || null, title_he: it.title_he,
+          title_ru: it.title_ru || null, subtitle_he: it.subtitle_he || null, subtitle_ru: it.subtitle_ru || null, lead_he: it.lead_he || null, lead_ru: it.lead_ru || null,
+          paywalled: it.paywalled ? 1 : 0, edition_slot: null, edition_published_at: null, changed_at: null, updated_at: '' });
+      }
     }
     const editions = await dbAll(db, `SELECT edition_id, slot, published_at, target_ready_at FROM news_editions WHERE day=? AND published_at IS NOT NULL ORDER BY published_at`, [d]);
     const stories = new Map(), byKey = new Map();
