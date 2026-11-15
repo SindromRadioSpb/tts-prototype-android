@@ -412,11 +412,22 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   // ---- dot's own choice (spec §4.5, §5.6): drafts of articles the selection left out, at most
   // schedule.extras per edition; the server makes them one-to-one, dot only says which and why.
   function extrasError(code) { const e = new Error(code); e.code = code; return e; }
+  // One order at a time and never during a build or a poll: the checks and the writes see the same state.
   async function orderExtras(editionId, items) {
+    while (busy) await busy.catch(() => {});
+    return exclusive(() => orderExtrasNow(editionId, items));
+  }
+  async function orderExtrasNow(editionId, items) {
     const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId || '')]);
     if (!e || e.closed_at || !['archived', 'downloaded', 'partial', 'published'].includes(e.status)) throw extrasError('EDITION_NOT_OPEN');
     const schedule = await loadSchedule(), list = Array.isArray(items) ? items : [];
     if (!list.length) throw extrasError('UNKNOWN_ITEM');
+    const keysAsked = list.map(it => String((it && it.item_key) || ''));
+    if (new Set(keysAsked).size !== keysAsked.length) throw extrasError('DUPLICATE_ITEM');
+    const rep = parse(e.report_json) || {};
+    // The same order again (the reply was lost): the same zip.
+    const prev = (rep.extras || []).find(x => x.keys.length === keysAsked.length && x.keys.every(k => keysAsked.includes(k)));
+    if (prev && fs.existsSync(path.join(dir, prev.file))) return { edition_id: e.edition_id, items: prev.items, buffer: fs.readFileSync(path.join(dir, prev.file)), name: prev.file };
     if ((e.extras_count || 0) + list.length > schedule.extras) throw extrasError('EXTRAS_LIMIT');
     const rows = [];
     for (const it of list) {
@@ -427,24 +438,33 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       if (!row) throw extrasError('UNKNOWN_ITEM');
       if (row.main_state !== 'none') throw extrasError('ALREADY_TAKEN');
       if (row.paywalled) throw extrasError('PAYWALL');
-      if (!row.data_json || !row.full_ok) throw extrasError('NO_BODY');
-      rows.push({ ...row, selected_by: 'dot', selection_note_ru: note });
+      const a = row.full_ok ? parse(row.data_json) : null;
+      if (!a || !Array.isArray(a.paragraphs) || !Array.isArray(a.images)) throw extrasError('NO_BODY');
+      rows.push({ row: { ...row, selected_by: 'dot', selection_note_ru: note, asked: k }, a });
     }
+    // The whole zip first; the database changes only once it exists (all or nothing).
     const sharp = loadSharp();
     try { sharp.concurrency(1); sharp.cache(false); } catch (_) {}
     const zip = new AdmZip(), out = [], retrievedAt = israelIso(now());
     let n = e.extras_count || 0;
-    for (const row of rows) {
+    for (const { row, a } of rows) {
       n++;
       const folder = row.outlet_id + '-x' + String(n).padStart(2, '0');
-      const { shas } = await makeDraft({ zip, row, a: parse(row.data_json), folder, storyKey: row.story_key, photo: src => photo(src, sharp), draftOf, retrievedAt,
+      const { shas } = await makeDraft({ zip, row, a, folder, storyKey: row.story_key, photo: src => photo(src, sharp), draftOf, retrievedAt,
         imagesPerArticle: L.imagesPerArticle, sleep: () => sleep(Math.round(delayMs / 3)) });
-      await dbRun(db, `UPDATE news_harvest_items SET main_state='drafted', main_edition_id=?, selected_by='dot', selection_note_ru=?, draft_images_json=?, lease_until=? WHERE url_key=?`,
-        [e.edition_id, row.selection_note_ru, JSON.stringify(shas), e.lease_until || null, row.url_key]);
-      out.push({ item_key: row.url_key, draft: folder + '.draft.json', images: shas });
+      out.push({ item_key: row.asked, url_key: row.url_key, note: row.selection_note_ru, draft: folder + '.draft.json', images: shas });
     }
-    await dbRun(db, 'UPDATE news_editions SET extras_count=? WHERE edition_id=?', [n, e.edition_id]);
-    return { edition_id: e.edition_id, items: out, buffer: zip.toBuffer(), name: `news-extras-${e.day}-${e.slot}-${e.edition_id.slice(-6)}-${n}.zip` };
+    const buffer = zip.toBuffer(), name = `news-extras-${e.day}-${e.slot}-${e.edition_id.slice(-6)}-${n}.zip`;
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, name), buffer);
+    // Extras are «in work» like the edition: leased now, and leased again with it when it is downloaded.
+    const lease = iso(Math.max(Date.parse(e.lease_until || 0) || 0, now() + schedule.leaseHours * 3600e3));
+    for (const o of out) await dbRun(db, `UPDATE news_harvest_items SET main_state='drafted', main_edition_id=?, selected_by='dot', selection_note_ru=?, draft_images_json=?, lease_until=? WHERE url_key=? AND main_state='none'`,
+      [e.edition_id, o.note, JSON.stringify(o.images), lease, o.url_key]);
+    const items2 = out.map(o => ({ item_key: o.item_key, draft: o.draft, images: o.images }));
+    const report = { ...rep, main_keys: [...new Set([...(rep.main_keys || []), ...out.map(o => o.url_key)])], extras: [...(rep.extras || []), { file: name, keys: keysAsked, items: items2 }] };
+    await dbRun(db, 'UPDATE news_editions SET extras_count=?, report_json=? WHERE edition_id=?', [n, JSON.stringify(report), e.edition_id]);
+    return { edition_id: e.edition_id, items: items2, buffer, name };
   }
 
   // ---- re-check published articles (spec §4.4, §5.5): the outlet may update an article after we took it.

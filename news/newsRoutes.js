@@ -241,7 +241,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         } catch (e) { send(res, e); }
       });
       // dot's own choice (spec §5.6): drafts of up to `extras` articles per edition, made by the server.
-      const EXTRAS_STATUS = { EXTRAS_LIMIT: 409, ALREADY_TAKEN: 409, PAYWALL: 409, NO_BODY: 409, EDITION_NOT_OPEN: 409, UNKNOWN_ITEM: 404, NOTE_REQUIRED: 400 };
+      const EXTRAS_STATUS = { EXTRAS_LIMIT: 409, ALREADY_TAKEN: 409, PAYWALL: 409, NO_BODY: 409, EDITION_NOT_OPEN: 409, UNKNOWN_ITEM: 404, NOTE_REQUIRED: 400, DUPLICATE_ITEM: 400 };
       app.post('/api/news/editor/editions/:id/extras', write, json, noStore, async (req, res) => {
         const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
         try {

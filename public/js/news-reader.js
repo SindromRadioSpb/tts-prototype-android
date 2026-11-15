@@ -152,9 +152,13 @@
   }
   // The reading signal (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.7): «open» at once,
   // «finish» when the table's last row is seen. The server keeps it only for the owner.
-  function watchReading(win, mount, workId, send) {
+  function watchReading(win, mount, workId, send, opts) {
+    opts = opts || {};
+    var clock = opts.now || function () { return Date.now(); }, minMs = opts.minMs != null ? opts.minMs : 15000, openedAt = clock(), timer = null;
     var done = false, io = null, mo = null, watched = null;
     try { send("open"); } catch (_) {}
+    // «Read» needs the last row seen AND at least minMs on the article: a short text is not «read» on opening.
+    function finish() { if (done) return; done = true; if (io) io.disconnect(); if (mo) mo.disconnect(); try { send("finish"); } catch (_) {} }
     if (!win || !win.IntersectionObserver || !mount) return function () {};
     function lastRow() { var rows = mount.querySelectorAll("tr"); return rows.length ? rows[rows.length - 1] : null; }
     function arm() {
@@ -165,14 +169,16 @@
       watched = row;
       io = new win.IntersectionObserver(function (entries) {
         if (done) return;
-        if (entries.some(function (e) { return e.isIntersecting; })) { done = true; io.disconnect(); if (mo) mo.disconnect(); try { send("finish"); } catch (_) {} }
+        if (!entries.some(function (e) { return e.isIntersecting; }) || timer) return;
+        var left = minMs - (clock() - openedAt);
+        if (left <= 0 || !win.setTimeout) finish(); else timer = win.setTimeout(finish, left);
       });
       io.observe(row);
     }
     arm();
     // The table is repainted on many paths: follow the new last row.
     if (win.MutationObserver) { mo = new win.MutationObserver(arm); mo.observe(mount, { childList: true, subtree: true }); }
-    return function () { done = true; if (io) io.disconnect(); if (mo) mo.disconnect(); };
+    return function () { done = true; if (timer && win.clearTimeout) win.clearTimeout(timer); if (io) io.disconnect(); if (mo) mo.disconnect(); };
   }
   // meta: text.source_meta.news; t(key, fallback); place: 'head' | 'foot'; sourceChange: the card's source_change.
   function renderPlate(doc, meta, opts) {

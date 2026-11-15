@@ -609,3 +609,43 @@ test('plate review: an outlet time older than our copy is not shown as the updat
   const other = NR.renderPlate(document, meta, { place: 'head', now: Date.parse('2026-11-17T09:00:00+02:00'), sourceChange: { at: '2026-11-16T14:30:00.000Z', source_updated_at: '2026-11-16T15:20:00+02:00', added: 2, changed: 0, removed: 0, title_changed: false } });
   assert.match(other.querySelector('.reader-news-changed').textContent, /^Издание обновило статью 16 ноября в 15:20: \+2 абзаца/);
 });
+
+// ---- C review fixes ------------------------------------------------------------------------------------
+test('extras review: two orders at once cannot pass the limit or draft one article twice', async t => {
+  const { harvester, m, clone, q } = await extrasSetup(t);
+  const keys = []; for (let i = 1; i <= 6; i++) keys.push(await clone(i));
+  const a = harvester.orderExtras(m.edition_id, keys.slice(0, 4).map(k => ({ item_key: k, note_ru: 'x' })));
+  const b = harvester.orderExtras(m.edition_id, keys.slice(2, 6).map(k => ({ item_key: k, note_ru: 'x' })));
+  const r = await Promise.allSettled([a, b]);
+  assert.equal(r.filter(x => x.status === 'fulfilled').length, 1);
+  assert.ok(['EXTRAS_LIMIT', 'ALREADY_TAKEN'].includes(r.find(x => x.status === 'rejected').reason.code));
+  assert.equal((await q("SELECT COUNT(*) n FROM news_harvest_items WHERE selected_by='dot'"))[0].n, 4);
+  assert.equal((await q('SELECT extras_count FROM news_editions WHERE edition_id=?', [m.edition_id]))[0].extras_count, 4);
+});
+test('extras review: a key twice in one order is refused', async t => {
+  const { harvester, m, clone } = await extrasSetup(t);
+  const k = await clone(1);
+  await assert.rejects(harvester.orderExtras(m.edition_id, [{ item_key: k, note_ru: 'x' }, { item_key: k, note_ru: 'y' }]), e => e.code === 'DUPLICATE_ITEM');
+});
+test('extras review: a broken body refuses the whole order and changes nothing', async t => {
+  const { harvester, m, clone, q } = await extrasSetup(t);
+  const good = await clone(1), bad = await clone(2, { data_json: '{broken' });
+  await assert.rejects(harvester.orderExtras(m.edition_id, [{ item_key: good, note_ru: 'x' }, { item_key: bad, note_ru: 'x' }]), e => e.code === 'NO_BODY');
+  assert.equal((await q("SELECT main_state FROM news_harvest_items WHERE url_key=?", [good]))[0].main_state, 'none');
+});
+test('extras review: repeating the same order returns the same zip (a lost reply is recoverable)', async t => {
+  const { harvester, m, clone } = await extrasSetup(t);
+  const k = await clone(1);
+  const r1 = await harvester.orderExtras(m.edition_id, [{ item_key: k, note_ru: 'x' }]);
+  const r2 = await harvester.orderExtras(m.edition_id, [{ item_key: k, note_ru: 'x' }]);
+  assert.equal(Buffer.compare(r1.buffer, r2.buffer), 0);
+});
+test('extras review: extras ordered before the download are leased with the edition', async t => {
+  const { harvester, m, clone, q, clock } = await extrasSetup(t);
+  const k = await clone(1);
+  await harvester.orderExtras(m.edition_id, [{ item_key: k, note_ru: 'x' }]);
+  clock.now += 30 * 60e3;
+  await harvester.downloadEdition(m.edition_id);
+  const row = (await q('SELECT lease_until FROM news_harvest_items WHERE url_key=?', [k]))[0];
+  assert.ok(row.lease_until && Date.parse(row.lease_until) > clock.now + 3 * 3600e3);
+});

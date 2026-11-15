@@ -145,7 +145,7 @@ test('reader: open is sent at once, finish when the last row becomes visible (on
   const sent = [], observers = [];
   class IO { constructor(cb) { this.cb = cb; this.targets = []; observers.push(this); } observe(el) { this.targets.push(el); } disconnect() { this.off = true; } }
   const win = { IntersectionObserver: IO, MutationObserver: class { observe() {} disconnect() {} } };
-  const stop = NR.watchReading(win, document.getElementById('m'), 'na_' + 'a'.repeat(24) + '.or', ev => sent.push(ev));
+  const stop = NR.watchReading(win, document.getElementById('m'), 'na_' + 'a'.repeat(24) + '.or', ev => sent.push(ev), { minMs: 0 });
   assert.deepEqual(sent, ['open']);
   const io = observers[0];
   assert.equal(io.targets[0].textContent, '2', 'the last row is watched');
@@ -165,4 +165,17 @@ test('plate: «выбрано dot» and the reason in the head', () => {
   const head = NR.renderPlate(document, meta({ original: true }), { place: 'head', selected: { selected_by: 'dot', selection_note_ru: 'Про экономику' } });
   assert.equal(head.querySelector('.reader-news-selected').textContent, 'Выбрано dot: Про экономику');
   assert.equal(NR.renderPlate(document, meta({ original: true }), { place: 'foot', selected: { selected_by: 'dot', selection_note_ru: 'x' } }).querySelector('.reader-news-selected'), null);
+});
+test('reader review: «finish» needs at least 15 s on the article (a short article is not «read» on open)', () => {
+  const { document } = parseHTML('<html><body><div id="m"><table><tr><td>1</td></tr></table></div></body></html>');
+  const sent = [], timers = [];
+  let now = 1000;
+  class IO { constructor(cb) { this.cb = cb; this.targets = []; IO.last = this; } observe(el) { this.targets.push(el); } disconnect() {} }
+  const win = { IntersectionObserver: IO, setTimeout: (fn, ms) => { timers.push({ fn, ms }); return timers.length; }, clearTimeout: () => {} };
+  NR.watchReading(win, document.getElementById('m'), 'na_' + 'a'.repeat(24) + '.or', ev => sent.push(ev), { now: () => now });
+  IO.last.cb([{ isIntersecting: true }]);
+  assert.deepEqual(sent, ['open'], 'not yet');
+  assert.equal(timers.length, 1); assert.equal(timers[0].ms, 15000);
+  now += 15000; timers[0].fn();
+  assert.deepEqual(sent, ['open', 'finish']);
 });
