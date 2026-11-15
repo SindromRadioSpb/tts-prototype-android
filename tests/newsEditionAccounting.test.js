@@ -285,3 +285,26 @@ test('edition archive carries interests.md and reading.json with 14-day counts',
   assert.equal(r.recent[0].title_ru, 'Бюджет прошёл первое чтение'); assert.equal(r.recent[0].finished, true);
   assert.equal(await h.interestsText(), 'Больше экономики');
 });
+
+// ---- 3.11.897 -------------------------------------------------------------------------------------------
+test('routes 897: the owner downloads without leasing, dot (editor key) leases', async t => {
+  const { db, h, dataDir } = await setup(t);
+  fs.mkdirSync(path.join(dataDir, 'news-harvest'), { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'news-harvest', 'b.zip'), 'PK');
+  await edition(db, ED, { status: 'archived', file: 'b.zip', lease: null });
+  const base = await server(t, h);
+  assert.equal((await fetch(base + '/api/news/editor/editions/' + ED + '/download', { headers: { cookie: 'lp=owner' } })).status, 200);
+  assert.equal((await get(db, 'SELECT status FROM news_editions WHERE edition_id=?', [ED])).status, 'archived');
+  assert.equal((await fetch(base + '/api/news/editor/harvests/' + ED + '/download', { headers: { cookie: 'lp=owner' } })).status, 200);
+  assert.equal((await get(db, 'SELECT status FROM news_editions WHERE edition_id=?', [ED])).status, 'archived');
+  assert.equal((await fetch(base + '/api/news/editor/editions/' + ED + '/download', { headers: { cookie: 'lp=editor' } })).status, 200);
+  assert.equal((await get(db, 'SELECT status FROM news_editions WHERE edition_id=?', [ED])).status, 'downloaded');
+});
+test('migration 088: a schedule saved with the old extras limit of 5 gets 50', async () => {
+  const fs2 = require('node:fs'), path2 = require('node:path');
+  const db = await openDb();
+  await run(db, `INSERT INTO news_settings(key, value_json, updated_at) VALUES ('schedule', ?, 't')`, [JSON.stringify({ slots: {}, extras: 5, leaseHours: 4, maxAttempts: 2 })]);
+  await new Promise((res, rej) => db.exec(fs2.readFileSync(path2.join(__dirname, '..', 'migrations', '088_news_extras_50.sql'), 'utf8'), e => e ? rej(e) : res()));
+  assert.equal(JSON.parse((await get(db, "SELECT value_json FROM news_settings WHERE key='schedule'")).value_json).extras, 50);
+  db.close();
+});

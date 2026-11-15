@@ -236,7 +236,8 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       app.get('/api/news/editor/editions/:id/download', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;
         try {
-          const file = await harvester.downloadEdition(req.params.id);
+          // Only dot's download (an editor key) leases the edition; the owner's is a look.
+          const file = await harvester.downloadEdition(req.params.id, { lease: actor.kind !== 'owner' });
           if (!file) return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
           res.set({ 'Content-Type': 'application/zip', 'X-Content-Type-Options': 'nosniff' });
           res.download(file.path, file.name);
@@ -291,7 +292,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     app.get('/api/news/editor/harvests/:id/download', read, noStore, async (req, res) => {
       const actor = await actorFor(req, res); if (!actor) return;
       try {
-        const file = await harvester.runFile(req.params.id);
+        const file = await harvester.runFile(req.params.id, { lease: actor.kind !== 'owner' });
         if (!file) return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
         res.set({ 'Content-Type': 'application/zip', 'X-Content-Type-Options': 'nosniff' });
         res.download(file.path, file.name);

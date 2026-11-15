@@ -528,8 +528,9 @@ test('extras: the draft is verbatim from the stored body with photos and the dot
   assert.deepEqual(Object.keys(JSON.parse(row.draft_images_json)), ['img-1.jpg', 'img-2.jpg']);
   assert.equal((await q('SELECT extras_count FROM news_editions WHERE edition_id=?', [m.edition_id]))[0].extras_count, 1);
 });
-test('extras: up to 5 per edition, the sixth is EXTRAS_LIMIT', async t => {
+test('extras: up to 5 per edition when the schedule says 5, the sixth is EXTRAS_LIMIT', async t => {
   const { harvester, m, clone } = await extrasSetup(t);
+  await harvester.saveSchedule({ extras: 5 });
   const keys = []; for (let i = 1; i <= 6; i++) keys.push(await clone(i));
   await harvester.orderExtras(m.edition_id, keys.slice(0, 3).map(k => ({ item_key: k, note_ru: 'интересно' })));
   await harvester.orderExtras(m.edition_id, keys.slice(3, 5).map(k => ({ item_key: k, note_ru: 'интересно' })));
@@ -648,4 +649,32 @@ test('extras review: extras ordered before the download are leased with the edit
   await harvester.downloadEdition(m.edition_id);
   const row = (await q('SELECT lease_until FROM news_harvest_items WHERE url_key=?', [k]))[0];
   assert.ok(row.lease_until && Date.parse(row.lease_until) > clock.now + 3 * 3600e3);
+});
+
+// ---- 3.11.897: the owner's download does not lease; extras up to 50 per edition ----------------------
+test('owner download is a look: no lease, dot still gets the edition as next', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester, db } = await harvesterSetup(t, { clock });
+  const m = await harvester.tick();
+  const f = await harvester.downloadEdition(m.edition_id, { lease: false });
+  assert.ok(f && f.path);
+  const e = await new Promise((res, rej) => db.get('SELECT status, lease_until, downloaded_at FROM news_editions WHERE edition_id=?', [m.edition_id], (er, r) => er ? rej(er) : res(r)));
+  assert.deepEqual(e, { status: 'archived', lease_until: null, downloaded_at: null });
+  assert.equal((await harvester.nextEdition()).edition_id, m.edition_id);
+  await harvester.downloadEdition(m.edition_id); // dot (an editor key): leased
+  const e2 = await new Promise((res, rej) => db.get('SELECT status FROM news_editions WHERE edition_id=?', [m.edition_id], (er, r) => er ? rej(er) : res(r)));
+  assert.equal(e2.status, 'downloaded');
+});
+test('extras: up to 50 per edition by default; the 51st is EXTRAS_LIMIT; the same order again returns the same zip', async t => {
+  const { harvester, m, clone } = await extrasSetup(t);
+  const { DEFAULT_SCHEDULE, normalizeSchedule } = require('../news/harvest/newsEditions');
+  assert.equal(DEFAULT_SCHEDULE.extras, 50);
+  assert.throws(() => normalizeSchedule({ extras: 51 }), /SCHEDULE_INVALID/);
+  await harvester.saveSchedule({ extras: 3 });
+  const keys = []; for (let i = 1; i <= 4; i++) keys.push(await clone(i));
+  const first = await harvester.orderExtras(m.edition_id, keys.slice(0, 2).map(k => ({ item_key: k, note_ru: 'x' })));
+  const again = await harvester.orderExtras(m.edition_id, keys.slice(0, 2).map(k => ({ item_key: k, note_ru: 'x' })));
+  assert.equal(Buffer.compare(first.buffer, again.buffer), 0);
+  await harvester.orderExtras(m.edition_id, [{ item_key: keys[2], note_ru: 'x' }]);
+  await assert.rejects(harvester.orderExtras(m.edition_id, [{ item_key: keys[3], note_ru: 'x' }]), e => e.code === 'EXTRAS_LIMIT');
 });

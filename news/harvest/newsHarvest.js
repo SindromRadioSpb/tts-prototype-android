@@ -321,13 +321,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   }
 
   // dot took the archive: its articles are «in work» for leaseHours and go in no other archive meanwhile.
-  async function downloadEdition(editionId) {
+  // The owner's download is only a look (lease: false): nothing is leased, dot still gets it as «next».
+  async function downloadEdition(editionId, { lease = true } = {}) {
     const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId)]);
     // A superseded edition's material is in the newer archive: never served (dot would translate it twice).
     if (!e || !e.file_name || ['superseded', 'skipped', 'failed', 'building'].includes(e.status)) return null;
     const file = path.join(dir, path.basename(e.file_name));
     if (!fs.existsSync(file)) return null;
-    if (!e.downloaded_at && e.status === 'archived') {
+    if (lease && !e.downloaded_at && e.status === 'archived') {
       const schedule = await loadSchedule(), until = iso(now() + schedule.leaseHours * 3600e3), rep = parse(e.report_json) || {};
       await dbRun(db, `UPDATE news_editions SET status='downloaded', downloaded_at=?, lease_until=? WHERE edition_id=?`, [iso(now()), until, e.edition_id]);
       const keys = [...new Set([...(rep.overview_keys || []), ...(rep.main_keys || [])])];
@@ -363,9 +364,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const queued = await dbGet(db, `SELECT COUNT(*) n FROM news_harvest_items WHERE status='queued'`);
     return { items: rows.reduce((a, r) => a + r.n, 0), outlets: Object.fromEntries(rows.map(r => [r.outlet_id, r.n])), queued: queued ? queued.n : 0, last_poll_at: lastPollAt ? iso(lastPollAt) : null };
   }
-  async function runFile(runId) {
+  async function runFile(runId, opts) {
     const e = await dbGet(db, 'SELECT edition_id FROM news_editions WHERE edition_id = ?', [String(runId)]).catch(() => null);
-    if (e) return downloadEdition(e.edition_id);
+    if (e) return downloadEdition(e.edition_id, opts);
     const r = await dbGet(db, 'SELECT file_name FROM news_harvest_runs WHERE run_id = ?', [String(runId)]);
     if (!r || !r.file_name) return null;
     const file = path.join(dir, path.basename(r.file_name));

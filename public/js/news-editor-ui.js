@@ -382,13 +382,16 @@
             });
             form.appendChild(row);
           });
+          // dot's own articles per edition (owner 2026-11-16: up to 50).
+          var exId = "ne-s-extras", exIn = h(doc, "input", { id: exId, type: "number", min: "0", max: "50", value: String(sch.extras), disabled: !owner });
+          form.appendChild(h(doc, "div", { class: "ne-inline" }, [h(doc, "label", { for: exId, text: t("newsEditor.editions.extras", "Своих статей dot за выпуск (до 50)") }), exIn]));
           if (owner) {
             form.appendChild(h(doc, "button", { type: "submit", class: "ne-button", text: t("newsEditor.editions.save", "Сохранить") }));
             form.addEventListener("submit", async function (ev) {
               ev.preventDefault();
               var slots = {};
               Object.keys(inputs).forEach(function (slot) { slots[slot] = { cutoff: inputs[slot].cutoff.value, ready: inputs[slot].ready.value, main: Number(inputs[slot].main.value) }; });
-              try { await api("PUT", "/api/news/editor/schedule", json({ schedule: Object.assign({}, sch, { slots: slots }) }), "application/json"); say(t("newsEditor.editions.saved", "Расписание сохранено")); }
+              try { await api("PUT", "/api/news/editor/schedule", json({ schedule: Object.assign({}, sch, { slots: slots, extras: Number(exIn.value) }) }), "application/json"); say(t("newsEditor.editions.saved", "Расписание сохранено")); }
               catch (e) { say(e.message === "SCHEDULE_INVALID" ? t("newsEditor.editions.invalid", "Проверьте время: срезы по порядку, «готов к» позже среза") : errorText(e)); }
             });
           } else form.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.editions.ownerOnly", "Менять расписание может только владелец") }));
@@ -440,7 +443,7 @@
   async function renderInterestsCard(doc, opts) {
     var t = opts.t || function (k, f) { return f; };
     var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-interests-title" }, [h(doc, "h2", { id: "ne-interests-title", text: t("newsEditor.interests.title", "Мои интересы в новостях") }),
-      h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.hint", "dot читает этот текст перед каждым выпуском и по нему выбирает до 5 своих статей. Например: больше экономики и технологий, меньше криминала, спорт только крупное.") })]);
+      h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.hint", "dot читает этот текст перед каждым выпуском и по нему выбирает свои статьи (до 50 за выпуск). Например: больше экономики и технологий, меньше криминала, спорт только крупное.") })]);
     var ta = h(doc, "textarea", { id: "ne-interests", rows: "5", maxlength: "4000", disabled: !opts.canSave, "aria-labelledby": "ne-interests-title" });
     var count = h(doc, "p", { class: "ne-muted ne-interests-count" });
     function sync() { count.textContent = t("newsEditor.interests.count", "{n} из 4000").replace("{n}", String(ta.value.length)); }

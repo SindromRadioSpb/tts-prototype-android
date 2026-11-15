@@ -11,7 +11,7 @@ const DEFAULT_SCHEDULE = Object.freeze({
     evening: { cutoff: '16:30', ready: '18:00', main: 8 },
     late: { cutoff: '20:30', ready: '22:00', main: 8 },
   },
-  extras: 5, leaseHours: 4, maxAttempts: 2,
+  extras: 50, leaseHours: 4, maxAttempts: 2, // extras: dot's own articles per edition (owner 2026-11-16: up to 50)
 });
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 const minutes = hhmm => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
@@ -29,7 +29,7 @@ function normalizeSchedule(input) {
   }
   for (let i = 1; i < SLOTS.length; i++) if (minutes(slots[SLOTS[i]].cutoff) <= minutes(slots[SLOTS[i - 1]].cutoff)) throw invalid();
   const num = (v, d, lo, hi) => { if (v == null) return d; const n = Number(v); if (!Number.isInteger(n) || n < lo || n > hi) throw invalid(); return n; };
-  return { slots, extras: num(src.extras, DEFAULT_SCHEDULE.extras, 0, 20), leaseHours: num(src.leaseHours, DEFAULT_SCHEDULE.leaseHours, 1, 24),
+  return { slots, extras: num(src.extras, DEFAULT_SCHEDULE.extras, 0, 50), leaseHours: num(src.leaseHours, DEFAULT_SCHEDULE.leaseHours, 1, 24),
     maxAttempts: num(src.maxAttempts, DEFAULT_SCHEDULE.maxAttempts, 1, 5) };
 }
 
