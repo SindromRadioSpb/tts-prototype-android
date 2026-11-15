@@ -20,7 +20,7 @@ const { refineSection } = require('./newsStories');
 const { createStoryStore } = require('./newsStoryStore');
 const { normalizeSchedule, dayOf, dueSlot, slotTimes } = require('./newsEditions');
 const { buildEdition, makeDraft } = require('./newsEditionBuild');
-const { fingerprintOf, diffPrints } = require('../newsFingerprint');
+const { fingerprintOf, diffPrints, paragraphsOfRows } = require('../newsFingerprint');
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
 const LIMITS = { mainStories: 22, imagesPerArticle: 8, rows: 400, page: 4 * 1024 * 1024, feed: 2 * 1024 * 1024, image: 15 * 1024 * 1024,
@@ -456,22 +456,35 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const rows = await dbAll(db, `SELECT f.*, a.outlet_id FROM news_article_fingerprints f JOIN news_articles a ON a.article_id = f.article_id
       WHERE a.tier='fresh' AND f.created_at >= ? ORDER BY f.created_at`, [iso(now() - 24 * 3600e3)]);
     let checked = 0, changed = 0;
+    // Polite and bounded: one request at a time with a pause (also after a failure), an outlet that
+    // answers with a bot challenge is left for this run, at most 3 minutes — the rest waits for the next cut-off.
+    const challenged = new Set(), until = Date.now() + 3 * 60e3;
     for (const f of rows) {
       const src = sources.find(s => s.outlet_id === f.outlet_id);
-      if (!src || blocked.includes(f.outlet_id)) continue;
+      if (!src || blocked.includes(f.outlet_id) || challenged.has(f.outlet_id)) continue;
+      if (Date.now() > until) break;
+      let fetched = false;
       try {
         if (!(await allowed(f.url))) continue;
-        const page = await get(f.url, { max: L.page, accept: 'text/html' });
-        await sleep(delayMs);
+        fetched = true;
+        let page;
+        try { page = await get(f.url, { max: L.page, accept: 'text/html' }); }
+        catch (e) { if (e.challenge) challenged.add(f.outlet_id); continue; }
         const r = extractArticle(page.buf.toString('utf8'), { url: f.url, source: src, feed: {} });
         if (!r.ok) continue;
+        // The same article: a redirect to a section or another page is not an update of this one.
+        if (keyOf(f.outlet_id, page.url || f.url) !== f.article_id || (r.article.canonical_url && keyOf(f.outlet_id, r.article.canonical_url) !== f.article_id)) continue;
         checked++;
-        const nowPrint = fingerprintOf(r.article.title_he, r.article.paragraphs);
+        // Cut the page the way the draft was cut (400 rows), so a long unchanged article stays unchanged.
+        const rowsNow = rowsOf(r.article.paragraphs).slice(0, L.rows);
+        const nowPrint = fingerprintOf(String(r.article.title_he || '').slice(0, 300), paragraphsOfRows(rowsNow));
         const base = { title_hash: f.title_hash, para_hashes: JSON.parse(f.para_hashes_json) };
         const last = parse(f.last_seen_json) || base;
         await dbRun(db, 'UPDATE news_article_fingerprints SET checked_at=? WHERE article_id=?', [iso(now()), f.article_id]);
         if (!diffPrints(last, nowPrint).significant) continue;
         const d = diffPrints(base, nowPrint);
+        // Most of the text is different: another page under this address, not an update.
+        if (d.changed + d.removed > 0.6 * Math.max(1, base.para_hashes.length)) { log('[news-recheck] replaced, not recorded: ' + f.url); continue; }
         await dbRun(db, 'UPDATE news_article_fingerprints SET last_seen_json=? WHERE article_id=?', [JSON.stringify(nowPrint), f.article_id]);
         if (!d.significant) continue; // back to what we published
         changed++;
@@ -483,7 +496,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
           await dbRun(db, `UPDATE news_overview_items SET title_he=?, title_ru=NULL, changed_at=?, change_json=?, updated_at=? WHERE item_key=?`, [r.article.title_he, t, change, t, f.article_id]).catch(() => {});
           await dbRun(db, `UPDATE news_harvest_items SET title_he=?, overview_state='todo' WHERE url_key=? OR canonical_key=?`, [r.article.title_he, f.article_id, f.article_id]);
         } else await dbRun(db, `UPDATE news_overview_items SET changed_at=?, change_json=? WHERE item_key=?`, [t, change, f.article_id]).catch(() => {});
-      } catch (e) { /* a page that does not load is checked next time */ }
+      } catch (e) { log('[news-recheck] ' + f.url + ': ' + (e && e.message)); }
+      finally { if (fetched) await sleep(delayMs); }
     }
     return { checked, changed };
   }

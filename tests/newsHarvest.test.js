@@ -438,7 +438,7 @@ test('review: a pack ingested while the edition fetches photos is not undone by 
 });
 
 // ---- B2: re-check published articles at each cut-off (spec §4.4, §5.5) ---------------------------------
-async function recheckSetup(t, { page = ynetPage(), robots = 'User-agent: *\nAllow: /' } = {}) {
+async function recheckSetup(t, { page = ynetPage(), robots = 'User-agent: *\nAllow: /', extraUrls = [] } = {}) {
   const { openDb } = require('./helpers/newsDb.cjs');
   const { createNewsRepo } = require('../db/newsRepo');
   const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
@@ -458,6 +458,11 @@ async function recheckSetup(t, { page = ynetPage(), robots = 'User-agent: *\nAll
     [id, '2026-11-12', 'S', 'ynet', 'https://www.ynet.co.il/news/article/abc123', 'כותרת ישנה', 'Старый заголовок', 't', 't'], e => e ? rej(e) : res()));
   await new Promise((res, rej) => db.run(`INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status, overview_state, title_he) VALUES (?,?,?,?,'ready','done','כותרת ישנה')`,
     [id, 'ynet', 'https://www.ynet.co.il/news/article/abc123', new Date(clock.now - 3600e3).toISOString()], e => e ? rej(e) : res()));
+  for (const u of extraUrls) {
+    const x = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle({ source: { url: u, canonical_url: u } })]));
+    await new Promise((res, rej) => db.run(`INSERT INTO news_article_fingerprints(article_id, url, title_hash, para_hashes_json, created_at) VALUES (?,?,?,?,?)`,
+      [x.items[0].article_id, u, fp.title_hash, JSON.stringify(fp.para_hashes), new Date(clock.now).toISOString()], e => e ? rej(e) : res()));
+  }
   const requests = [];
   const fetchImpl = async url => { requests.push(url); return url.endsWith('/robots.txt') ? new Response(robots) : url.includes('abc123') ? new Response(page, { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 }); };
   const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources: [sourceFor('ynet')], delayMs: 0, now: () => clock.now });
@@ -547,4 +552,60 @@ test('extras: the edition archive lists the candidates nobody picked', async t =
   assert.equal(c.edition_id, m.edition_id);
   assert.deepEqual(c.items.map(i => [i.title_he, i.full_ok]), [['קצר', false]]);
   assert.ok(c.items[0].item_key && c.items[0].story_key);
+});
+
+// ---- B review fixes ------------------------------------------------------------------------------------
+test('recheck review: an unchanged article cut at 400 rows is not «updated»', async t => {
+  const { fingerprintOf, paragraphsOfRows } = require('../news/newsFingerprint');
+  const { rowsOf } = require('../news/harvest/newsHarvest');
+  const paras = Array.from({ length: 150 }, (_, i) => `פסקה מספר ${i + 1} מתחילה כאן. היא ממשיכה במשפט שני. ומסתיימת במשפט שלישי.`);
+  const rows = rowsOf(paras).slice(0, 400);
+  const page = ynetPage().replace(/<div class="DraftEditor-editorContainer">[\s\S]*?<\/div><\/article>/, '<div class="DraftEditor-editorContainer">' + paras.map(p => `<div class="text_editor_paragraph rtl">${p}</div>`).join('') + '</div></article>');
+  const s = await recheckSetup(t, { page });
+  const fp = fingerprintOf('נתניהו נאם בכנסת: "נעבור את זה"', paragraphsOfRows(rows));
+  await s.q('UPDATE news_article_fingerprints SET title_hash=?, para_hashes_json=?', [fp.title_hash, JSON.stringify(fp.para_hashes)]);
+  assert.deepEqual(await s.harvester.recheckPublished({}), { checked: 1, changed: 0 });
+});
+test('recheck review: a page that redirects elsewhere is not recorded as a change', async t => {
+  const s = await recheckSetup(t, { page: ynetPage().replace('<title>t</title>', '<title>t</title><link rel="canonical" href="https://www.ynet.co.il/news/category/184">') });
+  assert.deepEqual(await s.harvester.recheckPublished({}), { checked: 0, changed: 0 });
+  assert.equal((await s.q('SELECT title_he FROM news_overview_items'))[0].title_he, 'כותרת ישנה');
+});
+test('recheck review: a page replaced by another text is not «updated»', async t => {
+  const other = ynetPage().replace(/\$\{?P1\}?/g, '').replace(/text_editor_paragraph rtl"><span>[^<]*/, 'text_editor_paragraph rtl"><span>טקסט אחר לגמרי בלי קשר לכתבה הקודמת. משפט נוסף כאן.')
+    .replace(/<\/strong><br>[^<]*/, '</strong><br>עוד פסקה חדשה לגמרי שאין לה קשר. ועוד משפט.').replace(/(text_editor_paragraph rtl">)(?!<)([^<]{40,})(<\/div>\s*<div class="text_editor_paragraph rtl copyright)/, '$1פסקה שלישית חדשה ושונה לגמרי מהקודמת.$3');
+  const s = await recheckSetup(t, { page: other });
+  const r = await s.harvester.recheckPublished({});
+  assert.equal(r.changed, 0);
+});
+test('recheck review: a failing outlet gets a pause and is not asked again in the same run', async t => {
+  const s = await recheckSetup(t, { extraUrls: ['https://www.ynet.co.il/news/article/zz1', 'https://www.ynet.co.il/news/article/zz2'] });
+  const asked = [];
+  const h2 = createNewsHarvester({ db: s.db, dataDir: os.tmpdir(), sources: [sourceFor('ynet')], delayMs: 0, now: () => s.clock.now,
+    fetchImpl: async url => { asked.push(url); return url.endsWith('/robots.txt') ? new Response('User-agent: *\nAllow: /') : new Response('<title>Just a moment...</title>', { status: 403 }); } });
+  await h2.recheckPublished({});
+  assert.equal(asked.filter(u => !u.endsWith('robots.txt')).length, 1, 'after a bot challenge the outlet is left for this run: ' + asked.join(' '));
+});
+test('recheck review: the title is compared with the outlet\'s title, not dot\'s study title', async t => {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack, studyRows, glossFor, SOURCE } = require('./helpers/newsFixture.cjs');
+  const { fingerprintOf } = require('../news/newsFingerprint');
+  const db = await openDb(['084_news_fingerprints.sql']); t.after(() => db.close());
+  const repo = createNewsRepo({ db, now: () => Date.parse('2026-11-12T08:00:00+02:00') });
+  const rows = studyRows([{ p: 1, he_plain: SOURCE.split(' ').slice(0, 17).join(' ') + '.', ru: 'Первая часть.' }]);
+  const a = fixtureArticle({ learning: { title_he: 'כותרת מקוצרת של dot', versions: [{ level: 'OR', rows, word_gloss_ai: 'or.word-gloss-ai.json' }] }, prepared: { method: 'original' }, __files: { 'or.word-gloss-ai.json': glossFor(rows) } });
+  await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([a]));
+  const fp = await new Promise((res, rej) => db.get('SELECT title_hash FROM news_article_fingerprints', (e, x) => e ? rej(e) : res(x)));
+  assert.equal(fp.title_hash, fingerprintOf(a.source.original_title_he, []).title_hash);
+});
+test('plate review: an outlet time older than our copy is not shown as the update time; another day shows the date', () => {
+  const { parseHTML } = require('linkedom');
+  const NR = require('../public/js/news-reader');
+  const { document } = parseHTML('<html><body></body></html>');
+  const meta = { outlet_id: 'ynet', canonical_url: 'https://www.ynet.co.il/news/article/abc', published_at: '2026-11-12T05:40:00.000Z', original: true };
+  const noted = NR.renderPlate(document, meta, { place: 'head', now: Date.parse('2026-11-16T20:00:00+02:00'), sourceChange: { at: '2026-11-16T14:30:00.000Z', source_updated_at: null, added: 1, changed: 0, removed: 0, title_changed: false } });
+  assert.match(noted.querySelector('.reader-news-changed').textContent, /^Издание обновило статью \(замечено в 16:30\): \+1 абзац/);
+  const other = NR.renderPlate(document, meta, { place: 'head', now: Date.parse('2026-11-17T09:00:00+02:00'), sourceChange: { at: '2026-11-16T14:30:00.000Z', source_updated_at: '2026-11-16T15:20:00+02:00', added: 2, changed: 0, removed: 0, title_changed: false } });
+  assert.match(other.querySelector('.reader-news-changed').textContent, /^Издание обновило статью 16 ноября в 15:20: \+2 абзаца/);
 });

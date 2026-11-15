@@ -116,13 +116,14 @@ test('head plate folds to its source line; the choice is kept for every article'
 test('plate: the outlet updated the article — a note with what changed and the original link; the foot has none', () => {
   const { document } = require('linkedom').parseHTML('<html><body></body></html>');
   const change = { at: '2026-11-16T13:25:00.000Z', source_updated_at: '2026-11-16T15:20:00+02:00', added: 4, changed: 1, removed: 0, title_changed: true };
-  const head = NR.renderPlate(document, meta({ original: true }), { place: 'head', sourceChange: change });
+  const now = Date.parse('2026-11-16T20:00:00+02:00');
+  const head = NR.renderPlate(document, meta({ original: true }), { place: 'head', sourceChange: change, now });
   const note = head.querySelector('.reader-news-changed');
   assert.equal(note.textContent, 'Издание обновило статью в 15:20: +4 абзаца, изменено 1, новый заголовок · Оригинал ↗');
   assert.equal(note.querySelector('a').getAttribute('rel'), 'noopener noreferrer');
   assert.equal(NR.renderPlate(document, meta({ original: true }), { place: 'foot', sourceChange: change }).querySelector('.reader-news-changed'), null);
-  const noTime = NR.renderPlate(document, meta({ original: true }), { place: 'head', sourceChange: { at: '2026-11-16T13:25:00.000Z', added: 1, changed: 0, removed: 0, title_changed: false } });
-  assert.match(noTime.querySelector('.reader-news-changed').textContent, /^Издание обновило статью в 15:25: \+1 абзац ·/);
+  const noTime = NR.renderPlate(document, meta({ original: true }), { place: 'head', now, sourceChange: { at: '2026-11-16T13:25:00.000Z', added: 1, changed: 0, removed: 0, title_changed: false } });
+  assert.match(noTime.querySelector('.reader-news-changed').textContent, /^Издание обновило статью \(замечено в 15:25\): \+1 абзац ·/);
 });
 test('card: the latest significant change of the source rides on the card', async t => {
   const { openDb } = require('./helpers/newsDb.cjs');
