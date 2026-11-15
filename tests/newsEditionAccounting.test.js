@@ -308,3 +308,43 @@ test('migration 088: a schedule saved with the old extras limit of 5 gets 50', a
   assert.equal(JSON.parse((await get(db, "SELECT value_json FROM news_settings WHERE key='schedule'")).value_json).extras, 50);
   db.close();
 });
+
+// ---- 897 debt, part A ------------------------------------------------------------------------------------
+test('debt A: status on a DST night names the next calendar day', async t => {
+  const { israelAt } = require('../news/harvest/newsEditions');
+  const { db, h } = await setup(t, { now: israelAt('2027-03-25', '05:30') });
+  await edition(db, ED, { day: '2027-03-24', slot: 'late', status: 'published', cutoff: '2027-03-24T18:30:00Z', ready: '2027-03-24T20:00:00Z' });
+  await run(db, `UPDATE news_editions SET published_at='2027-03-24T19:50:00.000Z' WHERE edition_id=?`, [ED]);
+  const s = await h.status();
+  assert.deepEqual([s.next.slot, s.next.day, s.next.state], ['morning', '2027-03-25', 'waiting']);
+});
+test('debt A: an edition dot downloaded but never answered is offered again as next', async t => {
+  const { db, h, dataDir } = await setup(t);
+  fs.mkdirSync(path.join(dataDir, 'news-harvest'), { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'news-harvest', 'b.zip'), 'PK');
+  await edition(db, ED, { status: 'downloaded', file: 'b.zip' });
+  assert.equal((await h.nextEdition()).edition_id, ED);
+  await run(db, `UPDATE news_editions SET first_upload_at='t' WHERE edition_id=?`, [ED]);
+  assert.equal(await h.nextEdition(), null, 'once dot answered, it is not offered again');
+});
+test('debt A: rework_count counts the drafts of the edition that were refused or skipped', async t => {
+  const { db, h } = await setup(t);
+  await edition(db, ED);
+  await drafted(db, 1, ED); await drafted(db, 2, ED);
+  await h.accountPack({ edition_id: ED, items: [{ status: 'rejected', code: 'X', article_id: key(1) }], rejected: [], overview: true });
+  assert.equal((await get(db, 'SELECT rework_count FROM news_editions WHERE edition_id=?', [ED])).rework_count, 1);
+  await h.closeEdition(ED);
+  assert.equal((await get(db, 'SELECT rework_count FROM news_editions WHERE edition_id=?', [ED])).rework_count, 2);
+});
+test('debt A: migrations 083–088 go down and up again', async () => {
+  const fs2 = require('node:fs'), path2 = require('node:path');
+  const db = await openDb(['084_news_fingerprints.sql', '085_news_reading.sql', '086_news_offloads.sql', '087_news_offload_manifest.sql', '088_news_extras_50.sql']);
+  const ex = sql => new Promise((res, rej) => db.exec(sql, e => e ? rej(e) : res()));
+  const mig = (dir, m) => fs2.readFileSync(path2.join(__dirname, '..', 'migrations', dir, m), 'utf8');
+  const list = ['083_news_editions.sql', '084_news_fingerprints.sql', '085_news_reading.sql', '086_news_offloads.sql', '087_news_offload_manifest.sql', '088_news_extras_50.sql'];
+  for (const m of list.slice().reverse()) await ex(mig('down', m));
+  for (const m of list) await ex(mig('', m));
+  const cols = (await all(db, 'PRAGMA table_info(news_harvest_items)')).map(c => c.name);
+  assert.ok(cols.includes('main_state'));
+  db.close();
+});

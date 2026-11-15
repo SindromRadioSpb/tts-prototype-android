@@ -147,7 +147,16 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return robotsCache.get(u.host).rule(u.pathname);
   }
 
+  // A photo once fetched and resized is kept 3 days on disk: a carried draft does not ask the outlet again.
+  const photoCache = path.join(dir, 'photo-cache');
   async function photo(src, sharp) {
+    const cached = path.join(photoCache, crypto.createHash('sha256').update(String(src)).digest('hex').slice(0, 32) + '.jpg');
+    try { return fs.readFileSync(cached); } catch (_) {}
+    const out = await photoFresh(src, sharp);
+    try { fs.mkdirSync(photoCache, { recursive: true }); fs.writeFileSync(cached, out); } catch (_) {}
+    return out;
+  }
+  async function photoFresh(src, sharp) {
     const { buf } = await get(src, { max: L.image, accept: 'image/jpeg,image/png,image/webp;q=0.9,*/*;q=0.5' });
     const info = await sharp(buf, { failOn: 'none' }).metadata();
     if (!info.width || info.width < 200 || (info.height || 0) < 120) throw new Error('TOO_SMALL');
@@ -241,7 +250,13 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   }
   const newEditionId = () => 'ne_' + crypto.randomBytes(9).toString('hex');
   // Archives dot has not downloaded give way to the new one: their material is carried into it.
-  async function supersede() { await dbRun(db, `UPDATE news_editions SET status='superseded', closed_at=? WHERE status='archived'`, [iso(now())]); }
+  async function supersede() {
+    // The material of an archive dot did not take goes into the new one: its file is not needed any more.
+    for (const e of await dbAll(db, `SELECT edition_id, file_name FROM news_editions WHERE status='archived'`)) {
+      if (e.file_name) try { fs.rmSync(path.join(dir, path.basename(e.file_name)), { force: true }); } catch (_) {}
+    }
+    await dbRun(db, `UPDATE news_editions SET status='superseded', closed_at=?, file_name=NULL WHERE status='archived'`, [iso(now())]);
+  }
   let closeExpired = null;
   function setCloseExpired(fn) { closeExpired = fn; }
 
@@ -286,6 +301,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL WHERE data_json IS NOT NULL AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_read_signals WHERE at < ?', [iso(now() - 90 * 86400000)]).catch(() => {});
+    try { for (const f of fs.readdirSync(photoCache)) { const p = path.join(photoCache, f); if (Date.now() - fs.statSync(p).mtimeMs > 3 * 86400000) fs.rmSync(p, { force: true }); } } catch (_) {}
     await dbRun(db, `UPDATE news_editions SET status='failed', closed_at=?, report_json=? WHERE status='building' AND cutoff_at < ?`,
       [iso(now()), JSON.stringify({ error: 'STALE' }), iso(now() - L.staleRunMs)]).catch(() => {});
   }
@@ -535,10 +551,11 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       [n, String(code || 'REJECTED').slice(0, 60), dropped ? 'dropped' : 'drafted', row.url_key]);
   }
   async function refreshEdition(editionId) {
-    const c = await dbGet(db, `SELECT SUM(main_state='drafted') open, SUM(main_state='published') done FROM news_harvest_items WHERE main_edition_id=?`, [editionId]);
+    const c = await dbGet(db, `SELECT SUM(main_state='drafted') open, SUM(main_state='published') done,
+      SUM(main_attempts>0 AND main_state IN ('drafted','dropped')) rework FROM news_harvest_items WHERE main_edition_id=?`, [editionId]);
     const e = await dbGet(db, 'SELECT status, first_upload_at FROM news_editions WHERE edition_id=?', [editionId]);
     if (!e || !e.first_upload_at || ['superseded', 'skipped', 'failed'].includes(e.status)) return;
-    await dbRun(db, `UPDATE news_editions SET status=?, published_count=? WHERE edition_id=?`, [(c && c.open) ? 'partial' : 'published', (c && c.done) || 0, editionId]);
+    await dbRun(db, `UPDATE news_editions SET status=?, published_count=?, rework_count=? WHERE edition_id=?`, [(c && c.open) ? 'partial' : 'published', (c && c.done) || 0, (c && c.rework) || 0, editionId]);
   }
   // receipt of one pack: { edition_id, items:[{ status, article_id, code }], rejected:[{ outlet_id, canonical_url, code }], overview: bool }
   async function accountPack({ edition_id, items = [], rejected = [], overview = false }) {
@@ -603,7 +620,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return (await dbAll(db, 'SELECT * FROM news_editions ORDER BY day DESC, COALESCE(cutoff_at, closed_at) DESC LIMIT ?', [lim])).map(shape);
   }
   async function nextEdition() {
-    const e = await dbGet(db, `SELECT * FROM news_editions WHERE status='archived' AND file_name IS NOT NULL ORDER BY COALESCE(cut_at, cutoff_at) ASC LIMIT 1`);
+    // An archive nobody took, or one dot downloaded and never answered (it crashed): offered again.
+    const e = await dbGet(db, `SELECT * FROM news_editions WHERE file_name IS NOT NULL AND closed_at IS NULL
+      AND (status='archived' OR (status='downloaded' AND first_upload_at IS NULL)) ORDER BY COALESCE(cut_at, cutoff_at) ASC LIMIT 1`);
     return e ? { ...shape(e), download: '/api/news/editor/editions/' + e.edition_id + '/download' } : null;
   }
   // For the site: the last ready edition and what comes next — never «now».
@@ -611,7 +630,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const schedule = await loadSchedule(), t = now();
     const last = await dbGet(db, `SELECT day, slot, published_at FROM news_editions WHERE published_at IS NOT NULL ORDER BY published_at DESC LIMIT 1`);
     let next = null;
-    for (const day of [dayOf(t, schedule), dayOf(t + 86400e3, schedule)]) {
+    const today = dayOf(t, schedule), tomorrow = new Date(Date.parse(today + 'T12:00:00Z') + 86400e3).toISOString().slice(0, 10); // calendar, not +24 h (DST)
+    for (const day of [today, tomorrow]) {
       const eds = await dbAll(db, 'SELECT * FROM news_editions WHERE day=?', [day]);
       const slots = slotTimes(day, schedule);
       const lastDone = Math.max(-1, ...slots.map((s, i) => eds.some(e => e.slot === s.slot && e.published_at) ? i : -1));

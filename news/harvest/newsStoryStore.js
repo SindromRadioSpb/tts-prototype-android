@@ -31,7 +31,8 @@ function createStoryStore({ db, now = () => Date.now() }) {
       const outlets = new Set(prev ? JSON.parse(prev.outlets_json || '[]') : []);
       for (const m of s.members) outlets.add(m.outlet_id);
       const lastAt = Math.max(prev ? Date.parse(prev.last_at) : 0, ...s.members.map(m => m.at || 0)) || now();
-      const words = JSON.stringify(Object.fromEntries(s.words));
+      // The 200 heaviest words describe a story; a long-running one does not grow without end.
+      const words = JSON.stringify(Object.fromEntries([...s.words.entries()].sort((a, b) => b[1] - a[1]).slice(0, 200)));
       if (prev) await dbRun(db, 'UPDATE news_stories SET last_at=?, words_json=?, mass=?, outlets_json=? WHERE story_key=?', [iso(lastAt), words, s.mass, JSON.stringify([...outlets]), key]);
       else await dbRun(db, 'INSERT INTO news_stories(story_key, first_day, created_at, last_at, words_json, mass, outlets_json) VALUES (?,?,?,?,?,?,?)',
         [key, day, iso(now()), iso(lastAt), words, s.mass, JSON.stringify([...outlets])]);

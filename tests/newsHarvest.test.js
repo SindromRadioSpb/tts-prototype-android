@@ -678,3 +678,29 @@ test('extras: up to 50 per edition by default; the 51st is EXTRAS_LIMIT; the sam
   await harvester.orderExtras(m.edition_id, [{ item_key: keys[2], note_ru: 'x' }]);
   await assert.rejects(harvester.orderExtras(m.edition_id, [{ item_key: keys[3], note_ru: 'x' }]), e => e.code === 'EXTRAS_LIMIT');
 });
+
+// ---- 897 debt, part A (harvester) ------------------------------------------------------------------------
+test('debt A: a superseded archive file is removed; carried drafts reuse their photos', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester, requests, dataDir } = await harvesterSetup(t, { clock });
+  const m = await harvester.tick();
+  const photoHits = () => requests.filter(u => /crop_images|Second5678/.test(u)).length;
+  const before = photoHits();
+  const file = path.join(dataDir, 'news-harvest', m.file_name);
+  assert.ok(fs.existsSync(file));
+  clock.now = Date.parse('2026-11-16T10:31:00+02:00');
+  const mid = await harvester.tick();
+  assert.equal(mid.articles, 1, 'the morning draft is carried');
+  assert.equal(fs.existsSync(file), false, 'the superseded archive file is gone');
+  assert.equal(photoHits(), before, 'no photo fetched twice');
+});
+test('debt A: a story keeps at most 200 words', async t => {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createStoryStore } = require('../news/harvest/newsStoryStore');
+  const db = await openDb(); t.after(() => db.close());
+  const store = createStoryStore({ db, now: () => Date.parse('2026-11-16T12:00:00Z') });
+  const words = Array.from({ length: 300 }, (_, i) => 'מילה' + String.fromCharCode(0x05d0 + (i % 22)) + String.fromCharCode(0x05d0 + Math.floor(i / 22)));
+  await store.assign([{ id: 'w1', outlet_id: 'ynet', title: 'כותרת ארוכה מאוד', text: words.join(' '), at: Date.parse('2026-11-16T11:00:00Z') }], { day: '2026-11-16' });
+  const row = await new Promise((res, rej) => db.get('SELECT words_json FROM news_stories', (e, r) => e ? rej(e) : res(r)));
+  assert.ok(Object.keys(JSON.parse(row.words_json)).length <= 200);
+});
