@@ -151,9 +151,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   const photoCache = path.join(dir, 'photo-cache');
   async function photo(src, sharp) {
     const cached = path.join(photoCache, crypto.createHash('sha256').update(String(src)).digest('hex').slice(0, 32) + '.jpg');
-    try { return fs.readFileSync(cached); } catch (_) {}
+    try { const b = fs.readFileSync(cached); if (b.length > 1000 && b[0] === 0xff && b[1] === 0xd8 && b[b.length - 2] === 0xff && b[b.length - 1] === 0xd9) return b; } catch (_) {} // a whole JPEG only
     const out = await photoFresh(src, sharp);
-    try { fs.mkdirSync(photoCache, { recursive: true }); fs.writeFileSync(cached, out); } catch (_) {}
+    try { fs.mkdirSync(photoCache, { recursive: true }); fs.writeFileSync(cached + '.part', out); fs.renameSync(cached + '.part', cached); } catch (_) {}
     return out;
   }
   async function photoFresh(src, sharp) {
@@ -302,7 +302,12 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL WHERE data_json IS NOT NULL AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_read_signals WHERE at < ?', [iso(now() - 90 * 86400000)]).catch(() => {});
-    try { for (const f of fs.readdirSync(photoCache)) { const p = path.join(photoCache, f); if (Date.now() - fs.statSync(p).mtimeMs > 3 * 86400000) fs.rmSync(p, { force: true }); } } catch (_) {}
+    // Photo cache: 3 days, and at most 500 MB (oldest first).
+    try {
+      const files = fs.readdirSync(photoCache).map(f => { const p = path.join(photoCache, f), st = fs.statSync(p); return { p, at: st.mtimeMs, size: st.size }; }).sort((a, b) => b.at - a.at);
+      let total = 0;
+      for (const f of files) { total += f.size; if (Date.now() - f.at > 3 * 86400000 || total > 500 * 1024 * 1024 || f.p.endsWith('.part')) fs.rmSync(f.p, { force: true }); }
+    } catch (_) {}
     await dbRun(db, `UPDATE news_editions SET status='failed', closed_at=?, report_json=? WHERE status='building' AND cutoff_at < ?`,
       [iso(now()), JSON.stringify({ error: 'STALE' }), iso(now() - L.staleRunMs)]).catch(() => {});
   }
@@ -345,9 +350,10 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     if (!e || !e.file_name || ['superseded', 'skipped', 'failed', 'building'].includes(e.status)) return null;
     const file = path.join(dir, path.basename(e.file_name));
     if (!fs.existsSync(file)) return null;
-    if (lease && !e.downloaded_at && e.status === 'archived') {
+    // dot's download leases; dot downloading it again (it crashed) renews the lease.
+    if (lease && (e.status === 'archived' || (e.status === 'downloaded' && !e.first_upload_at && !e.closed_at))) {
       const schedule = await loadSchedule(), until = iso(now() + schedule.leaseHours * 3600e3), rep = parse(e.report_json) || {};
-      await dbRun(db, `UPDATE news_editions SET status='downloaded', downloaded_at=?, lease_until=? WHERE edition_id=?`, [iso(now()), until, e.edition_id]);
+      await dbRun(db, `UPDATE news_editions SET status='downloaded', downloaded_at=COALESCE(downloaded_at, ?), lease_until=? WHERE edition_id=?`, [iso(now()), until, e.edition_id]);
       const keys = [...new Set([...(rep.overview_keys || []), ...(rep.main_keys || [])])];
       for (let i = 0; i < keys.length; i += 200) {
         const part = keys.slice(i, i + 200);
@@ -440,6 +446,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     if (!e || e.closed_at || !['archived', 'downloaded', 'partial', 'published'].includes(e.status)) throw extrasError('EDITION_NOT_OPEN');
     const schedule = await loadSchedule(), list = Array.isArray(items) ? items : [];
     if (!list.length) throw extrasError('UNKNOWN_ITEM');
+    if (list.length > 10) throw extrasError('ORDER_TOO_LARGE'); // up to 10 per request (photos take time); the edition allows schedule.extras
     const keysAsked = list.map(it => String((it && it.item_key) || ''));
     if (new Set(keysAsked).size !== keysAsked.length) throw extrasError('DUPLICATE_ITEM');
     const rep = parse(e.report_json) || {};
@@ -521,7 +528,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
         const base = { title_hash: f.title_hash, para_hashes: JSON.parse(f.para_hashes_json) };
         const last = parse(f.last_seen_json) || base;
         await dbRun(db, 'UPDATE news_article_fingerprints SET checked_at=? WHERE article_id=?', [iso(now()), f.article_id]);
-        if (!diffPrints(last, nowPrint).significant) continue;
+        // Any difference from the last check counts here (removed paragraphs too: that is how a revert looks).
+        const sinceLast = diffPrints(last, nowPrint);
+        if (!sinceLast.title_changed && !sinceLast.added && !sinceLast.changed && !sinceLast.removed) continue;
         const d = diffPrints(base, nowPrint);
         // Most of the text is different: another page under this address, not an update.
         if (d.changed + d.removed > 0.6 * Math.max(1, base.para_hashes.length)) { log('[news-recheck] replaced, not recorded: ' + f.url); continue; }
@@ -529,8 +538,10 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
         if (!d.significant) {
           // Back to what we published: the overview row gets its first title back (to translate again), the note goes.
           const t0 = String(f.original_title_he || '').slice(0, 300);
+          const titleWas = await dbGet(db, 'SELECT 1 FROM news_article_changes WHERE article_id=? AND significant=1 AND title_changed=1 LIMIT 1', [f.article_id]);
           await dbRun(db, 'UPDATE news_article_changes SET significant=0 WHERE article_id=?', [f.article_id]);
-          if (t0) {
+          await dbRun(db, 'UPDATE news_overview_items SET changed_at=NULL, change_json=NULL WHERE item_key=?', [f.article_id]).catch(() => {});
+          if (t0 && titleWas) {
             await dbRun(db, `UPDATE news_overview_items SET title_he=?, title_ru=NULL, changed_at=NULL, change_json=NULL, updated_at=? WHERE item_key=? AND title_he<>?`, [t0, iso(now()), f.article_id, t0]).catch(() => {});
             await dbRun(db, `UPDATE news_harvest_items SET title_he=?, overview_state='todo' WHERE (url_key=? OR canonical_key=?) AND COALESCE(title_he,'')<>?`, [t0, f.article_id, f.article_id, t0]);
           }
@@ -567,7 +578,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       SUM(main_attempts>0 AND main_state IN ('drafted','dropped')) rework FROM news_harvest_items WHERE main_edition_id=?`, [editionId]);
     const e = await dbGet(db, 'SELECT status, first_upload_at FROM news_editions WHERE edition_id=?', [editionId]);
     if (!e || !e.first_upload_at || ['superseded', 'skipped', 'failed'].includes(e.status)) return;
-    await dbRun(db, `UPDATE news_editions SET status=?, published_count=?, rework_count=? WHERE edition_id=?`, [(c && c.open) ? 'partial' : 'published', (c && c.done) || 0, (c && c.rework) || 0, editionId]);
+    await dbRun(db, `UPDATE news_editions SET status=?, published_count=? WHERE edition_id=?`, [(c && c.open) ? 'partial' : 'published', (c && c.done) || 0, editionId]);
+    // Refused or skipped now — apart from rework_count (what the archive brought in rework/).
+    await dbRun(db, 'UPDATE news_editions SET refused_count=? WHERE edition_id=?', [(c && c.rework) || 0, editionId]).catch(() => {});
   }
   // receipt of one pack: { edition_id, items:[{ status, article_id, code }], rejected:[{ outlet_id, canonical_url, code }], overview: bool }
   async function accountPack({ edition_id, items = [], rejected = [], overview = false }) {
@@ -617,7 +630,10 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { edition_id: e.edition_id, skipped, rework: after ? after.rework_count : 0 };
   }
   closeExpired = async () => {
-    for (const e of await dbAll(db, `SELECT edition_id FROM news_editions WHERE closed_at IS NULL AND status IN ('downloaded','partial','published') AND lease_until IS NOT NULL AND lease_until <= ?`, [iso(now())]))
+    const schedule = await loadSchedule();
+    for (const e of await dbAll(db, `SELECT edition_id FROM news_editions WHERE closed_at IS NULL AND status IN ('downloaded','partial','published')
+      AND ((lease_until IS NOT NULL AND lease_until <= ?) OR (lease_until IS NULL AND first_upload_at IS NOT NULL AND COALESCE(cut_at, cutoff_at) <= ?))`,
+      [iso(now()), iso(now() - schedule.leaseHours * 3600e3)]))
       await closeEdition(e.edition_id);
   };
 
@@ -625,7 +641,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   const lateOf = e => !!e.target_ready_at && (e.published_at ? e.published_at > e.target_ready_at : (!['skipped', 'superseded', 'failed'].includes(e.status) && iso(now()) > e.target_ready_at));
   const shape = e => ({ edition_id: e.edition_id, day: e.day, slot: e.slot, trigger: e.trigger, status: e.status, cutoff_at: e.cutoff_at, target_ready_at: e.target_ready_at,
     cut_at: e.cut_at, archive_ready_at: e.archive_ready_at, downloaded_at: e.downloaded_at, published_at: e.published_at, late: lateOf(e), main_count: e.main_count,
-    overview_count: e.overview_count, published_count: e.published_count, rework_count: e.rework_count, extras_count: e.extras_count,
+    overview_count: e.overview_count, published_count: e.published_count, rework_count: e.rework_count, refused_count: e.refused_count || 0, extras_count: e.extras_count,
     has_file: !!(e.file_name && fs.existsSync(path.join(dir, path.basename(e.file_name)))) });
   async function listEditions(limit = 28) {
     const lim = Math.max(1, Math.min(100, Number(limit) || 28));
@@ -633,9 +649,11 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   }
   async function nextEdition() {
     // An archive nobody took, or one dot downloaded and never answered (it crashed): offered again.
+    // A downloaded one only after a grace period (dot may still be translating it), marked retry.
+    const schedule = await loadSchedule(), grace = iso(now() - Math.min(3600e3, schedule.leaseHours * 1800e3));
     const e = await dbGet(db, `SELECT * FROM news_editions WHERE file_name IS NOT NULL AND closed_at IS NULL
-      AND (status='archived' OR (status='downloaded' AND first_upload_at IS NULL)) ORDER BY COALESCE(cut_at, cutoff_at) ASC LIMIT 1`);
-    return e ? { ...shape(e), download: '/api/news/editor/editions/' + e.edition_id + '/download' } : null;
+      AND (status='archived' OR (status='downloaded' AND first_upload_at IS NULL AND downloaded_at < ?)) ORDER BY COALESCE(cut_at, cutoff_at) ASC LIMIT 1`, [grace]);
+    return e ? { ...shape(e), ...(e.status === 'downloaded' ? { retry: true } : {}), download: '/api/news/editor/editions/' + e.edition_id + '/download' } : null;
   }
   // For the site: the last ready edition and what comes next — never «now».
   async function status() {

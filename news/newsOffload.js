@@ -75,7 +75,9 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
     }
     days = days.sort();
     // «Low» is about the disk itself (builds, WAL and images cannot use SQLite's free pages); no disk figure → no alarm.
-    return { disk, db_free: dbFree, low: !!disk && disk.free < LOW_BYTES, by_month: [...months.values()].sort((a, b) => a.month < b.month ? 1 : -1),
+    let photoCache = 0;
+    try { const pc = require('node:path').join(dataDir, 'news-harvest', 'photo-cache'); for (const f of fs.readdirSync(pc)) photoCache += fs.statSync(require('node:path').join(pc, f)).size; } catch (_) {}
+    return { disk, db_free: dbFree, photo_cache: photoCache, low: !!disk && disk.free < LOW_BYTES, by_month: [...months.values()].sort((a, b) => a.month < b.month ? 1 : -1),
       offloaded: offloaded.map(o => ({ day: o.day, state: o.state, sha256: o.sha256, articles: o.articles, photos: o.photos, bytes: o.bytes, released_at: o.released_at })),
       suggest: { days, bytes } };
   }
@@ -101,7 +103,9 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
         file_sha256: sha(Buffer.from(w.snapshot_json, 'utf8')) })), images: imgs.map(im => ({ name: im.name, mime: im.mime, sha256: im.sha256, created_at: im.created_at })) });
     }
     const ov = await dbAll(db, 'SELECT * FROM news_overview_items WHERE day=?', [day]).catch(() => []);
-    zip.addFile('overview.json', Buffer.from(JSON.stringify({ day, rows: ov }, null, 1)));
+    const ovBuf = Buffer.from(JSON.stringify({ day, rows: ov }, null, 1));
+    zip.addFile('overview.json', ovBuf);
+    manifest.overview_sha256 = sha(ovBuf);
     zip.addFile('README.txt', Buffer.from(README));
     zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 1)));
     const buf = zip.toBuffer(), digest = sha(buf);
@@ -145,6 +149,7 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
     try { zip = new AdmZip(zipBuffer); m = JSON.parse(zip.readAsText('manifest.json')); } catch (_) { fail('OFFLOAD_DAMAGED', 400); }
     if (!m || m.schema !== 'linguistpro-news-offload' || m.schema_version !== 1 || !DAY.test(String(m.day)) || !Array.isArray(m.articles)) fail('OFFLOAD_DAMAGED', 400);
     const read = name => { const e = zip.getEntry(name); return e ? e.getData() : null; };
+    if (m.overview_sha256) { const ob = read('overview.json'); if (!ob || sha(ob) !== m.overview_sha256) fail('OFFLOAD_DAMAGED', 400); }
     const plan = [];
     for (const a of m.articles) {
       if (!a || !ID.test(String(a.article_id))) fail('OFFLOAD_DAMAGED', 400);
@@ -171,7 +176,7 @@ function createNewsOffload({ db, repo, dataDir, now = () => Date.now(), statfs =
       }
       if (restored) await dbRun(db, `UPDATE news_offloads SET state='restored', restored_at=? WHERE day=?`, [iso(now()), m.day]);
       // «Обзор дня» rows of the day that are missing on the server come back too (the present ones stay).
-      let ov = null; try { ov = JSON.parse(zip.readAsText('overview.json')); } catch (_) { ov = null; }
+      let ov = null; try { const b = zip.getEntry('overview.json') && zip.getEntry('overview.json').getData(); ov = b && m.overview_sha256 && sha(b) === m.overview_sha256 ? JSON.parse(b.toString('utf8')) : null; } catch (_) { ov = null; }
       const OV = ['item_key', 'day', 'story_key', 'edition_id', 'outlet_id', 'url', 'published_at', 'section', 'title_he', 'title_ru', 'subtitle_he', 'subtitle_ru', 'lead_he', 'lead_ru', 'paywalled', 'changed_at', 'change_json', 'pack_id', 'created_at', 'updated_at'];
       for (const r of (ov && ov.day === m.day && Array.isArray(ov.rows)) ? ov.rows : []) {
         if (!r || !ID.test(String(r.item_key)) || r.day !== m.day || !r.title_he) continue;

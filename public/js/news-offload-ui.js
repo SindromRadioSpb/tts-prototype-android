@@ -88,6 +88,7 @@
     box.appendChild(h(doc, "p", { class: st.low ? "ne-storage-low" : "ne-muted", text: st.disk ? t("newsEditor.storage.freeDisk", "Свободно на диске: {disk} (ещё {db} пустого места внутри базы — его займут новые новости)")
       .replace("{disk}", sizeText(st.disk.free)).replace("{db}", sizeText(st.db_free)) : t("newsEditor.storage.noDisk", "Свободное место на диске узнать не удалось") }));
     box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.storage.note", "Файл базы на сервере от выгрузки не уменьшается, но перестаёт расти: новые новости занимают освободившееся место внутри него.") }));
+    if (st.photo_cache) box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.storage.photoCache", "Кэш фото сборщика: {size} (хранится 3 дня, не больше 500 МБ)").replace("{size}", sizeText(st.photo_cache)) }));
     if (st.by_month.length) box.appendChild(h(doc, "ul", { class: "ne-storage-months" }, st.by_month.map(function (m) {
       return h(doc, "li", { text: m.month + ": " + t("newsEditor.storage.month", "фото {p}, тексты {b}").replace("{p}", sizeText(m.photos)).replace("{b}", sizeText(m.bodies)) }); })));
     box.appendChild(h(doc, "p", { class: "ne-muted", text: st.suggest.days.length ? t("newsEditor.storage.suggest", "Можно выгрузить {n} дн. архива (≈{size}): {from} — {to}")

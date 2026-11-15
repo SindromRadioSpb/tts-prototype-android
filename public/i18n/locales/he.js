@@ -5784,3 +5784,5 @@ window.I18N_LOCALES.he.news.offloaded = "החומר של הכתבה הועבר �
 Object.assign(window.I18N_LOCALES.he.news.offload, {"nothing": "המקום בשרת אוזל. עדיין אין מה להעביר: אין בארכיון ימים בני יותר משלושה ימים."});
 Object.assign(window.I18N_LOCALES.he.newsEditor.storage, {"freeDisk": "פנוי בדיסק: {disk} (ועוד {db} מקום ריק בתוך מסד הנתונים — חדשות חדשות ימלאו אותו)", "noDisk": "לא ניתן לקרוא את המקום הפנוי בדיסק", "already": "כבר בשרת או שפג תוקפם: {n}"});
 window.I18N_LOCALES.he.newsEditor.editions.extras = "כתבות משל dot לכל מהדורה (עד 50)";
+Object.assign(window.I18N_LOCALES.he.newsEditor.editions, {"look": "לצפות בארכיון", "take": "להוריד בשביל dot", "takeHint": "שומר את כתבות המהדורה בשביל dot ל־4 שעות — כשמעבירים לו את הארכיון ידנית", "refused": "נדחו או דולגו: {n}"});
+Object.assign(window.I18N_LOCALES.he.newsEditor.storage, {"photoCache": "מטמון התמונות של האוסף: {size} (נשמר 3 ימים, עד 500 MB)"});

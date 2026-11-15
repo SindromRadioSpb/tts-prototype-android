@@ -5775,3 +5775,5 @@ window.I18N_LOCALES.en.news.offloaded = "This article's material was offloaded t
 Object.assign(window.I18N_LOCALES.en.news.offload, {"nothing": "The server is running out of space. Nothing to offload yet: no archived days older than three days."});
 Object.assign(window.I18N_LOCALES.en.newsEditor.storage, {"freeDisk": "Free on disk: {disk} (plus {db} of empty space inside the database — new news will fill it)", "noDisk": "Could not read the free disk space", "already": "already on the server or expired: {n}"});
 window.I18N_LOCALES.en.newsEditor.editions.extras = "dot's own articles per edition (up to 50)";
+Object.assign(window.I18N_LOCALES.en.newsEditor.editions, {"look": "Look at the archive", "take": "Download for dot", "takeHint": "Reserves the edition's articles for dot for 4 hours — when you pass the archive to dot by hand", "refused": "refused or skipped: {n}"});
+Object.assign(window.I18N_LOCALES.en.newsEditor.storage, {"photoCache": "Harvester photo cache: {size} (kept 3 days, at most 500 MB)"});

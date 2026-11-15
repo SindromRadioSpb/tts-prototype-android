@@ -1,7 +1,7 @@
 {
   "_purpose": "Cache-bust lock for public/i18n/locales/*.js, checked by Suite 10 in tests/i18n.smoke.js (npm run smoke:i18n). If the content hash below no longer matches the locale files AND `version` was not bumped past this value in public/index.html's locale <script ?v=> tags, the gate fails: browsers/service-worker keep serving the stale locale file and users see raw i18n keys instead of translations. Regenerate with: node tests/i18n.smoke.js --write-lock",
   "version": "897",
-  "sha256": "5f26f0054c9b6c6de3e8d7df87561e2f8d1154c3b580f5f2d4ac42bea5e2468f",
+  "sha256": "007ef9a1ee7df361e5c7810ca91aed8b465fb30c2376c306f326b74d3a831745",
   "files": [
     "public/i18n/locales/ru.js",
     "public/i18n/locales/en.js",

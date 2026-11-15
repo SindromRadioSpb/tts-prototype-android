@@ -778,3 +778,38 @@ test('debt C: the dot label survives a later revision after the harvest rows are
   assert.ok(!(r2.items[0].warnings || []).includes('SELECTED_BY_UNVERIFIED'));
   assert.equal((await repo.getCard(r.items[0].work_id)).selected_by, 'dot');
 });
+
+// ---- 897 review fixes (harvester) ------------------------------------------------------------------------
+test('897 review: one extras order holds at most 10 articles (the edition still allows 50)', async t => {
+  const { harvester, m, clone } = await extrasSetup(t);
+  const keys = []; for (let i = 1; i <= 11; i++) keys.push(await clone(i));
+  await assert.rejects(harvester.orderExtras(m.edition_id, keys.map(k => ({ item_key: k, note_ru: 'x' }))), e => e.code === 'ORDER_TOO_LARGE');
+});
+test('897 review: a broken cached photo is not reused; cache writes are atomic', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester, requests, dataDir } = await harvesterSetup(t, { clock });
+  await harvester.tick();
+  const cacheDir = path.join(dataDir, 'news-harvest', 'photo-cache');
+  const files = fs.readdirSync(cacheDir);
+  assert.ok(files.length >= 1 && files.every(f => f.endsWith('.jpg')), 'no .part left: ' + files.join(','));
+  for (const f of files) fs.writeFileSync(path.join(cacheDir, f), Buffer.from('broken'));
+  const before = requests.filter(u => /crop_images|Second5678/.test(u)).length;
+  clock.now = Date.parse('2026-11-16T10:31:00+02:00');
+  const mid = await harvester.tick();
+  assert.equal(mid.articles, 1);
+  assert.ok(requests.filter(u => /crop_images|Second5678/.test(u)).length > before, 'the broken file was fetched again');
+});
+test('897 review: a body-only revert does not touch the titles; no original title still clears the note', async t => {
+  const s = await recheckSetup(t);
+  // only the body changed (+2 paragraphs), the title is the published one
+  s.setPage(ynetPage().replace('<h1>נתניהו נאם בכנסת: "נעבור את זה"</h1>', '<h1>כותרת ישנה</h1>'));
+  await s.harvester.recheckPublished({});
+  await s.q("UPDATE news_overview_items SET title_ru='Старый заголовок'");
+  await s.q("UPDATE news_harvest_items SET overview_state='done'");
+  s.setPage(ynetPage().replace('<h1>נתניהו נאם בכנסת: "נעבור את זה"</h1>', '<h1>כותרת ישנה</h1>')
+    .replace(/<h3 class="pHeader">[\s\S]*?<\/h3>/, '').replace('<strong>תגובה חריפה</strong><br>', ''));
+  await s.harvester.recheckPublished({});
+  const ov = (await s.q('SELECT title_ru, changed_at FROM news_overview_items WHERE item_key=?', [s.id]))[0];
+  assert.equal(ov.title_ru, 'Старый заголовок'); assert.equal(ov.changed_at, null);
+  assert.equal((await s.q('SELECT overview_state FROM news_harvest_items WHERE url_key=?', [s.id]))[0].overview_state, 'done');
+});

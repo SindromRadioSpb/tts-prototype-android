@@ -54,8 +54,13 @@
         h(doc, "span", { class: "ne-muted", text: [t("newsEditor.editions.cut", "срез") + " " + ilTime(e.cut_at || e.cutoff_at), t("newsEditor.editions.downloaded", "скачан") + " " + ilTime(e.downloaded_at),
           t("newsEditor.editions.published", "опубликован") + " " + ilTime(e.published_at)].join(" · ") }),
         h(doc, "span", { class: "ne-muted", text: t("newsEditor.editions.counts", "статей {m} · в обзоре {o} · на переделке {r}").replace("{m}", String(e.main_count || 0))
-          .replace("{o}", String(e.overview_count || 0)).replace("{r}", String(e.rework_count || 0)) })]);
-      if (e.has_file) line.appendChild(h(doc, "a", { class: "ne-button", href: "/api/news/editor/editions/" + encodeURIComponent(e.edition_id) + "/download", text: t("newsEditor.harvest.download", "Скачать архив") }));
+          .replace("{o}", String(e.overview_count || 0)).replace("{r}", String(e.rework_count || 0)) + (e.refused_count ? " · " + t("newsEditor.editions.refused", "отказано или пропущено: {n}").replace("{n}", String(e.refused_count)) : "") })]);
+      // The owner's «Посмотреть» reserves nothing; «Скачать для dot» reserves the articles for dot, as dot's own download does.
+      if (e.has_file) {
+        line.appendChild(h(doc, "a", { class: "ne-button ne-quiet", href: "/api/news/editor/editions/" + encodeURIComponent(e.edition_id) + "/download", text: t("newsEditor.editions.look", "Посмотреть архив") }));
+        if (e.status === "archived") line.appendChild(h(doc, "a", { class: "ne-button", href: "/api/news/editor/editions/" + encodeURIComponent(e.edition_id) + "/download?take=1",
+          title: t("newsEditor.editions.takeHint", "Закрепит статьи выпуска за dot на 4 часа — если передаёте архив dot вручную"), text: t("newsEditor.editions.take", "Скачать для dot") }));
+      }
       box.appendChild(line);
     });
     return box;

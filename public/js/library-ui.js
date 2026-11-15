@@ -10768,9 +10768,15 @@ function wireNewsFigures(meta, epoch) {
 // The owner's reading signal for dot (news-reader.js watchReading; the server keeps it only for the owner).
 let _newsReadingStop = null, _newsOwnerProbe = null;
 // Only the owner's reading is kept: ask once whether this is the owner, other readers send nothing.
+let _newsOwnerProbeAt = 0;
 function newsReaderIsOwner() {
-  if (!_newsOwnerProbe) _newsOwnerProbe = fetch('/api/news/editor/me?soft=1', { cache: 'no-store', credentials: 'same-origin' })
+  // «Owner» is remembered; «not the owner» is asked again after 5 minutes (a sign-in without a reload).
+  if (_newsOwnerProbe && _newsOwnerProbe.owner !== false) return _newsOwnerProbe;
+  if (_newsOwnerProbe && Date.now() - _newsOwnerProbeAt < 5 * 60e3) return _newsOwnerProbe;
+  _newsOwnerProbeAt = Date.now();
+  const p = fetch('/api/news/editor/me?soft=1', { cache: 'no-store', credentials: 'same-origin' })
     .then(r => (r.ok ? r.json() : null)).then(j => !!(j && j.kind === 'owner')).catch(() => false);
+  _newsOwnerProbe = p.then(v => { _newsOwnerProbe.owner = v; return v; });
   return _newsOwnerProbe;
 }
 function stopNewsReading() { if (_newsReadingStop) { _newsReadingStop(); _newsReadingStop = null; } }

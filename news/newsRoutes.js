@@ -238,14 +238,14 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         const actor = await actorFor(req, res); if (!actor) return;
         try {
           // Only dot's download (an editor key) leases the edition; the owner's is a look.
-          const file = await harvester.downloadEdition(req.params.id, { lease: actor.kind !== 'owner' });
+          const file = await harvester.downloadEdition(req.params.id, { lease: actor.kind !== 'owner' || req.query.take === '1' }); // ?take=1: the owner passes it to dot
           if (!file) return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
           res.set({ 'Content-Type': 'application/zip', 'X-Content-Type-Options': 'nosniff' });
           res.download(file.path, file.name);
         } catch (e) { send(res, e); }
       });
       // dot's own choice (spec §5.6): drafts of up to `extras` articles per edition, made by the server.
-      const EXTRAS_STATUS = { EXTRAS_LIMIT: 409, ALREADY_TAKEN: 409, PAYWALL: 409, NO_BODY: 409, EDITION_NOT_OPEN: 409, UNKNOWN_ITEM: 404, NOTE_REQUIRED: 400, DUPLICATE_ITEM: 400, NOT_A_CANDIDATE: 409 };
+      const EXTRAS_STATUS = { EXTRAS_LIMIT: 409, ALREADY_TAKEN: 409, PAYWALL: 409, NO_BODY: 409, EDITION_NOT_OPEN: 409, UNKNOWN_ITEM: 404, NOTE_REQUIRED: 400, DUPLICATE_ITEM: 400, NOT_A_CANDIDATE: 409, ORDER_TOO_LARGE: 400 };
       app.post('/api/news/editor/editions/:id/extras', write, json, noStore, async (req, res) => {
         const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
         try {

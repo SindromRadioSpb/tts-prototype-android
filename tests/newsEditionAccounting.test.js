@@ -323,18 +323,19 @@ test('debt A: an edition dot downloaded but never answered is offered again as n
   fs.mkdirSync(path.join(dataDir, 'news-harvest'), { recursive: true });
   fs.writeFileSync(path.join(dataDir, 'news-harvest', 'b.zip'), 'PK');
   await edition(db, ED, { status: 'downloaded', file: 'b.zip' });
+  await run(db, 'UPDATE news_editions SET downloaded_at=? WHERE edition_id=?', ['2026-11-16T07:00:00.000Z', ED]); // three hours ago, no answer
   assert.equal((await h.nextEdition()).edition_id, ED);
   await run(db, `UPDATE news_editions SET first_upload_at='t' WHERE edition_id=?`, [ED]);
   assert.equal(await h.nextEdition(), null, 'once dot answered, it is not offered again');
 });
-test('debt A: rework_count counts the drafts of the edition that were refused or skipped', async t => {
+test('debt A: refused_count counts the drafts of the edition that were refused or skipped', async t => {
   const { db, h } = await setup(t);
   await edition(db, ED);
   await drafted(db, 1, ED); await drafted(db, 2, ED);
   await h.accountPack({ edition_id: ED, items: [{ status: 'rejected', code: 'X', article_id: key(1) }], rejected: [], overview: true });
-  assert.equal((await get(db, 'SELECT rework_count FROM news_editions WHERE edition_id=?', [ED])).rework_count, 1);
+  assert.equal((await get(db, 'SELECT refused_count FROM news_editions WHERE edition_id=?', [ED])).refused_count, 1);
   await h.closeEdition(ED);
-  assert.equal((await get(db, 'SELECT rework_count FROM news_editions WHERE edition_id=?', [ED])).rework_count, 2);
+  assert.equal((await get(db, 'SELECT refused_count FROM news_editions WHERE edition_id=?', [ED])).refused_count, 2);
 });
 test('debt A: migrations 083–088 go down and up again', async () => {
   const fs2 = require('node:fs'), path2 = require('node:path');
@@ -346,5 +347,56 @@ test('debt A: migrations 083–088 go down and up again', async () => {
   for (const m of list) await ex(mig('', m));
   const cols = (await all(db, 'PRAGMA table_info(news_harvest_items)')).map(c => c.name);
   assert.ok(cols.includes('main_state'));
+  db.close();
+});
+
+// ---- 897 review fixes ------------------------------------------------------------------------------------
+test('897 review: a downloaded edition is offered again only after a grace hour, marked retry; a re-download renews the lease', async t => {
+  const { db, h, dataDir, clock } = await setup(t);
+  fs.mkdirSync(path.join(dataDir, 'news-harvest'), { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'news-harvest', 'b.zip'), 'PK');
+  await edition(db, ED, { status: 'archived', file: 'b.zip', lease: null });
+  await h.downloadEdition(ED); // dot took it
+  assert.equal(await h.nextEdition(), null, 'not offered while dot is working on it');
+  clock.now += 61 * 60e3;
+  const n = await h.nextEdition();
+  assert.equal(n.edition_id, ED); assert.equal(n.retry, true);
+  await h.downloadEdition(ED);
+  assert.equal((await get(db, 'SELECT lease_until FROM news_editions WHERE edition_id=?', [ED])).lease_until, new Date(clock.now + 4 * 3600e3).toISOString());
+});
+test('897 review: the owner can take an edition for dot explicitly (take=1 leases)', async t => {
+  const { db, h, dataDir } = await setup(t);
+  fs.mkdirSync(path.join(dataDir, 'news-harvest'), { recursive: true });
+  fs.writeFileSync(path.join(dataDir, 'news-harvest', 'b.zip'), 'PK');
+  await edition(db, ED, { status: 'archived', file: 'b.zip', lease: null });
+  const base = await server(t, h);
+  assert.equal((await fetch(base + '/api/news/editor/editions/' + ED + '/download?take=1', { headers: { cookie: 'lp=owner' } })).status, 200);
+  assert.equal((await get(db, 'SELECT status FROM news_editions WHERE edition_id=?', [ED])).status, 'downloaded');
+});
+test('897 review: an edition published from a hand-passed archive (no lease) closes after its time', async t => {
+  const { db, h, clock } = await setup(t);
+  await edition(db, ED, { status: 'archived', lease: null, cutoff: new Date(clock.now - 3600e3).toISOString() });
+  await drafted(db, 1, ED); await drafted(db, 2, ED);
+  await h.accountPack({ edition_id: ED, items: [{ status: 'published', article_id: key(1) }], rejected: [], overview: true });
+  clock.now += 4 * 3600e3;
+  await h.closeExpired();
+  assert.ok((await get(db, 'SELECT closed_at FROM news_editions WHERE edition_id=?', [ED])).closed_at);
+  assert.equal((await state(db, 2)).main_reason, 'SKIPPED');
+});
+test('897 review: the archive count stays; refusals are counted apart', async t => {
+  const { db, h } = await setup(t);
+  await edition(db, ED);
+  await run(db, 'UPDATE news_editions SET rework_count=1 WHERE edition_id=?', [ED]);
+  await drafted(db, 1, ED); await drafted(db, 2, ED);
+  await h.accountPack({ edition_id: ED, items: [{ status: 'rejected', code: 'X', article_id: key(1) }, { status: 'published', article_id: key(2) }], rejected: [], overview: true });
+  const e = await get(db, 'SELECT rework_count, refused_count FROM news_editions WHERE edition_id=?', [ED]);
+  assert.deepEqual(e, { rework_count: 1, refused_count: 1 });
+  assert.equal((await h.listEditions()).find(x => x.edition_id === ED).refused_count, 1);
+});
+test('897 review: migration 088 leaves broken JSON alone', async () => {
+  const fs2 = require('node:fs'), path2 = require('node:path');
+  const db = await openDb();
+  await run(db, `INSERT INTO news_settings(key, value_json, updated_at) VALUES ('schedule', '{broken', 't')`);
+  await new Promise((res, rej) => db.exec(fs2.readFileSync(path2.join(__dirname, '..', 'migrations', '088_news_extras_50.sql'), 'utf8'), e => e ? rej(e) : res()));
   db.close();
 });

@@ -5790,3 +5790,5 @@ window.I18N_LOCALES.ru.news.offloaded = "Материал этой статьи 
 Object.assign(window.I18N_LOCALES.ru.news.offload, {"nothing": "Место на сервере заканчивается. Выгружать пока нечего: в архиве нет дней старше трёх суток."});
 Object.assign(window.I18N_LOCALES.ru.newsEditor.storage, {"freeDisk": "Свободно на диске: {disk} (ещё {db} пустого места внутри базы — его займут новые новости)", "noDisk": "Свободное место на диске узнать не удалось", "already": "уже на сервере или истёк срок: {n}"});
 window.I18N_LOCALES.ru.newsEditor.editions.extras = "Своих статей dot за выпуск (до 50)";
+Object.assign(window.I18N_LOCALES.ru.newsEditor.editions, {"look": "Посмотреть архив", "take": "Скачать для dot", "takeHint": "Закрепит статьи выпуска за dot на 4 часа — если передаёте архив dot вручную", "refused": "отказано или пропущено: {n}"});
+Object.assign(window.I18N_LOCALES.ru.newsEditor.storage, {"photoCache": "Кэш фото сборщика: {size} (хранится 3 дня, не больше 500 МБ)"});

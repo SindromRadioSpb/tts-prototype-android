@@ -28,7 +28,7 @@ async function setup(t, { freeBytes = 50e9 } = {}) {
   clock.now = Date.parse('2026-11-20T08:00:00+02:00'); // the day is in the archive now
   await repo.runLifecycle(clock.now);
   const off = createNewsOffload({ db, repo, dataDir, now: () => clock.now, statfs: () => ({ bavail: freeBytes / 4096, bsize: 4096, blocks: 38e9 / 4096 }) });
-  return { db, repo, off, ids, works, clock, jpeg };
+  return { db, repo, off, ids, works, clock, jpeg, dataDir };
 }
 
 test('export → release: the day leaves photos and bodies, cards and overview rows stay', async t => {
@@ -265,4 +265,18 @@ test('debt D: suggestions prefer days that still hold photos and skip days about
   clock.now = Date.parse('2026-11-25T08:00:00+02:00');
   const st = await off.storage();
   assert.deepEqual(st.suggest.days, ['2026-11-12']);
+});
+
+// ---- 897 review fixes (offload) --------------------------------------------------------------------------
+test('897 review: overview.json is checked against the manifest; the photo cache shows in «Место»', async t => {
+  const { off, dataDir } = await setup(t);
+  const cache = path.join(dataDir, 'news-harvest', 'photo-cache');
+  fs.mkdirSync(cache, { recursive: true });
+  fs.writeFileSync(path.join(cache, 'a.jpg'), Buffer.alloc(5000));
+  assert.equal((await off.storage()).photo_cache, 5000);
+  const x = await off.exportDay('2026-11-12');
+  await off.release('2026-11-12', x.sha256);
+  const zip = new AdmZip(x.buf);
+  zip.updateFile('overview.json', Buffer.from(JSON.stringify({ day: '2026-11-12', rows: [{ item_key: 'na_' + 'f'.repeat(24) }] })));
+  await assert.rejects(off.restore(OWNER, zip.toBuffer()), e => e.code === 'OFFLOAD_DAMAGED');
 });
