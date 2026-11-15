@@ -111,3 +111,29 @@ test('head plate folds to its source line; the choice is kept for every article'
     assert.equal(NR.renderPlate(document, meta({ subtitle_he: 'x' }), { place: 'foot' }).querySelector('.reader-news-collapse'), null);
   } finally { delete global.localStorage; }
 });
+
+// ---- B3: the outlet updated the article after we took it (spec §4.4) -----------------------------------
+test('plate: the outlet updated the article — a note with what changed and the original link; the foot has none', () => {
+  const { document } = require('linkedom').parseHTML('<html><body></body></html>');
+  const change = { at: '2026-11-16T13:25:00.000Z', source_updated_at: '2026-11-16T15:20:00+02:00', added: 4, changed: 1, removed: 0, title_changed: true };
+  const head = NR.renderPlate(document, meta({ original: true }), { place: 'head', sourceChange: change });
+  const note = head.querySelector('.reader-news-changed');
+  assert.equal(note.textContent, 'Издание обновило статью в 15:20: +4 абзаца, изменено 1, новый заголовок · Оригинал ↗');
+  assert.equal(note.querySelector('a').getAttribute('rel'), 'noopener noreferrer');
+  assert.equal(NR.renderPlate(document, meta({ original: true }), { place: 'foot', sourceChange: change }).querySelector('.reader-news-changed'), null);
+  const noTime = NR.renderPlate(document, meta({ original: true }), { place: 'head', sourceChange: { at: '2026-11-16T13:25:00.000Z', added: 1, changed: 0, removed: 0, title_changed: false } });
+  assert.match(noTime.querySelector('.reader-news-changed').textContent, /^Издание обновило статью в 15:25: \+1 абзац ·/);
+});
+test('card: the latest significant change of the source rides on the card', async t => {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const db = await openDb(['084_news_fingerprints.sql']); t.after(() => db.close());
+  const repo = createNewsRepo({ db, now: () => Date.parse('2026-11-12T08:00:00+02:00') });
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle()]));
+  const id = r.items[0].article_id;
+  assert.equal((await repo.getCard(r.items[0].work_id)).source_change, undefined);
+  await new Promise((res, rej) => db.run(`INSERT INTO news_article_changes(article_id, detected_at, source_updated_at, added, changed, removed, title_changed, significant) VALUES (?,?,?,?,?,?,?,1)`,
+    [id, '2026-11-12T09:00:00.000Z', null, 2, 0, 0, 1], e => e ? rej(e) : res()));
+  assert.deepEqual((await repo.getCard(r.items[0].work_id)).source_change, { at: '2026-11-12T09:00:00.000Z', source_updated_at: null, added: 2, changed: 0, removed: 0, title_changed: true });
+});

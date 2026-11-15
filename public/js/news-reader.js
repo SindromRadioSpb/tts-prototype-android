@@ -124,7 +124,24 @@
     return b;
   }
 
-  // meta: text.source_meta.news; t(key, fallback); place: 'head' | 'foot'.
+  // The outlet updated the article after we took it (docs/superpowers/specs/2026-11-15-news-editions-design.md §4.4):
+  // our copy is not changed; a note says what changed there and links the original.
+  var PLURAL_FALLBACK = { one: "+{n} абзац", few: "+{n} абзаца", many: "+{n} абзацев", other: "+{n} абзаца" };
+  function changeNote(doc, ch, meta, t, locale) {
+    if (!ch) return null;
+    var cat = "other"; try { cat = new Intl.PluralRules(locale || "ru").select(ch.added); } catch (_) {}
+    var parts = [];
+    if (ch.added) parts.push(fill(t("news.reader.added." + cat, t("news.reader.added.other", PLURAL_FALLBACK[cat] || PLURAL_FALLBACK.other)), { n: ch.added }));
+    if (ch.changed) parts.push(fill(t("news.reader.changedN", "изменено {n}"), { n: ch.changed }));
+    if (ch.removed) parts.push(fill(t("news.reader.removedN", "убрано {n}"), { n: ch.removed }));
+    if (ch.title_changed) parts.push(t("news.reader.newTitle", "новый заголовок"));
+    var time = ""; try { time = new Date(ch.source_updated_at || ch.at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jerusalem" }); } catch (_) {}
+    var p = el(doc, "p", "reader-news-changed", fill(t("news.reader.sourceChanged", "Издание обновило статью в {time}: {parts}"), { time: time, parts: parts.join(", ") }));
+    var href = safeHttps(meta.canonical_url);
+    if (href) { p.appendChild(doc.createTextNode(" · ")); var a = doc.createElement("a"); a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = t("news.plate.original", "Оригинал ↗"); p.appendChild(a); }
+    return p;
+  }
+  // meta: text.source_meta.news; t(key, fallback); place: 'head' | 'foot'; sourceChange: the card's source_change.
   function renderPlate(doc, meta, opts) {
     opts = opts || {};
     var t = opts.t || function (k, f) { return f; }, place = opts.place || "head";
@@ -148,6 +165,7 @@
       a.textContent = t("news.plate.original", "Оригинал ↗"); line.appendChild(a);
     }
     box.appendChild(line);
+    if (place === "head") { var note = changeNote(doc, opts.sourceChange, meta, t, opts.locale); if (note) box.appendChild(note); }
     var images = Array.isArray(meta.images) ? meta.images : [];
     if (place === "head") {
       var sw = versionSwitch(doc, meta, opts, t); if (sw) box.appendChild(sw);

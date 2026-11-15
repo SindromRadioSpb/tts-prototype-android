@@ -398,6 +398,11 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const work = await dbGet(db, 'SELECT work_id, snapshot_sha256 FROM news_works WHERE work_id=?', [workId]);
     const card = toCard(row, work);
     if (work) { card.work_id = work.work_id; card.snapshot_sha256 = work.snapshot_sha256; }
+    // The outlet updated the article after we took it (migration 084): the latest significant change.
+    if (await hasPrints()) {
+      const ch = await dbGet(db, 'SELECT * FROM news_article_changes WHERE article_id=? AND significant=1 ORDER BY detected_at DESC, id DESC LIMIT 1', [row.article_id]);
+      if (ch) card.source_change = { at: ch.detected_at, source_updated_at: ch.source_updated_at, added: ch.added, changed: ch.changed, removed: ch.removed, title_changed: !!ch.title_changed };
+    }
     return card;
   }
   async function getWork(outletId, workId) {
