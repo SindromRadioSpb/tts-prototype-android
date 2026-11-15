@@ -199,6 +199,8 @@
     }
     box.appendChild(line);
     if (place === "head") { var note = changeNote(doc, opts.sourceChange, meta, t, opts.locale, opts.now); if (note) box.appendChild(note); }
+    if (place === "head" && opts.selected && opts.selected.selected_by === "dot")
+      box.appendChild(el(doc, "p", "reader-news-selected", fill(t("news.reader.selected", "Выбрано dot: {note}"), { note: opts.selected.selection_note_ru || "" })));
     var images = Array.isArray(meta.images) ? meta.images : [];
     if (place === "head") {
       var sw = versionSwitch(doc, meta, opts, t); if (sw) box.appendChild(sw);

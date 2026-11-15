@@ -43,3 +43,4 @@
 body.room-study #readerNewsSourceFoot { display: none; }
 /* The outlet updated the article after we took it (docs/superpowers/specs/2026-11-15-news-editions-design.md §4.4). */
 .reader-news-changed{margin:6px 0 0;padding:6px 10px;border-inline-start:3px solid currentColor;border-radius:6px;font-size:.88rem;line-height:1.5;opacity:.9}
+.reader-news-selected{margin:6px 0 0;font-size:.88rem;opacity:.85}

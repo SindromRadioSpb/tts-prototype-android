@@ -10731,9 +10731,9 @@ function renderReaderNewsSource(textRow, epoch) {
   const work = (() => { try { return JSON.parse(textRow.source_meta_json).public_corpus.public_work_id; } catch (_) { return null; } })();
   // workId + search: the plate links the article's other versions («Оригинал · B1») on the same ?news= entry.
   const plateOpts = { t: tt, locale, workId: work, search: location.search };
-  const paint = (withdrawn, sourceChange) => {
+  const paint = (withdrawn, sourceChange, selected) => {
     if (epoch !== readerOpenEpoch) return;
-    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'head', withdrawn, sourceChange })); head.hidden = false; roomPlaceNewsPlate(); }
+    if (head) { head.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'head', withdrawn, sourceChange, selected })); head.hidden = false; roomPlaceNewsPlate(); }
     if (foot) { foot.replaceChildren(window.NewsReader.renderPlate(document, meta, { ...plateOpts, place: 'foot', withdrawn })); foot.hidden = false; }
   };
   paint(false);
@@ -10741,7 +10741,7 @@ function renderReaderNewsSource(textRow, epoch) {
   wireNewsReading(work, epoch);
   if (work) fetch('/api/news/feed?work=' + encodeURIComponent(work), { cache: 'no-cache' })
     .then(r => (r.status === 404 ? { card: { tier: 'withdrawn' } } : r.ok ? r.json() : null))
-    .then(p => { if (p && p.card && (p.card.tier === 'withdrawn' || p.card.source_change)) paint(p.card.tier === 'withdrawn', p.card.source_change || null); }).catch(() => {});
+    .then(p => { const c = p && p.card; if (c && (c.tier === 'withdrawn' || c.source_change || c.selected_by)) paint(c.tier === 'withdrawn', c.source_change || null, c.selected_by ? c : null); }).catch(() => {});
   return meta;
 }
 // Inline article photos live inside the table (news-reader.js placeInlineFigures). The table is repainted by

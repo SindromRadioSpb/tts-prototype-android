@@ -411,7 +411,9 @@
         who.appendChild(out);
       }
       receiptHost = h(doc, "div", { class: "ne-receipt-host" });
-      var parts = [who, editionsCard(), harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var interestsHost = h(doc, "div");
+      renderInterestsCard(doc, { t: t, api: api, say: say, json: json, canSave: session.kind === "owner" }).then(function (b) { interestsHost.replaceChildren(b); }).catch(function () {});
+      var parts = [who, editionsCard(), interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }
@@ -423,5 +425,29 @@
     doc.addEventListener("i18n:changed", function () { render(); });
     render();
   }
-  return { slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
+  // «Мои интересы в новостях» (spec §5.7): the owner writes, dot reads it before choosing its own articles.
+  async function renderInterestsCard(doc, opts) {
+    var t = opts.t || function (k, f) { return f; };
+    var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-interests-title" }, [h(doc, "h2", { id: "ne-interests-title", text: t("newsEditor.interests.title", "Мои интересы в новостях") }),
+      h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.hint", "dot читает этот текст перед каждым выпуском и по нему выбирает до 5 своих статей. Например: больше экономики и технологий, меньше криминала, спорт только крупное.") })]);
+    var ta = h(doc, "textarea", { id: "ne-interests", rows: "5", maxlength: "4000", disabled: !opts.canSave, "aria-labelledby": "ne-interests-title" });
+    var count = h(doc, "p", { class: "ne-muted ne-interests-count" });
+    function sync() { count.textContent = t("newsEditor.interests.count", "{n} из 4000").replace("{n}", String(ta.value.length)); }
+    ta.addEventListener && ta.addEventListener("input", sync);
+    box.append(ta, count);
+    try { var cur = await opts.api("GET", "/api/news/editor/interests"); ta.value = cur.text || ""; } catch (_) {}
+    sync();
+    box.__save = async function () {
+      if (ta.value.length > 4000) { opts.say(t("newsEditor.interests.tooLong", "Не больше 4000 знаков")); return; }
+      try { await opts.api("PUT", "/api/news/editor/interests", opts.json({ text: ta.value }), "application/json"); opts.say(t("newsEditor.interests.saved", "Интересы сохранены")); }
+      catch (e) { opts.say(e && e.message === "INTERESTS_TOO_LONG" ? t("newsEditor.interests.tooLong", "Не больше 4000 знаков") : String(e && e.message || e)); }
+    };
+    if (opts.canSave) {
+      var save = h(doc, "button", { type: "button", class: "ne-button", text: t("newsEditor.interests.save", "Сохранить") });
+      save.addEventListener("click", function () { box.__save(); });
+      box.appendChild(save);
+    } else box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.ownerOnly", "Менять интересы может только владелец") }));
+    return box;
+  }
+  return { renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
 });

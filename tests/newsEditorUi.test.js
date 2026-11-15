@@ -81,3 +81,23 @@ test('editor: editions card shows late editions and the 7-day average per slot',
   assert.match(rows[1].textContent, /опоздал/);
   assert.match(rows[0].textContent, /вовремя/);
 });
+test('editor: interests card saves the text (PUT) and refuses more than 4000 characters', async () => {
+  const { parseHTML } = require('linkedom');
+  const UIE = require('../public/js/news-editor-ui');
+  const { document } = parseHTML('<html><body></body></html>');
+  const calls = [];
+  const api = async (method, url, body) => { calls.push([method, url, body]); return method === 'GET' ? { ok: true, text: 'Больше экономики', updated_at: '2026-11-15T10:00:00Z' } : { ok: true, text: JSON.parse(body).text }; };
+  const said = [];
+  const box = await UIE.renderInterestsCard(document, { api, say: s => said.push(s), canSave: true, json: o => JSON.stringify(o) });
+  const ta = box.querySelector('textarea');
+  assert.equal(ta.value, 'Больше экономики');
+  ta.value = 'Меньше криминала';
+  await box.__save();
+  assert.deepEqual(calls[1], ['PUT', '/api/news/editor/interests', JSON.stringify({ text: 'Меньше криминала' })]);
+  ta.value = 'a'.repeat(4001);
+  await box.__save();
+  assert.equal(calls.length, 2, 'not sent');
+  assert.match(said.at(-1), /4000/);
+  const ro = await UIE.renderInterestsCard(document, { api, say: () => {}, canSave: false, json: o => JSON.stringify(o) });
+  assert.equal(ro.querySelector('textarea').disabled, true);
+});

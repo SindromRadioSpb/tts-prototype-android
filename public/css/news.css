@@ -126,3 +126,6 @@ body.nw-dark .nw-ov-since{color:#0e1726}
 .nw-ov-changed{border:1px dashed var(--nw-line);background:transparent;color:var(--nw-muted)}
 .nw-ov-item-since{border-inline-start:3px solid var(--nw-accent);padding-inline-start:8px}
 .nw-ed-chips{margin-block-end:4px}
+/* dot's own choice (docs/superpowers/specs/2026-11-15-news-editions-design.md §4.5). */
+.nw-selected-dot{display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;font-size:.75rem;border:1px solid var(--nw-accent);color:var(--nw-accent)}
+.nw-selected-note{margin:4px 0 0;font-size:.85rem;color:var(--nw-muted)}

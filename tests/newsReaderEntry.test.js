@@ -160,3 +160,9 @@ test('reader: open is sent at once, finish when the last row becomes visible (on
   NR.watchReading({}, document.getElementById('m'), 'na_' + 'a'.repeat(24) + '.or', ev => none.push(ev));
   assert.deepEqual(none, ['open'], 'no IntersectionObserver → no finish, no error');
 });
+test('plate: «выбрано dot» and the reason in the head', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const head = NR.renderPlate(document, meta({ original: true }), { place: 'head', selected: { selected_by: 'dot', selection_note_ru: 'Про экономику' } });
+  assert.equal(head.querySelector('.reader-news-selected').textContent, 'Выбрано dot: Про экономику');
+  assert.equal(NR.renderPlate(document, meta({ original: true }), { place: 'foot', selected: { selected_by: 'dot', selection_note_ru: 'x' } }).querySelector('.reader-news-selected'), null);
+});

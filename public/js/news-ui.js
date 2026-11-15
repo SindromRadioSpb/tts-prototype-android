@@ -66,10 +66,14 @@
     var meta = h(doc, "p", { class: "nw-card-meta" }, [tag, " · " + timeAgo(card.published_at, now, t, opts.locale), " · " + sectionLabel(card.section, t)]);
     (card.levels || []).forEach(function (lv) { meta.appendChild(h(doc, "span", { class: "nw-level" + (lv === "OR" ? " nw-level-original" : ""), text: lv === "OR" ? t("news.level.original", "Оригинал") : lv })); });
     if (card.heavy) meta.appendChild(h(doc, "span", { class: "nw-heavy", text: t("news.heavy", "Тяжёлая тема") }));
+    // dot's own choice (docs/superpowers/specs/2026-11-15-news-editions-design.md §4.5): marked, with the reason.
+    var dot = card.selected_by === "dot";
+    if (dot) meta.appendChild(h(doc, "span", { class: "nw-selected-dot", title: card.selection_note_ru || null, text: t("news.selectedByDot", "выбрано dot") }));
     var title = h(doc, "h3", { class: "nw-card-title", lang: "he", dir: "rtl", text: card.title_he });
     var body = h(doc, "div", { class: "nw-card-body" }, [meta, title,
       h(doc, "p", { class: "nw-card-translation", text: card.title_ru, dir: "auto" }),
-      h(doc, "p", { class: "nw-card-summary", text: card.summary_ru, dir: "auto" })]);
+      h(doc, "p", { class: "nw-card-summary", text: card.summary_ru, dir: "auto" }),
+      dot && card.selection_note_ru ? h(doc, "p", { class: "nw-selected-note", dir: "auto", text: fill(t("news.selectedNote", "Почему dot выбрал: {note}"), { note: card.selection_note_ru }) }) : null]);
     var main;
     if (card.readable && card.work_id) main = h(doc, "a", { class: "nw-card-main", href: readerHref(card, opts.returnTo) }, [coverFor(doc, card, t), body]);
     else { main = h(doc, "div", { class: "nw-card-main nw-card-static" }, [coverFor(doc, card, t), body]); body.appendChild(h(doc, "p", { class: "nw-card-only", text: t("news.cardOnly", "Только карточка — статья в глубоком архиве") })); }

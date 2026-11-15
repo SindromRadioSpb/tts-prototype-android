@@ -195,3 +195,14 @@ test('overview: since-last-visit marks only rows published after lastVisit; a co
   assert.match(el.querySelector('.nw-ov-head').textContent, /продолжение со вчера/);
   assert.equal(UI.renderStory(document, story, { lastVisit: null }).querySelectorAll('.nw-ov-since').length, 0, 'no stored visit → no marks');
 });
+
+// ---- C3: «выбрано dot» on the card -----------------------------------------------------------------------
+test('card: an article dot chose says so, with its reason', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderCard(document, card({ selected_by: 'dot', selection_note_ru: 'Владелец просил больше экономики' }), { now: NOW });
+  const tag = el.querySelector('.nw-selected-dot');
+  assert.equal(tag.textContent, 'выбрано dot');
+  assert.equal(tag.getAttribute('title'), 'Владелец просил больше экономики');
+  assert.match(el.querySelector('.nw-selected-note').textContent, /Владелец просил больше экономики/);
+  assert.equal(UI.renderCard(document, card(), { now: NOW }).querySelector('.nw-selected-dot'), null);
+});

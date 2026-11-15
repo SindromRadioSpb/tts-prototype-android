@@ -45,3 +45,4 @@
 .ne-schedule .ne-inline{flex-wrap:wrap;gap:6px 10px;align-items:center;margin-block:6px}
 .ne-schedule .ne-inline>span{min-width:7ch;font-weight:600}
 .ne-schedule input[type=number]{width:5em}
+#ne-interests{width:100%;box-sizing:border-box;font:inherit;padding:8px;border-radius:8px}
