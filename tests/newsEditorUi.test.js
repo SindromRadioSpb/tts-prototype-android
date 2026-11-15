@@ -60,3 +60,24 @@ test('the receipt no longer lists per-article buttons with file paths', () => {
   const src = fs.readFileSync(path.join(ROOT, 'public/js/news-editor-ui.js'), 'utf8');
   assert.doesNotMatch(src, /ne-article-actions/);
 });
+
+// ---- editions card (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10) -----------------
+test('editor: editions card shows late editions and the 7-day average per slot', () => {
+  const { parseHTML } = require('linkedom');
+  const UIE = require('../public/js/news-editor-ui');
+  const { document } = parseHTML('<html><body></body></html>');
+  const ed = (day, slot, cut, pub, ready, extra) => ({ edition_id: 'ne_' + day.replace(/-/g, '') + slot, day, slot, status: pub ? 'published' : 'downloaded', cutoff_at: cut, cut_at: cut,
+    archive_ready_at: cut, downloaded_at: cut, published_at: pub, target_ready_at: ready, late: pub ? pub > ready : true, main_count: 8, overview_count: 40, published_count: 8, rework_count: 0, ...extra });
+  const eds = [ed('2026-11-16', 'evening', '2026-11-16T14:30:00.000Z', '2026-11-16T15:50:00.000Z', '2026-11-16T16:00:00.000Z'),
+    ed('2026-11-15', 'evening', '2026-11-15T14:30:00.000Z', '2026-11-15T16:30:00.000Z', '2026-11-15T16:00:00.000Z'),
+    ed('2026-11-16', 'late', '2026-11-16T18:30:00.000Z', null, '2026-11-16T20:00:00.000Z')];
+  const avg = UIE.slotAverages(eds, Date.parse('2026-11-16T21:00:00Z'));
+  assert.equal(avg.evening, 100, 'minutes from cut-off to publication: (80 + 120) / 2');
+  assert.equal(avg.late, undefined, 'unpublished editions are not averaged');
+  const el = UIE.renderEditionsTable(document, eds, {});
+  const rows = [...el.querySelectorAll('[data-edition]')];
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows.map(r => r.getAttribute('data-late')), ['false', 'true', 'true']);
+  assert.match(rows[1].textContent, /опоздал/);
+  assert.match(rows[0].textContent, /вовремя/);
+});

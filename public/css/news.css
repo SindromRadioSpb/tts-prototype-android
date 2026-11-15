@@ -118,3 +118,11 @@ body.nw-dark .nw-manage-menu button[data-action=delete]{color:#ffadb7}
 .nw-ov-more summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:var(--nw-accent);font-size:.9rem}
 .nw-ov-more .nw-ov-item{padding-inline-start:10px;border-inline-start:2px solid var(--nw-line)}
 @media (max-width:640px){.nw-ov-story{padding:12px}.nw-ov-days{font-size:.9rem}}
+/* §18 editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10): the last ready edition, «новое в 18:04», since the last visit. */
+.nw-status{margin:6px 0 0;color:var(--nw-muted);font-size:.9rem;line-height:1.5}
+.nw-ov-new-in,.nw-ov-since,.nw-ov-changed{display:inline-block;margin-inline-start:6px;padding:1px 8px;border-radius:999px;font-size:.78rem;line-height:1.6;background:var(--nw-soft);color:var(--nw-text)}
+.nw-ov-since{background:var(--nw-accent);color:#fff}
+body.nw-dark .nw-ov-since{color:#0e1726}
+.nw-ov-changed{border:1px dashed var(--nw-line);background:transparent;color:var(--nw-muted)}
+.nw-ov-item-since{border-inline-start:3px solid var(--nw-accent);padding-inline-start:8px}
+.nw-ed-chips{margin-block-end:4px}

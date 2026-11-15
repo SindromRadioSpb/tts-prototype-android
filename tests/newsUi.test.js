@@ -52,9 +52,9 @@ test('overview url state: view, day and rubric group round-trip; an outlet page 
 });
 test('url state round-trips and rejects junk', () => {
   const s = UI.parseState('?outlet=walla&section=sport&tier=archive&q=כנסת&from=2026-11-01&to=bad');
-  assert.deepEqual(s, { outlet: 'walla', section: 'sport', tier: 'archive', q: 'כנסת', from: '2026-11-01', to: null, view: null, day: null, group: null });
+  assert.deepEqual(s, { outlet: 'walla', section: 'sport', tier: 'archive', q: 'כנסת', from: '2026-11-01', to: null, view: null, day: null, group: null, ed: null });
   assert.equal(UI.stateHref(s), '/news.html?outlet=walla&section=sport&tier=archive&q=' + encodeURIComponent('כנסת') + '&from=2026-11-01');
-  assert.deepEqual(UI.parseState('?outlet=cnn&section=x'), { outlet: null, section: null, tier: 'fresh', q: '', from: null, to: null, view: null, day: null, group: null });
+  assert.deepEqual(UI.parseState('?outlet=cnn&section=x'), { outlet: null, section: null, tier: 'fresh', q: '', from: null, to: null, view: null, day: null, group: null, ed: null });
   assert.equal(UI.feedUrl({ outlet: 'ynet', tier: 'fresh', section: null }, 'abc', true), '/api/news/feed?outlet=ynet&tier=fresh&limit=20&no_heavy=1&cursor=abc');
 });
 test('every news.* key used by the News tab exists in ru, en and he', () => {
@@ -148,4 +148,50 @@ test('card prefers the stored article photo, credits it, and labels the original
   assert.equal(el.querySelector('.nw-level-original').textContent, 'Оригинал');
   const foreign = UI.renderCard(document, card({ image: { mode: 'none', stored: { url: 'https://evil.example/a.jpg' } } }), { now: NOW });
   assert.equal(foreign.querySelector('.nw-cover img'), null);
+});
+
+// ---- editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10) ----------------------
+test('news home shows the last ready edition and the next one', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const now = Date.parse('2026-11-16T19:00:00+02:00');
+  const el = UI.renderStatusLine(document, { last_ready: { slot: 'evening', day: '2026-11-16', published_at: '2026-11-16T16:04:00.000Z' },
+    next: { slot: 'late', day: '2026-11-16', target_ready_at: '2026-11-16T20:00:00.000Z', state: 'waiting' } }, { now });
+  assert.equal(el.textContent, 'Обновлено в 18:04 · вечерний выпуск · следующий выпуск около 22:00');
+});
+test('news home says «готовится»/«задерживается», never «сейчас»', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const now = Date.parse('2026-11-16T11:00:00+02:00');
+  const base = { last_ready: { slot: 'morning', day: '2026-11-16', published_at: '2026-11-16T05:40:00.000Z' } };
+  const prep = UI.renderStatusLine(document, { ...base, next: { slot: 'midday', day: '2026-11-16', target_ready_at: '2026-11-16T10:00:00.000Z', state: 'preparing' } }, { now });
+  assert.equal(prep.textContent, 'Обновлено в 07:40 · утренний выпуск · готовится обеденный выпуск');
+  const late = UI.renderStatusLine(document, { ...base, next: { slot: 'midday', day: '2026-11-16', target_ready_at: '2026-11-16T10:00:00.000Z', state: 'late' } }, { now });
+  assert.match(late.textContent, /задерживается обеденный выпуск$/);
+  assert.doesNotMatch(prep.textContent + late.textContent, /сейчас/);
+  const older = UI.renderStatusLine(document, { last_ready: { slot: 'late', day: '2026-11-15', published_at: '2026-11-15T19:55:00.000Z' }, next: null }, { now });
+  assert.match(older.textContent, /^Обновлено 15 ноября в 21:55 · поздний выпуск$/);
+  assert.equal(UI.renderStatusLine(document, { last_ready: null, next: null }, { now }), null);
+});
+const ovStory = (key, items, extra) => ({ story_key: key, main: false, items, ...extra });
+const ovIt = (n, slot, at) => ({ item_key: 'na_' + String(n).padStart(24, '0'), outlet_id: 'ynet', url: 'https://www.ynet.co.il/news/article/x' + n, section: 'politics',
+  title_he: 'כותרת ' + n, title_ru: 'Заголовок ' + n, edition_slot: slot, edition_published_at: at });
+test('overview: rows of later editions carry «новое в 18:04»; edition filter narrows the list', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const story = ovStory('S', [ovIt(1, 'morning', '2026-11-16T05:40:00.000Z'), ovIt(2, 'evening', '2026-11-16T16:04:00.000Z')]);
+  const el = UI.renderStory(document, story, {});
+  const badges = [...el.querySelectorAll('.nw-ov-new-in')].map(b => b.textContent);
+  assert.deepEqual(badges, ['новое в 18:04']);
+  const stories = [story, ovStory('M', [ovIt(3, 'morning', '2026-11-16T05:40:00.000Z')])];
+  assert.deepEqual(UI.filterByEdition(stories, 'evening').map(s => [s.story_key, s.items.length]), [['S', 1]]);
+  assert.equal(UI.filterByEdition(stories, null).length, 2);
+  const s = UI.parseState('?view=overview&day=2026-11-16&ed=evening');
+  assert.equal(s.ed, 'evening'); assert.equal(UI.stateHref(s), '/news.html?view=overview&day=2026-11-16&ed=evening');
+  assert.equal(UI.parseState('?view=overview&ed=junk').ed, null);
+});
+test('overview: since-last-visit marks only rows published after lastVisit; a continued story says so', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const story = ovStory('S', [ovIt(1, 'morning', '2026-11-16T05:40:00.000Z'), ovIt(2, 'evening', '2026-11-16T16:04:00.000Z')], { continued: true });
+  const el = UI.renderStory(document, story, { lastVisit: '2026-11-16T10:00:00.000Z' });
+  assert.equal(el.querySelectorAll('.nw-ov-since').length, 1);
+  assert.match(el.querySelector('.nw-ov-head').textContent, /продолжение со вчера/);
+  assert.equal(UI.renderStory(document, story, { lastVisit: null }).querySelectorAll('.nw-ov-since').length, 0, 'no stored visit → no marks');
 });

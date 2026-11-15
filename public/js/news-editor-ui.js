@@ -23,6 +23,44 @@
   }
   function reasonText(code, t) { return t("newsEditor.reason." + code, code); }
 
+  // ---- editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10) -------------------
+  var SLOTS = ["morning", "midday", "evening", "late", "extra"];
+  var SLOT_SHORT = { morning: "Утро", midday: "Обед", evening: "Вечер", late: "Поздний", extra: "Внеочередной" };
+  function ilTime(iso) { try { return iso ? new Date(iso).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jerusalem" }) : "—"; } catch (_) { return "—"; } }
+  // Average minutes from cut-off to publication per slot, over the last 7 days of published editions.
+  function slotAverages(editions, nowMs) {
+    var since = (nowMs || Date.now()) - 7 * 86400000, sums = {}, out = {};
+    (editions || []).forEach(function (e) {
+      if (!e.published_at || !e.cutoff_at || Date.parse(e.cutoff_at) < since) return;
+      var m = (Date.parse(e.published_at) - Date.parse(e.cutoff_at)) / 60000;
+      if (!(m >= 0)) return;
+      (sums[e.slot] = sums[e.slot] || []).push(m);
+    });
+    Object.keys(sums).forEach(function (s) { out[s] = Math.round(sums[s].reduce(function (a, b) { return a + b; }, 0) / sums[s].length); });
+    return out;
+  }
+  function renderEditionsTable(doc, editions, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; };
+    var box = h(doc, "div", { class: "ne-editions" });
+    if (!editions.length) { box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.editions.empty", "Выпусков ещё не было") })); return box; }
+    var STATUS = { archived: "ждёт dot", downloaded: "у dot", published: "опубликован", partial: "опубликован частично", superseded: "заменён следующим", skipped: "пропущен", failed: "ошибка", building: "собирается" };
+    editions.forEach(function (e) {
+      var done = e.status === "published" || e.status === "partial";
+      var verdict = ["skipped", "superseded", "failed", "building"].indexOf(e.status) >= 0 ? "" : e.late ? t("newsEditor.editions.late", "опоздал") : done ? t("newsEditor.editions.onTime", "вовремя") : "";
+      var line = h(doc, "div", { class: "ne-pack ne-edition", "data-edition": e.edition_id, "data-status": e.status, "data-late": e.late ? "true" : "false" }, [
+        h(doc, "strong", { text: e.day + " · " + t("news.slotShort." + e.slot, SLOT_SHORT[e.slot] || e.slot) }),
+        h(doc, "span", { text: t("newsEditor.editions.status." + e.status, STATUS[e.status] || e.status) + (verdict ? " · " + verdict : "") }),
+        h(doc, "span", { class: "ne-muted", text: [t("newsEditor.editions.cut", "срез") + " " + ilTime(e.cut_at || e.cutoff_at), t("newsEditor.editions.downloaded", "скачан") + " " + ilTime(e.downloaded_at),
+          t("newsEditor.editions.published", "опубликован") + " " + ilTime(e.published_at)].join(" · ") }),
+        h(doc, "span", { class: "ne-muted", text: t("newsEditor.editions.counts", "статей {m} · в обзоре {o} · на переделке {r}").replace("{m}", String(e.main_count || 0))
+          .replace("{o}", String(e.overview_count || 0)).replace("{r}", String(e.rework_count || 0)) })]);
+      if (e.has_file) line.appendChild(h(doc, "a", { class: "ne-button", href: "/api/news/editor/editions/" + encodeURIComponent(e.edition_id) + "/download", text: t("newsEditor.harvest.download", "Скачать архив") }));
+      box.appendChild(line);
+    });
+    return box;
+  }
+
   // receipt: { pack_id, totals, items:[{path, article_id?, status, code?, overlap?, flagged?, warnings?}], warnings }
   function renderReceipt(doc, receipt, opts) {
     opts = opts || {};
@@ -316,6 +354,50 @@
       return box;
     }
 
+    // «Выпуски»: the day's four editions — cut-off, archive, dot, publication — and the schedule.
+    function editionsCard() {
+      var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-editions-title" }, [h(doc, "h2", { id: "ne-editions-title", text: t("newsEditor.editions.title", "Выпуски") }),
+        h(doc, "p", { class: "ne-muted", text: t("newsEditor.editions.hint", "Четыре выпуска в день: срез — архив для dot — публикация. Время — по Израилю.") })]);
+      var avgLine = h(doc, "p", { class: "ne-muted ne-editions-avg" }), host = h(doc, "div", { "aria-live": "polite" }), formHost = h(doc, "div");
+      box.append(avgLine, host, formHost);
+      (async function () {
+        try {
+          var data = await api("GET", "/api/news/editor/editions?limit=28");
+          host.replaceChildren(renderEditionsTable(doc, data.editions, { t: t }));
+          var avg = slotAverages(data.editions), keys = SLOTS.filter(function (s) { return avg[s] != null; });
+          avgLine.textContent = keys.length ? t("newsEditor.editions.average", "От среза до публикации за 7 дней: {list}").replace("{list}", keys.map(function (s) {
+            return t("news.slotShort." + s, SLOT_SHORT[s]) + " " + t("newsEditor.editions.minutes", "{n} мин").replace("{n}", String(avg[s])); }).join(", ")) : "";
+        } catch (e) { host.replaceChildren(h(doc, "p", { text: errorText(e) })); }
+        try {
+          var sch = (await api("GET", "/api/news/editor/schedule")).schedule, owner = session && session.kind === "owner";
+          var form = h(doc, "form", { class: "ne-schedule" }, [h(doc, "h3", { text: t("newsEditor.editions.schedule", "Расписание") })]);
+          var inputs = {};
+          ["morning", "midday", "evening", "late"].forEach(function (slot) {
+            var s = sch.slots[slot], row = h(doc, "div", { class: "ne-inline" }, [h(doc, "span", { text: t("news.slotShort." + slot, SLOT_SHORT[slot]) })]);
+            inputs[slot] = {};
+            [["cutoff", "time", t("newsEditor.editions.cutoff", "Срез")], ["ready", "time", t("newsEditor.editions.ready", "Готов к")], ["main", "number", t("newsEditor.editions.main", "Статей")]].forEach(function (f) {
+              var id = "ne-s-" + slot + "-" + f[0], input = h(doc, "input", { id: id, type: f[1], value: String(s[f[0]]), disabled: !owner, min: f[1] === "number" ? "1" : null, max: f[1] === "number" ? "40" : null });
+              inputs[slot][f[0]] = input;
+              row.append(h(doc, "label", { for: id, text: f[2] }), input);
+            });
+            form.appendChild(row);
+          });
+          if (owner) {
+            form.appendChild(h(doc, "button", { type: "submit", class: "ne-button", text: t("newsEditor.editions.save", "Сохранить") }));
+            form.addEventListener("submit", async function (ev) {
+              ev.preventDefault();
+              var slots = {};
+              Object.keys(inputs).forEach(function (slot) { slots[slot] = { cutoff: inputs[slot].cutoff.value, ready: inputs[slot].ready.value, main: Number(inputs[slot].main.value) }; });
+              try { await api("PUT", "/api/news/editor/schedule", json({ schedule: Object.assign({}, sch, { slots: slots }) }), "application/json"); say(t("newsEditor.editions.saved", "Расписание сохранено")); }
+              catch (e) { say(e.message === "SCHEDULE_INVALID" ? t("newsEditor.editions.invalid", "Проверьте время: срезы по порядку, «готов к» позже среза") : errorText(e)); }
+            });
+          } else form.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.editions.ownerOnly", "Менять расписание может только владелец") }));
+          formHost.replaceChildren(form);
+        } catch (_) { /* the schedule is optional on this card */ }
+      })();
+      return box;
+    }
+
     async function render() {
       root.setAttribute("aria-busy", "true");
       if (!session) {
@@ -329,7 +411,7 @@
         who.appendChild(out);
       }
       receiptHost = h(doc, "div", { class: "ne-receipt-host" });
-      var parts = [who, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var parts = [who, editionsCard(), harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }
@@ -341,5 +423,5 @@
     doc.addEventListener("i18n:changed", function () { render(); });
     render();
   }
-  return { renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
+  return { slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
 });

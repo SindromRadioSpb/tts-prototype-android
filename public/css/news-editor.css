@@ -39,3 +39,9 @@
 .ne-article-ru{overflow-wrap:anywhere}
 .ne-row-actions{display:flex;gap:8px;flex-wrap:wrap}
 .ne-button:disabled{opacity:.55;cursor:default}
+/* Editions card (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10). */
+.ne-edition{flex-wrap:wrap;gap:4px 12px}
+.ne-edition[data-late=true] strong::after{content:" ⏱";}
+.ne-schedule .ne-inline{flex-wrap:wrap;gap:6px 10px;align-items:center;margin-block:6px}
+.ne-schedule .ne-inline>span{min-width:7ch;font-weight:600}
+.ne-schedule input[type=number]{width:5em}

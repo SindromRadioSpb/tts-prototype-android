@@ -154,15 +154,56 @@
     (story.items || []).forEach(function (it) { var g = GROUPS[it.section] || "society"; votes[g] = (votes[g] || 0) + 1; });
     return Object.keys(votes).sort(function (a, b) { return votes[b] - votes[a]; })[0] || "society";
   }
+  // Editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10): times are Israel time.
+  var EDITION_SLOTS = ["morning", "midday", "evening", "late", "extra"];
+  function israelTime(iso, loc) {
+    try { return new Date(iso).toLocaleTimeString(loc === "he" ? "he-IL" : loc === "en" ? "en-GB" : "ru-RU", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jerusalem" }); } catch (_) { return ""; }
+  }
+  function israelDate(ms) { try { return new Date(ms).toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" }); } catch (_) { return ""; } }
+  function israelDayLabel(iso, loc) {
+    try { return new Date(iso).toLocaleDateString(loc === "he" ? "he-IL" : loc === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Jerusalem" }); } catch (_) { return ""; }
+  }
+  var SLOT_FALLBACK = { morning: "утренний выпуск", midday: "обеденный выпуск", evening: "вечерний выпуск", late: "поздний выпуск", extra: "внеочередной выпуск" };
+  function slotName(slot, t) { return t("news.slot." + slot, SLOT_FALLBACK[slot] || slot); }
+  // «Обновлено в 18:04 · вечерний выпуск · следующий выпуск около 22:00» — the last READY edition, never «now».
+  function renderStatusLine(doc, st, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; }, loc = opts.locale || "ru", now = opts.now || Date.now();
+    if (!st || (!st.last_ready && !st.next)) return null;
+    var parts = [];
+    if (st.last_ready && st.last_ready.published_at) {
+      var at = st.last_ready.published_at, same = israelDate(Date.parse(at)) === israelDate(now);
+      parts.push((same ? fill(t("news.status.ready", "Обновлено в {time}"), { time: israelTime(at, loc) })
+        : fill(t("news.status.readyOn", "Обновлено {date} в {time}"), { date: israelDayLabel(at, loc), time: israelTime(at, loc) })) + " · " + slotName(st.last_ready.slot, t));
+    }
+    if (st.next) {
+      var n = st.next;
+      parts.push(n.state === "preparing" ? fill(t("news.status.preparing", "готовится {slot}"), { slot: slotName(n.slot, t) })
+        : n.state === "late" ? fill(t("news.status.late", "задерживается {slot}"), { slot: slotName(n.slot, t) })
+        : fill(t("news.status.next", "следующий выпуск около {time}"), { time: israelTime(n.target_ready_at, loc) }));
+    }
+    return h(doc, "p", { class: "nw-status", role: "status", text: parts.join(" · ") });
+  }
+  // Only the rows that appeared in one edition (stories keep the rest out).
+  function filterByEdition(stories, slot) {
+    if (!slot) return stories;
+    return stories.map(function (s) { var items = s.items.filter(function (it) { return it.edition_slot === slot; }); return items.length ? Object.assign({}, s, { items: items }) : null; }).filter(Boolean);
+  }
   function originalLink(doc, it, t) {
     var href = safeHttps(it.url);
     return href ? h(doc, "a", { class: "nw-ov-original", href: href, target: "_blank", rel: "noopener noreferrer", text: t("news.overview.original", "оригинал ↗") }) : null;
   }
-  function ovItem(doc, it, t, big) {
+  function ovItem(doc, it, t, big, opts) {
+    opts = opts || {};
     var o = outletOf(it.outlet_id), tag = h(doc, "span", { class: "nw-outlet-tag", text: o.name_latin });
     tag.style.setProperty("--nw-outlet", o.color);
-    var box = h(doc, "div", { class: "nw-ov-item" + (big ? " nw-ov-item-lead" : "") }, [
-      h(doc, "p", { class: "nw-ov-meta" }, [tag, it.paywalled ? " · " + t("news.overview.paywalled", "платная") : "", " ", originalLink(doc, it, t)]),
+    var since = opts.lastVisit && it.edition_published_at && it.edition_published_at > opts.lastVisit;
+    var box = h(doc, "div", { class: "nw-ov-item" + (big ? " nw-ov-item-lead" : "") + (since ? " nw-ov-item-since" : "") }, [
+      h(doc, "p", { class: "nw-ov-meta" }, [tag, it.paywalled ? " · " + t("news.overview.paywalled", "платная") : "",
+        it.edition_slot && it.edition_slot !== "morning" && it.edition_published_at ? h(doc, "span", { class: "nw-ov-new-in", text: fill(t("news.overview.newIn", "новое в {time}"), { time: israelTime(it.edition_published_at, opts.locale) }) }) : null,
+        since ? h(doc, "span", { class: "nw-ov-since", text: t("news.overview.sinceVisit", "с вашего прошлого визита") }) : null,
+        it.changed_at ? h(doc, "span", { class: "nw-ov-changed", text: fill(t("news.overview.changed", "обновлено изданием в {time}"), { time: israelTime(it.changed_at, opts.locale) }) }) : null,
+        " ", originalLink(doc, it, t)]),
       h(doc, big ? "h3" : "p", { class: "nw-ov-title", lang: "he", dir: "rtl", text: it.title_he }),
       it.title_ru ? h(doc, "p", { class: "nw-ov-ru", dir: "auto", text: it.title_ru }) : null]);
     if (big && it.lead_he) {
@@ -181,13 +222,15 @@
     items.forEach(function (it) { if (!seen[it.outlet_id]) { seen[it.outlet_id] = 1; outlets.push(outletOf(it.outlet_id).name_latin); } });
     var art = h(doc, "article", { class: "nw-ov-story" + (story.main ? " nw-ov-main" : ""), "data-story": story.story_key, "data-group": storyGroup(story) }, [
       h(doc, "p", { class: "nw-ov-head" }, [h(doc, "span", { class: "nw-ov-group", text: t("news.overview.group." + storyGroup(story), storyGroup(story)) }),
-        outlets.length > 1 ? " · " + fill(t("news.overview.outlets", "изданий: {n}"), { n: outlets.length }) : ""]),
-      ovItem(doc, lead, t, true)]);
+        outlets.length > 1 ? " · " + fill(t("news.overview.outlets", "изданий: {n}"), { n: outlets.length }) : "",
+        story.continued ? " · " + t("news.overview.continued", "продолжение со вчера") : ""]),
+      ovItem(doc, lead, t, true, opts)]);
     var work = items.filter(function (it) { return it.work_id; })[0];
     if (work) art.appendChild(h(doc, "a", { class: "nw-button nw-ov-read", href: readerHref({ work_id: work.work_id }, opts.returnTo), text: t("news.overview.read", "Читать с переводом и огласовкой") }));
     if (rest.length) {
       var more = h(doc, "details", { class: "nw-ov-more" }, [h(doc, "summary", { text: fill(t("news.overview.more", "Ещё {n}: {outlets}"), { n: rest.length, outlets: outlets.slice(1).join(", ") || outlets[0] }) })]);
-      rest.forEach(function (it) { more.appendChild(ovItem(doc, it, t, false)); });
+      rest.forEach(function (it) { more.appendChild(ovItem(doc, it, t, false, opts)); });
+      if (rest.some(function (it) { return opts.lastVisit && it.edition_published_at && it.edition_published_at > opts.lastVisit; })) more.open = true;
       art.appendChild(more);
     }
     return art;
@@ -200,11 +243,11 @@
     var day = function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : null; };
     var group = q.get("group"); if (GROUP_ORDER.indexOf(group) < 0) group = null;
     return { outlet: outlet, section: section, tier: q.get("tier") === "archive" ? "archive" : "fresh", q: (q.get("q") || "").slice(0, 200), from: day(q.get("from")), to: day(q.get("to")),
-      view: !outlet && q.get("view") === "overview" ? "overview" : null, day: day(q.get("day")), group: group };
+      view: !outlet && q.get("view") === "overview" ? "overview" : null, day: day(q.get("day")), group: group, ed: EDITION_SLOTS.indexOf(q.get("ed")) >= 0 ? q.get("ed") : null };
   }
   function stateHref(s) {
     var q = new URLSearchParams();
-    if (s.view === "overview") { q.set("view", "overview"); if (s.day) q.set("day", s.day); if (s.group) q.set("group", s.group); return "/news.html?" + q.toString(); }
+    if (s.view === "overview") { q.set("view", "overview"); if (s.day) q.set("day", s.day); if (s.group) q.set("group", s.group); if (s.ed) q.set("ed", s.ed); return "/news.html?" + q.toString(); }
     if (s.outlet) q.set("outlet", s.outlet);
     if (s.section) q.set("section", s.section);
     if (s.tier === "archive") q.set("tier", "archive");
@@ -268,6 +311,15 @@
     var pinned = function () { try { var v = JSON.parse(store.get(PIN_KEY) || "[]"); return Array.isArray(v) ? v.filter(function (id) { return Outlets.byId(id); }) : []; } catch (_) { return []; } };
     var noHeavy = function () { return store.get(HEAVY_KEY) === "1"; };
     var outletsCache = null, token = 0;
+    // «С вашего прошлого визита»: the time of the previous visit, read once; this visit is stored after 10 s or on leaving.
+    var VISIT_KEY = "lp.news.lastVisit", lastVisit = store.get(VISIT_KEY), visitSaved = false;
+    var saveVisit = function () { if (!visitSaved) { visitSaved = true; store.set(VISIT_KEY, new Date().toISOString()); } };
+    try { win.setTimeout(saveVisit, 10000); win.addEventListener("pagehide", saveVisit); } catch (_) {}
+    function statusHost(my) {
+      var host = h(doc, "div", { class: "nw-status-host" });
+      getJson("/api/news/status").then(function (st) { if (my !== token) return; var el = renderStatusLine(doc, st, { t: t, locale: locale() }); if (el) host.replaceChildren(el); }).catch(function () {});
+      return host;
+    }
     // Owner / news editor: card controls «В архив» / «Вернуть в ленту» / «Удалить» + «Отменить».
     var manage = null, toastTimer = null;
     var UNDO = { archive: "unarchive", unarchive: "archive", delete: "restore" };
@@ -337,7 +389,7 @@
       var pins = pinned(), byId = {};
       outlets.forEach(function (o) { byId[o.outlet_id] = o; });
       var tile = function (o) { return renderOutletTile(doc, o, { t: t, pinned: pins.indexOf(o.outlet_id) >= 0, locale: locale() }); };
-      var parts = [head];
+      var parts = [head, statusHost(my)];
       var teaser = h(doc, "div", { class: "nw-ov-teaser-host" });
       parts.push(teaser);
       getJson("/api/news/overview").then(function (data) {
@@ -451,17 +503,25 @@
         b.addEventListener("click", function () { go({ view: "overview", day: ov.day, group: g }, true); });
         return b;
       }));
-      var returnTo = stateHref({ view: "overview", day: ov.day, group: state.group });
-      var shown = ov.stories.filter(function (s) { return !state.group || storyGroup(s) === state.group; });
+      var returnTo = stateHref({ view: "overview", day: ov.day, group: state.group, ed: state.ed });
+      var eds = (ov.editions || []).filter(function (e) { return e.published_at; });
+      var edChips = eds.length > 1 ? h(doc, "div", { class: "nw-chips nw-ed-chips", role: "group", "aria-label": t("news.overview.editions", "Выпуски") }, [null].concat(eds.map(function (e) { return e.slot; })).map(function (slot) {
+        var e = eds.filter(function (x) { return x.slot === slot; })[0];
+        var b = h(doc, "button", { type: "button", class: "nw-chip", "aria-pressed": (state.ed || null) === slot ? "true" : "false",
+          text: slot ? t("news.slotShort." + slot, slot) + " · " + israelTime(e.published_at, locale()) : t("news.overview.editionAll", "Все выпуски") });
+        b.addEventListener("click", function () { go({ view: "overview", day: ov.day, group: state.group, ed: slot }, true); });
+        return b;
+      })) : null;
+      var shown = filterByEdition(ov.stories, state.ed).filter(function (s) { return !state.group || storyGroup(s) === state.group; });
       var main = shown.filter(function (s) { return s.main; }), rest = shown.filter(function (s) { return !s.main; });
-      var parts = [head, nav, chips];
+      var parts = [head, statusHost(my), nav, edChips, chips].filter(Boolean);
       if (main.length) parts.push(h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-ov-main" }, [h(doc, "h2", { id: "nw-ov-main", text: t("news.overview.main", "Главное за день") })]
-        .concat(main.map(function (s) { return renderStory(doc, s, { t: t, returnTo: returnTo }); }))));
+        .concat(main.map(function (s) { return renderStory(doc, s, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale() }); }))));
       if (rest.length) {
         var sec = h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-ov-rest" }, [h(doc, "h2", { id: "nw-ov-rest", text: t("news.overview.rest", "Все остальные сюжеты") })]);
         // Long days: the first 60 stories at once, the rest on «Показать ещё».
         var shownCount = 0, more = h(doc, "button", { type: "button", class: "nw-button nw-more", text: t("news.more", "Показать ещё") });
-        var step = function () { rest.slice(shownCount, shownCount + 60).forEach(function (s) { sec.insertBefore(renderStory(doc, s, { t: t, returnTo: returnTo }), more); }); shownCount += 60; more.hidden = shownCount >= rest.length; };
+        var step = function () { rest.slice(shownCount, shownCount + 60).forEach(function (s) { sec.insertBefore(renderStory(doc, s, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale() }), more); }); shownCount += 60; more.hidden = shownCount >= rest.length; };
         sec.appendChild(more); more.addEventListener("click", step); step();
         parts.push(sec);
       }
@@ -490,5 +550,5 @@
     installUpdateGate(win, t);
     probeManage().then(render, render);
   }
-  return { installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
+  return { renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });
