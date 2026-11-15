@@ -196,6 +196,41 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       done.then(r => audit('news_harvest_run', actor.id, { run_id: r.run_id, articles: r.articles }, req.ip)).catch(e => { try { console.warn('[news-harvest]', e && e.message); } catch (_) {} });
       res.status(202).json({ ok: true, started: true });
     });
+    // Editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.9): dot asks for the next one.
+    {
+      app.get('/api/news/editor/editions', read, noStore, async (req, res) => {
+        const actor = await actorFor(req, res); if (!actor) return;
+        try { res.json({ ok: true, editions: await harvester.listEditions(req.query.limit) }); } catch (e) { send(res, e); }
+      });
+      app.get('/api/news/editor/editions/next', read, noStore, async (req, res) => {
+        const actor = await actorFor(req, res); if (!actor) return;
+        try { res.json({ ok: true, edition: await harvester.nextEdition() }); } catch (e) { send(res, e); }
+      });
+      app.get('/api/news/editor/editions/:id/download', read, noStore, async (req, res) => {
+        const actor = await actorFor(req, res); if (!actor) return;
+        try {
+          const file = await harvester.downloadEdition(req.params.id);
+          if (!file) return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
+          res.set({ 'Content-Type': 'application/zip', 'X-Content-Type-Options': 'nosniff' });
+          res.download(file.path, file.name);
+        } catch (e) { send(res, e); }
+      });
+      app.get('/api/news/editor/schedule', read, noStore, async (req, res) => {
+        const actor = await actorFor(req, res); if (!actor) return;
+        try { res.json({ ok: true, schedule: await harvester.loadSchedule() }); } catch (e) { send(res, e); }
+      });
+      app.put('/api/news/editor/schedule', write, json, noStore, async (req, res) => {
+        const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+        try {
+          const schedule = await harvester.saveSchedule(req.body && req.body.schedule ? req.body.schedule : req.body);
+          audit('news_schedule', actor.id, { schedule }, req.ip);
+          res.json({ ok: true, schedule });
+        } catch (e) { if (e && e.code === 'SCHEDULE_INVALID') return res.status(400).json({ ok: false, error: 'SCHEDULE_INVALID' }); send(res, e); }
+      });
+      app.get('/api/news/status', read, noStore, async (req, res) => {
+        try { res.json({ ok: true, ...(await harvester.status()) }); } catch (e) { send(res, e); }
+      });
+    }
     app.get('/api/news/editor/harvests/:id/download', read, noStore, async (req, res) => {
       const actor = await actorFor(req, res); if (!actor) return;
       try {

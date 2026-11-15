@@ -93,6 +93,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   const iso = () => new Date(nowMs()).toISOString();
   let queue = Promise.resolve();
   const overviewItems = createOverviewItems({ db, now });
+  let editionListener = null;
+  const setEditionListener = fn => { editionListener = typeof fn === 'function' ? fn : null; };
   // Since migration 083 «Обзор дня» is kept by article; before it, one body per day.
   let byRows = null;
   const hasRows = async () => byRows != null ? byRows : (byRows = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_overview_items'")));
@@ -279,6 +281,10 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
         let r;
         try { r = await ingestArticle(actor, manifest, ref, byName); }
         catch (e) { r = { path: ref.path, status: 'rejected', code: 'INTERNAL_ERROR' }; warnings.push('INTERNAL_ERROR:' + ref.path + ':' + String(e && e.message || e).slice(0, 200)); }
+        // An article refused before its key was known still names its source (the edition counts the attempt).
+        if (!r.article_id && manifest.edition_id) {
+          try { const a = JSON.parse(readEntry(byName.get(ref.path), LIMITS.article).toString('utf8')); r.article_key = C.articleKey(a.source.outlet_id, C.canonicalizeUrl(a.source.canonical_url)); } catch (_) {}
+        }
         items.push(r);
       }
       for (const w of manifest.withdraw || []) {
@@ -294,6 +300,13 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       for (const i of items) { totals[i.status] = (totals[i.status] || 0) + 1; if (i.flagged) totals.flagged++; }
       const receipt = { pack_id: manifest.pack_id, totals, items, warnings };
       if (manifest.overview) receipt.overview = await ingestOverview(manifest, byName);
+      // Editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.3): the harvester counts what was published.
+      if (manifest.edition_id && editionListener) {
+        try {
+          await editionListener({ edition_id: String(manifest.edition_id), items: items.map(i => ({ status: i.status, code: i.code, article_id: i.article_id || i.article_key })),
+            rejected: Array.isArray(manifest.rejected) ? manifest.rejected.slice(0, 1000) : [], overview: !!(receipt.overview && receipt.overview.status === 'published') });
+        } catch (e) { warnings.push('EDITION_ACCOUNTING:' + String(e && e.message || e).slice(0, 200)); }
+      }
       await dbRun(db, `INSERT INTO news_packs(pack_id,uploaded_by,uploaded_at,producer_json,receipt_json) VALUES(?,?,?,?,?)
         ON CONFLICT(pack_id) DO UPDATE SET uploaded_by=excluded.uploaded_by, uploaded_at=excluded.uploaded_at, receipt_json=excluded.receipt_json`,
         [manifest.pack_id, String(actor.id), iso(), JSON.stringify(manifest.producer), JSON.stringify(receipt)]);
@@ -508,7 +521,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     };
   }
 
-  return { ingestPack, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
+  return { setEditionListener, ingestPack, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
 }
 
 module.exports = { createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };

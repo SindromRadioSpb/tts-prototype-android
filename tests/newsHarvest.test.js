@@ -403,3 +403,19 @@ test('photos of articles live 2 months; the text stays in the archive', async t 
   const card = await repo.getCard(r.items[0].work_id);
   assert.equal(card.tier, 'archive'); assert.equal(card.readable, true); assert.equal(card.image.stored, undefined);
 });
+
+test('rework: a refused draft goes to rework/ of the next edition with its reason', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester } = await harvesterSetup(t, { clock });
+  const m = await harvester.tick();
+  await harvester.downloadEdition(m.edition_id);
+  await harvester.accountPack({ edition_id: m.edition_id, items: [], overview: true,
+    rejected: [{ outlet_id: 'ynet', canonical_url: 'https://www.ynet.co.il/news/article/abc123', code: 'STUDY_LAYER_INVALID' }] });
+  clock.now = Date.parse('2026-11-16T10:31:00+02:00'); // the lease (until 10:05) is over
+  const mid = await harvester.tick();
+  assert.equal(mid.articles, 1);
+  const zip = new AdmZip((await harvester.downloadEdition(mid.edition_id)).path);
+  const hj = JSON.parse(zip.readAsText('harvest.json'));
+  assert.deepEqual(hj.rework.map(r => [r.draft, r.reason, r.attempts]), [['rework/ynet-0001.draft.json', 'STUDY_LAYER_INVALID', 1]]);
+  assert.ok(zip.getEntry('rework/ynet-0001/img-1.jpg'));
+});

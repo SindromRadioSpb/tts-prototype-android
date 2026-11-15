@@ -18,7 +18,7 @@ const { extractArticle, israelIso } = require('./newsExtract');
 const { splitSentences } = require('./newsText');
 const { refineSection } = require('./newsStories');
 const { createStoryStore } = require('./newsStoryStore');
-const { normalizeSchedule, dayOf, dueSlot } = require('./newsEditions');
+const { normalizeSchedule, dayOf, dueSlot, slotTimes } = require('./newsEditions');
 const { buildEdition } = require('./newsEditionBuild');
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
@@ -365,7 +365,110 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const file = path.join(dir, path.basename(r.file_name));
     return fs.existsSync(file) ? { path: file, name: path.basename(r.file_name) } : null;
   }
-  return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, isRunning: () => !!busy, cleanup };
+  // ---- accounting: what dot published (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.3, §5.8) --
+  const keyFor = (outletId, url) => { try { return C.articleKey(outletId, C.canonicalizeUrl(url)); } catch (_) { return null; } };
+  const PUBLISHED = new Set(['published', 'revised', 'duplicate', 'archived']);
+  async function rowFor(k) {
+    return dbGet(db, `SELECT * FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND main_state IN ('drafted','published') ORDER BY main_state='drafted' DESC LIMIT 1`, [k, k]);
+  }
+  async function attempt(row, code, schedule) {
+    const n = row.main_attempts + 1, dropped = n >= schedule.maxAttempts;
+    await dbRun(db, `UPDATE news_harvest_items SET main_attempts=?, main_reason=?, main_state=?, lease_until=NULL WHERE url_key=?`,
+      [n, String(code || 'REJECTED').slice(0, 60), dropped ? 'dropped' : 'drafted', row.url_key]);
+  }
+  async function refreshEdition(editionId) {
+    const c = await dbGet(db, `SELECT SUM(main_state='drafted') open, SUM(main_state='published') done FROM news_harvest_items WHERE main_edition_id=?`, [editionId]);
+    const e = await dbGet(db, 'SELECT status, first_upload_at FROM news_editions WHERE edition_id=?', [editionId]);
+    if (!e || !e.first_upload_at) return;
+    await dbRun(db, `UPDATE news_editions SET status=?, published_count=? WHERE edition_id=?`, [(c && c.open) ? 'partial' : 'published', (c && c.done) || 0, editionId]);
+  }
+  // receipt of one pack: { edition_id, items:[{ status, article_id, code }], rejected:[{ outlet_id, canonical_url, code }], overview: bool }
+  async function accountPack({ edition_id, items = [], rejected = [], overview = false }) {
+    const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(edition_id || '')]);
+    if (!e) return null;
+    const schedule = await loadSchedule(), t = iso(now()), rep = parse(e.report_json) || {}, seen = new Set(rep.accounted || []);
+    let published = 0;
+    for (const it of items) {
+      if (!it || !it.article_id) continue;
+      const row = await rowFor(it.article_id);
+      if (!row) continue;
+      seen.add(row.url_key);
+      if (PUBLISHED.has(it.status)) {
+        published++;
+        if (row.main_state !== 'published') await dbRun(db, `UPDATE news_harvest_items SET main_state='published', main_reason=NULL, lease_until=NULL WHERE url_key=?`, [row.url_key]);
+      } else if (it.status === 'rejected' && row.main_state === 'drafted') await attempt(row, it.code, schedule);
+    }
+    for (const r of rejected) {
+      const k = r && keyFor(r.outlet_id, r.canonical_url), row = k && await rowFor(k);
+      if (!row || row.main_state !== 'drafted') continue;
+      seen.add(row.url_key);
+      await attempt(row, r.code, schedule);
+    }
+    const any = published || items.length || rejected.length || overview;
+    await dbRun(db, `UPDATE news_editions SET first_upload_at=COALESCE(first_upload_at, ?), published_at=CASE WHEN ? THEN COALESCE(published_at, ?) ELSE published_at END, report_json=? WHERE edition_id=?`,
+      [t, any ? 1 : 0, t, JSON.stringify({ ...rep, accounted: [...seen], packs: (rep.packs || 0) + 1 }), e.edition_id]);
+    await refreshEdition(e.edition_id);
+    return { edition_id: e.edition_id, published };
+  }
+  // The lease is over (or the next cut-off came): drafts of this edition no pack mentioned count as
+  // skipped — only when dot uploaded something for it; with no pack at all they just carry over.
+  async function closeEdition(editionId) {
+    const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId)]);
+    if (!e || e.closed_at) return null;
+    const rep = parse(e.report_json) || {}, seen = new Set(rep.accounted || []), schedule = await loadSchedule();
+    let skipped = 0;
+    if (e.first_upload_at) {
+      for (const row of await dbAll(db, `SELECT * FROM news_harvest_items WHERE main_edition_id=? AND main_state='drafted'`, [e.edition_id])) {
+        if (seen.has(row.url_key)) continue;
+        await attempt(row, 'SKIPPED', schedule); skipped++;
+      }
+    }
+    await dbRun(db, `UPDATE news_harvest_items SET lease_until=NULL WHERE lease_until=?`, [e.lease_until || '']);
+    await dbRun(db, 'UPDATE news_editions SET closed_at=? WHERE edition_id=?', [iso(now()), e.edition_id]);
+    await refreshEdition(e.edition_id);
+    const after = await dbGet(db, 'SELECT rework_count FROM news_editions WHERE edition_id=?', [e.edition_id]);
+    return { edition_id: e.edition_id, skipped, rework: after ? after.rework_count : 0 };
+  }
+  closeExpired = async () => {
+    for (const e of await dbAll(db, `SELECT edition_id FROM news_editions WHERE closed_at IS NULL AND status IN ('downloaded','partial','published') AND lease_until IS NOT NULL AND lease_until <= ?`, [iso(now())]))
+      await closeEdition(e.edition_id);
+  };
+
+  // ---- the editions API -----------------------------------------------------------------------------
+  const lateOf = e => !!e.target_ready_at && (e.published_at ? e.published_at > e.target_ready_at : (!['skipped', 'superseded', 'failed'].includes(e.status) && iso(now()) > e.target_ready_at));
+  const shape = e => ({ edition_id: e.edition_id, day: e.day, slot: e.slot, trigger: e.trigger, status: e.status, cutoff_at: e.cutoff_at, target_ready_at: e.target_ready_at,
+    cut_at: e.cut_at, archive_ready_at: e.archive_ready_at, downloaded_at: e.downloaded_at, published_at: e.published_at, late: lateOf(e), main_count: e.main_count,
+    overview_count: e.overview_count, published_count: e.published_count, rework_count: e.rework_count, extras_count: e.extras_count,
+    has_file: !!(e.file_name && fs.existsSync(path.join(dir, path.basename(e.file_name)))) });
+  async function listEditions(limit = 28) {
+    const lim = Math.max(1, Math.min(100, Number(limit) || 28));
+    return (await dbAll(db, 'SELECT * FROM news_editions ORDER BY day DESC, COALESCE(cutoff_at, closed_at) DESC LIMIT ?', [lim])).map(shape);
+  }
+  async function nextEdition() {
+    const e = await dbGet(db, `SELECT * FROM news_editions WHERE status='archived' AND file_name IS NOT NULL ORDER BY COALESCE(cut_at, cutoff_at) ASC LIMIT 1`);
+    return e ? { ...shape(e), download: '/api/news/editor/editions/' + e.edition_id + '/download' } : null;
+  }
+  // For the site: the last ready edition and what comes next — never «now».
+  async function status() {
+    const schedule = await loadSchedule(), t = now();
+    const last = await dbGet(db, `SELECT day, slot, published_at FROM news_editions WHERE published_at IS NOT NULL ORDER BY published_at DESC LIMIT 1`);
+    let next = null;
+    for (const day of [dayOf(t, schedule), dayOf(t + 86400e3, schedule)]) {
+      const eds = await dbAll(db, 'SELECT * FROM news_editions WHERE day=?', [day]);
+      const slots = slotTimes(day, schedule);
+      const lastDone = Math.max(-1, ...slots.map((s, i) => eds.some(e => e.slot === s.slot && e.published_at) ? i : -1));
+      const s = slots.slice(lastDone + 1).find(x => !eds.some(e => e.slot === x.slot && ['skipped', 'superseded'].includes(e.status)) || x.cutoffMs > t);
+      if (!s) continue;
+      const ed = eds.find(e => e.slot === s.slot && !['skipped', 'superseded', 'failed'].includes(e.status));
+      const readyAt = iso(ed && ed.target_ready_at ? Date.parse(ed.target_ready_at) : s.readyMs);
+      const state = s.cutoffMs > t ? 'waiting' : (Date.parse(readyAt) > t ? 'preparing' : 'late');
+      next = { slot: s.slot, day, target_ready_at: readyAt, state };
+      break;
+    }
+    return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
+  }
+  return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
+    closeExpired: () => closeExpired(), listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

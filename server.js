@@ -4610,6 +4610,8 @@ function newsStore() {
     const db = require("./db/sqlite").getDb();
     _newsStore = { repo: require("./db/newsRepo").createNewsRepo({ db }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
       harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m) }) };
+    // Editions: what dot publishes is counted against the edition it came from.
+    _newsStore.repo.setEditionListener(r => _newsStore.harvester.accountPack(r));
   }
   return _newsStore;
 }
@@ -4633,7 +4635,7 @@ const _newsLifecycleBoot = setTimeout(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
 }, 90 * 1000);
 if (_newsLifecycleBoot.unref) _newsLifecycleBoot.unref();
-// Daily article harvester (§16): checks every 10 minutes, runs once a day after 06:00 Israel time.
+// Article harvester: checks every 10 minutes — an edition at each cut-off (06:00, 10:30, 16:30, 20:30 Israel time by default), an hourly poll between.
 const _newsHarvestTick = setInterval(() => {
   newsStore().harvester.tick().catch(e => console.error("[news-harvest] run failed:", e && e.message));
 }, 10 * 60 * 1000);
