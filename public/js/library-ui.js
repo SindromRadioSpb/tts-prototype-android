@@ -10793,8 +10793,8 @@ async function openInitialNewsMaterial(query) {
     await openReader(row.id, row.title, { resume: true, replaceInitialHistory: true, returnToNews: true, _readerOpenEpoch: epoch });
     return true;
   };
+  let card = null;
   try {
-    let card = null;
     try {
       const response = await fetch('/api/news/feed?work=' + encodeURIComponent(entry.workId), { cache: 'no-cache' });
       card = response.ok ? (await response.json()).card : null;
@@ -10809,7 +10809,10 @@ async function openInitialNewsMaterial(query) {
     throw new Error('NEWS_UNAVAILABLE');
   } catch (_) {
     if (!isCurrent()) return true;
-    showState('news.unavailable', '⚠️');
+    // Offloaded to the owner's archive (news editions §5.11): say so, the original stays one tap away.
+    const offloaded = !!(card && card.offloaded);
+    showState(offloaded ? 'news.offloaded' : 'news.unavailable', offloaded ? '🗄️' : '⚠️');
+    if (offloaded && /^https:\/\//.test(String(card.original_url || ''))) $('roomContent')?.appendChild(el('a', { class: 'room-state-retry', attrs: { href: card.original_url, target: '_blank', rel: 'noopener noreferrer' }, text: tt('news.plate.original', 'Оригинал ↗') }));
     const back = el('a', { class: 'room-state-retry', attrs: { href: newsReturnHref() }, text: tt('news.back', '← Новости') });
     $('roomContent')?.appendChild(back);
   }

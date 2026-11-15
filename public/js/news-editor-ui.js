@@ -411,9 +411,20 @@
         who.appendChild(out);
       }
       receiptHost = h(doc, "div", { class: "ne-receipt-host" });
-      var interestsHost = h(doc, "div");
+      var interestsHost = h(doc, "div"), storageHost = h(doc, "div");
+      // «Место» (spec §5.11): owner only; the reminder on the News page links here (#storage).
+      if (session.kind === "owner" && win.NewsOffloadUi) {
+        var paintStorage = function () { api("GET", "/api/news/editor/storage").then(function (st) {
+          var card = win.NewsOffloadUi.renderStorageCard(doc, st, { t: t, win: win, csrf: session.csrf, onDone: paintStorage });
+          if (st.low) card.insertBefore(h(doc, "p", { class: "ne-storage-low", text: t("news.offload.banner", "Место на сервере заканчивается. Можно выгрузить на этот компьютер {days} дн. архива (≈{size}).")
+            .replace("{days}", String(st.suggest.days.length)).replace("{size}", win.NewsOffloadUi.sizeText(st.suggest.bytes)) }), card.children[1] || null);
+          storageHost.replaceChildren(card);
+          if ((win.location || {}).hash === "#storage" && card.scrollIntoView) card.scrollIntoView();
+        }).catch(function () {}); };
+        paintStorage();
+      }
       renderInterestsCard(doc, { t: t, api: api, say: say, json: json, canSave: session.kind === "owner" }).then(function (b) { interestsHost.replaceChildren(b); }).catch(function () {});
-      var parts = [who, editionsCard(), interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var parts = [who, editionsCard(), storageHost, interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }

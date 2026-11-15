@@ -188,6 +188,17 @@
     }
     return h(doc, "p", { class: "nw-status", role: "status", text: parts.join(" · ") });
   }
+  // The owner's reminder (spec §5.11): the server's disk is getting full — the archive can go to this computer.
+  function renderStorageBanner(doc, st, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; };
+    if (!opts.owner || !st || !st.low) return null;
+    var days = (st.suggest && st.suggest.days) || [], bytes = (st.suggest && st.suggest.bytes) || 0;
+    var size = bytes >= 1e9 ? (Math.round(bytes / 1e8) / 10).toString().replace(".", ",") + " ГБ" : Math.max(1, Math.round(bytes / 1e6)) + " МБ";
+    return h(doc, "div", { class: "nw-storage-banner", role: "status" }, [
+      h(doc, "span", { text: fill(t("news.offload.banner", "Место на сервере заканчивается. Можно выгрузить на этот компьютер {days} дн. архива (≈{size})."), { days: days.length, size: size }) + " " }),
+      h(doc, "a", { class: "nw-button", href: "/news-editor.html#storage", text: t("news.offload.go", "Выгрузить") })]);
+  }
   // Only the rows that appeared in one edition (stories keep the rest out).
   function filterByEdition(stories, slot) {
     if (!slot) return stories;
@@ -394,6 +405,11 @@
       outlets.forEach(function (o) { byId[o.outlet_id] = o; });
       var tile = function (o) { return renderOutletTile(doc, o, { t: t, pinned: pins.indexOf(o.outlet_id) >= 0, locale: locale() }); };
       var parts = [head, statusHost(my)];
+      if (manage && manage.kind === "owner") {
+        var bannerHost = h(doc, "div", { class: "nw-storage-host" });
+        parts.push(bannerHost);
+        getJson("/api/news/editor/storage").then(function (st) { if (my !== token) return; var b = renderStorageBanner(doc, st, { t: t, owner: true }); if (b) bannerHost.replaceChildren(b); }).catch(function () {});
+      }
       var teaser = h(doc, "div", { class: "nw-ov-teaser-host" });
       parts.push(teaser);
       getJson("/api/news/overview").then(function (data) {
@@ -554,5 +570,5 @@
     installUpdateGate(win, t);
     probeManage().then(render, render);
   }
-  return { renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
+  return { renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });
