@@ -183,8 +183,11 @@ function validateArticle(a, { now = Date.now() } = {}) {
 const OVERVIEW_LIMITS = { stories: 1500, items: 4000, title: 400, subtitle: 700, lead: 900, ru: 1500 };
 function validateOverview(o) {
   const bad = code => ({ ok: false, code, warnings: [], stories: 0, items: 0 });
-  if (!obj(o) || o.schema !== 'linguistpro-news-overview' || o.schema_version !== 1 || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.day || ''))
+  if (!obj(o) || o.schema !== 'linguistpro-news-overview' || ![1, 2].includes(o.schema_version) || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.day || ''))
     || !Array.isArray(o.stories) || o.stories.length > OVERVIEW_LIMITS.stories) return bad('OVERVIEW_INVALID');
+  // v2 — one edition's rows (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.4); a restore pack has no edition.
+  const v2 = o.schema_version === 2;
+  if (v2 && !(o.edition_id === null && o.restore === true) && (!/^ne_[0-9a-f]{18}$/.test(String(o.edition_id || '')) || !['morning', 'midday', 'evening', 'late', 'extra'].includes(o.slot))) return bad('OVERVIEW_INVALID');
   let items = 0, missing = 0;
   const textOk = (v, max) => v == null || (typeof v === 'string' && v.length <= max);
   for (const s of o.stories) {
@@ -195,6 +198,7 @@ function validateOverview(o) {
       if (!HEBREW.test(String(it.title_he || '')) || !textOk(it.title_he, OVERVIEW_LIMITS.title) || !textOk(it.subtitle_he, OVERVIEW_LIMITS.subtitle) || !textOk(it.lead_he, OVERVIEW_LIMITS.lead)
         || !['title_ru', 'subtitle_ru', 'lead_ru'].every(k => textOk(it[k], OVERVIEW_LIMITS.ru))
         || (it.section != null && !SECTIONS.includes(it.section)) || (it.published_at != null && !ISO_TZ.test(String(it.published_at)) && !isFinite(Date.parse(it.published_at)))) return bad('OVERVIEW_ITEM_INVALID');
+      if (it.item_key != null) { let k = null; try { k = articleKey(it.outlet_id, canonicalizeUrl(it.url)); } catch (_) {} if (it.item_key !== k) return bad('OVERVIEW_ITEM_INVALID'); }
       if (!str(it.title_ru) || (it.subtitle_he && !str(it.subtitle_ru)) || (it.lead_he && !str(it.lead_ru))) missing++;
     }
   }

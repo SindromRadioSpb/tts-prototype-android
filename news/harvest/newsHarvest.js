@@ -16,19 +16,22 @@ const Outlets = require('../../public/js/news-outlets');
 const { SOURCES } = require('./newsHarvestSources');
 const { extractArticle, israelIso } = require('./newsExtract');
 const { splitSentences } = require('./newsText');
-const { clusterStories, selectStories, refineSection } = require('./newsStories');
+const { refineSection } = require('./newsStories');
+const { createStoryStore } = require('./newsStoryStore');
+const { normalizeSchedule, dayOf, dueSlot } = require('./newsEditions');
+const { buildEdition } = require('./newsEditionBuild');
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
 const LIMITS = { mainStories: 22, imagesPerArticle: 8, rows: 400, page: 4 * 1024 * 1024, feed: 2 * 1024 * 1024, image: 15 * 1024 * 1024,
   imageOut: 600 * 1024, minChars: 400, minParagraphs: 2, maxAgeMs: 36 * 3600 * 1000, pagesPerPoll: 120, pollEveryMs: 55 * 60 * 1000,
   keepRunsDays: 7, keepItemsDays: 45, keepBodyDays: 3, staleRunMs: 3600 * 1000, leadChars: 450 };
-const RUN_HOUR = 6; // Israel time
 const DIGEST = /^חדשות היום|כותרות השבת|כותרות הבוקר|סיכום חדשות|סיכום השבוע|עדכונים שוטפים|מתעדכן|LIVE|לייב|^מבזק/;
 
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
 const dbRun = (db, sql, p = []) => new Promise((res, rej) => db.run(sql, p, function (e) { e ? rej(e) : res(this); }));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const parse = s => { try { return JSON.parse(s || 'null'); } catch (_) { return null; } };
 
 // ---- RSS -------------------------------------------------------------------------------------------
 function decodeXml(s) {
@@ -223,89 +226,48 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return report;
   }
 
-  // ---- morning: stories → main articles + «Обзор дня» ------------------------------------------------
-  async function buildNow(runId, trigger) {
+  // ---- editions: cut-off → archive for dot (docs/superpowers/specs/2026-11-15-news-editions-design.md) --
+  const stories = createStoryStore({ db, now });
+  async function loadSchedule() {
+    const r = await dbGet(db, `SELECT value_json FROM news_settings WHERE key='schedule'`).catch(() => null);
+    try { return normalizeSchedule(r ? JSON.parse(r.value_json) : null); } catch (_) { return normalizeSchedule(null); }
+  }
+  async function saveSchedule(input) {
+    const s = normalizeSchedule(input);
+    await dbRun(db, `INSERT INTO news_settings(key, value_json, updated_at) VALUES ('schedule', ?, ?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, updated_at=excluded.updated_at`,
+      [JSON.stringify(s), iso(now())]);
+    return s;
+  }
+  const newEditionId = () => 'ne_' + crypto.randomBytes(9).toString('hex');
+  // Archives dot has not downloaded give way to the new one: their material is carried into it.
+  async function supersede() { await dbRun(db, `UPDATE news_editions SET status='superseded', closed_at=? WHERE status='archived'`, [iso(now())]); }
+  let closeExpired = null;
+  function setCloseExpired(fn) { closeExpired = fn; }
+
+  async function buildNow(editionId, { day, slot, trigger, schedule }) {
     await pollNow().catch(e => log('[news-harvest] poll before build failed: ' + (e && e.message)));
-    const started = now(), retrievedAt = israelIso(started), day = retrievedAt.slice(0, 10), sharp = loadSharp();
+    const sharp = loadSharp();
     try { sharp.concurrency(1); sharp.cache(false); } catch (_) {}
-    const rows = await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='ready' AND run_id IS NULL AND first_seen_at >= ? ORDER BY first_seen_at`, [iso(started - L.maxAgeMs)]);
-    const members = rows.map(r => ({ id: r.url_key, row: r, outlet_id: r.outlet_id, section: r.section || 'news', title: r.title_he || r.feed_title || '',
-      text: [r.subtitle_he, r.lead_he].filter(Boolean).join(' '), at: Date.parse(r.published_at || r.first_seen_at) || 0,
-      full_ok: !!r.full_ok, paywalled: r.paywalled ? 1 : 0, images: r.images, chars: r.chars })).filter(m => m.title);
-    const of = clusterStories(members);
-    const byStory = new Map();
-    for (const m of members) { const sid = of.get(m.id); if (!byStory.has(sid)) byStory.set(sid, { id: sid, members: [] }); byStory.get(sid).members.push(m); }
-    const stories = [...byStory.values()];
-    const storyKey = s => day + '-' + crypto.createHash('sha256').update(s.id).digest('hex').slice(0, 8);
-    // Main stories in reading order: politics, security, society, economy, world, culture and sport, opinion.
-    const ORDER = ['politics', 'security', 'society', 'economy', 'world', 'culture', 'opinion'];
-    const main = selectStories(stories, { total: L.mainStories }).map((m, i) => ({ ...m, rank: i }))
-      .sort((a, b) => (ORDER.indexOf(a.group) - ORDER.indexOf(b.group)) || (a.rank - b.rank));
-
-    const zip = new AdmZip(), report = { day, items: members.length, stories: stories.length, main: [], outlets: {} };
-    const drafts = new Map(); // url_key → draft file
-    let n = 0, images = 0;
-    for (const { story, group, outlets, pick } of main) {
-      let a; try { a = JSON.parse(pick.row.data_json || 'null'); } catch (_) { a = null; }
-      if (!a) continue;
-      n++;
-      const folder = pick.outlet_id + '-' + String(n).padStart(4, '0'), files = [];
-      for (const im of a.images.slice(0, L.imagesPerArticle)) {
-        try {
-          const bytes = await photo(im.src, sharp);
-          const file = 'img-' + (files.length + 1) + '.jpg';
-          zip.addFile(folder + '/' + file, bytes);
-          files.push({ ...im, file, source_url: im.src });
-        } catch (_) { /* a photo that does not load is left out; the article stays */ }
-        await sleep(Math.round(delayMs / 3));
-      }
-      if (files.length && !files.some(f => f.role === 'hero')) files[0] = { ...files[0], role: 'hero' };
-      const draft = draftOf(a, { outletId: pick.outlet_id, images: files, retrievedAt, storyKey: storyKey(story) });
-      zip.addFile(folder + '.draft.json', Buffer.from(JSON.stringify(draft, null, 1)));
-      drafts.set(pick.id, folder + '.draft.json');
-      images += files.length;
-      report.main.push({ draft: folder + '.draft.json', story_key: storyKey(story), group, outlets, outlet_id: pick.outlet_id, title_he: a.title_he, url: a.canonical_url,
-        published_at: a.published_at, rows: draft.learning.versions[0].rows.length, images: files.length, warnings: draft.quality.warnings });
-      log('[news-harvest] ' + folder + ' ' + a.title_he.slice(0, 60));
+    await supersede();
+    if (closeExpired) await closeExpired();
+    const r = await buildEdition({ db, stories, editionId, day, slot, schedule, nowMs: now(), photo: src => photo(src, sharp), dir, draftOf, limits: L, log,
+      readme: fs.readFileSync(path.join(__dirname, 'dotTask.md'), 'utf8'), sleep: () => sleep(Math.round(delayMs / 3)) });
+    for (const [id, o] of Object.entries((lastPollReport && lastPollReport.outlets) || {})) if (o.errors.length) (r.report.outlets[id] = r.report.outlets[id] || { items: 0, main: 0 }).errors = o.errors;
+    const t = iso(now()), status = r.file_name ? 'archived' : 'skipped';
+    await dbRun(db, `UPDATE news_editions SET status=?, cut_at=?, archive_ready_at=?, main_count=?, rework_count=?, overview_count=?, file_name=?, bytes=?, report_json=? WHERE edition_id=?`,
+      [status, t, r.file_name ? t : null, r.main, r.rework, r.overview_items, r.file_name, r.bytes, JSON.stringify(r.report), editionId]);
+    return { run_id: editionId, edition_id: editionId, day, slot, trigger, status, articles: r.articles, images: r.images, bytes: r.bytes,
+      file_name: r.file_name, overview_items: r.overview_items, stories: r.stories, report: r.report };
+  }
+  async function startEdition({ day, slot, trigger, schedule, cutoffMs, readyMs }) {
+    const editionId = newEditionId();
+    await dbRun(db, `INSERT INTO news_editions(edition_id, day, slot, trigger, status, cutoff_at, target_ready_at) VALUES (?,?,?,?,'building',?,?)`,
+      [editionId, day, slot, trigger, iso(cutoffMs || now()), readyMs ? iso(readyMs) : null]);
+    try { return await buildNow(editionId, { day, slot, trigger, schedule }); }
+    catch (e) {
+      await dbRun(db, `UPDATE news_editions SET status='failed', closed_at=?, report_json=? WHERE edition_id=?`, [iso(now()), JSON.stringify({ error: String(e && e.message || e) }), editionId]).catch(() => {});
+      throw e;
     }
-    // «Обзор дня»: every article of the day, main stories first, then the stories several outlets
-    // wrote about, then the rest by time. Titles, subtitles and first paragraphs; dot fills the *_ru.
-    const mainIds = new Map(main.map((m, i) => [m.story.id, i]));
-    // The page's canonical address: the same key the published article gets, so the site links them.
-    const canonicalOf = row => { try { const a = JSON.parse(row.data_json || 'null'); if (a && a.canonical_url && Outlets.outletForUrl(a.canonical_url) === row.outlet_id) return a.canonical_url; } catch (_) {} return row.url; };
-    const ordered = stories.slice().sort((a, b) => {
-      const ma = mainIds.has(a.id) ? mainIds.get(a.id) : 1e6, mb = mainIds.has(b.id) ? mainIds.get(b.id) : 1e6;
-      if (ma !== mb) return ma - mb;
-      const oa = new Set(a.members.map(m => m.outlet_id)).size, ob = new Set(b.members.map(m => m.outlet_id)).size;
-      return (ob - oa) || (Math.max(...b.members.map(m => m.at)) - Math.max(...a.members.map(m => m.at)));
-    });
-    const overview = { schema: 'linguistpro-news-overview', schema_version: 1, day, created_at: retrievedAt,
-      stories: ordered.map(s => ({ story_key: storyKey(s), main: mainIds.has(s.id),
-        items: s.members.sort((a, b) => b.at - a.at).map(m => ({ outlet_id: m.outlet_id, url: canonicalOf(m.row), published_at: m.row.published_at || m.row.feed_pub_at || null,
-          section: m.section, title_he: m.title, title_ru: '', ...(m.row.subtitle_he ? { subtitle_he: m.row.subtitle_he, subtitle_ru: '' } : {}),
-          ...(m.row.lead_he ? { lead_he: m.row.lead_he, lead_ru: '' } : {}), ...(m.row.paywalled ? { paywalled: true } : {}), ...(drafts.has(m.id) ? { draft: drafts.get(m.id) } : {}) })) })) };
-    for (const m of members) { const o = report.outlets[m.outlet_id] = report.outlets[m.outlet_id] || { items: 0, main: 0 }; o.items++; if (drafts.has(m.id)) o.main++; }
-    for (const [id, o] of Object.entries((lastPollReport && lastPollReport.outlets) || {})) if (o.errors.length) (report.outlets[id] = report.outlets[id] || { items: 0, main: 0 }).errors = o.errors;
-
-    let fileName = null, bytes = 0;
-    if (members.length) {
-      zip.addFile('overview.json', Buffer.from(JSON.stringify(overview, null, 1)));
-      zip.addFile('README-dot.md', fs.readFileSync(path.join(__dirname, 'dotTask.md')));
-      zip.addFile('harvest.json', Buffer.from(JSON.stringify({ schema: 'linguistpro-news-harvest', schema_version: 2, run_id: runId, created_at: retrievedAt, ...report }, null, 1)));
-      fs.mkdirSync(dir, { recursive: true });
-      fileName = `news-harvest-${day}-${runId.slice(-6)}.zip`;
-      const buf = zip.toBuffer();
-      fs.writeFileSync(path.join(dir, fileName + '.part'), buf);
-      fs.renameSync(path.join(dir, fileName + '.part'), path.join(dir, fileName));
-      bytes = buf.length;
-      for (let i = 0; i < members.length; i += 200) {
-        const ids = members.slice(i, i + 200).map(m => m.id);
-        await dbRun(db, `UPDATE news_harvest_items SET run_id=? WHERE url_key IN (${ids.map(() => '?').join(',')})`, [runId, ...ids]);
-      }
-    }
-    await dbRun(db, `UPDATE news_harvest_runs SET status='done', finished_at=?, articles=?, images=?, bytes=?, file_name=?, report_json=? WHERE run_id=?`,
-      [iso(now()), n, images, bytes, fileName, JSON.stringify(report), runId]);
-    return { run_id: runId, trigger, status: 'done', articles: n, images, bytes, file_name: fileName, overview_items: members.length, stories: stories.length, report };
   }
 
   async function cleanup() {
@@ -313,10 +275,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       if (r.file_name) try { fs.rmSync(path.join(dir, path.basename(r.file_name)), { force: true }); } catch (_) {}
       await dbRun(db, 'DELETE FROM news_harvest_runs WHERE run_id = ?', [r.run_id]);
     }
+    for (const r of await dbAll(db, 'SELECT edition_id, file_name FROM news_editions WHERE day < ? AND file_name IS NOT NULL', [israelIso(now() - L.keepRunsDays * 86400000).slice(0, 10)]).catch(() => [])) {
+      try { fs.rmSync(path.join(dir, path.basename(r.file_name)), { force: true }); } catch (_) {}
+      await dbRun(db, 'UPDATE news_editions SET file_name=NULL WHERE edition_id=?', [r.edition_id]);
+    }
     await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL WHERE data_json IS NOT NULL AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
-    await dbRun(db, `UPDATE news_harvest_runs SET status='failed', finished_at=?, report_json=? WHERE status='running' AND started_at < ?`,
-      [iso(now()), JSON.stringify({ error: 'STALE' }), iso(now() - L.staleRunMs)]);
+    await dbRun(db, `UPDATE news_editions SET status='failed', closed_at=?, report_json=? WHERE status='building' AND cutoff_at < ?`,
+      [iso(now()), JSON.stringify({ error: 'STALE' }), iso(now() - L.staleRunMs)]).catch(() => {});
   }
 
   function exclusive(fn) {
@@ -325,53 +291,81 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return busy;
   }
   function poll() { return exclusive(pollNow); }
-  // The morning archive (also «Собрать сейчас»): polls once more, then builds.
+  // «Собрать сейчас»: an extra edition of the current day, picked like a midday one.
   function runOnce({ trigger = 'manual' } = {}) {
     return exclusive(async () => {
-      const runId = 'nh_' + crypto.randomBytes(9).toString('hex');
-      await dbRun(db, `INSERT INTO news_harvest_runs(run_id, day, trigger, status, started_at) VALUES (?,?,?,'running',?)`, [runId, israelIso(now()).slice(0, 10), trigger, iso(now())]);
-      try { return await buildNow(runId, trigger); }
-      catch (e) {
-        await dbRun(db, `UPDATE news_harvest_runs SET status='failed', finished_at=?, report_json=? WHERE run_id=?`, [iso(now()), JSON.stringify({ error: String(e && e.message || e) }), runId]).catch(() => {});
-        throw e;
-      }
+      const schedule = await loadSchedule();
+      return startEdition({ day: dayOf(now(), schedule), slot: 'extra', trigger, schedule });
     });
   }
-  // Called every few minutes: the morning build once a day after 06:00 Israel time (any run since then
-  // counts, a manual one too), otherwise an hourly poll of the feeds.
+  // Called every few minutes: the edition of a slot whose cut-off has come (earlier slots missed while
+  // the server was down are skipped — their material goes into this one), otherwise the hourly poll.
   async function tick() {
     if (busy) return null;
-    const t = now(), local = israelIso(t), hour = Number(local.slice(11, 13));
-    if (hour >= RUN_HOUR) {
-      const since = iso(t - (((hour - RUN_HOUR) * 60 + Number(local.slice(14, 16))) * 60 + Number(local.slice(17, 19))) * 1000);
-      if (!(await dbGet(db, `SELECT run_id FROM news_harvest_runs WHERE started_at >= ? AND status IN ('running','done')`, [since]))) return runOnce({ trigger: 'schedule' });
-    }
+    const schedule = await loadSchedule(), t = now();
+    const day = dayOf(t, schedule);
+    const eds = await dbAll(db, 'SELECT slot, status FROM news_editions WHERE day=?', [day]);
+    const due = dueSlot(t, schedule, eds);
+    if (due) return exclusive(async () => {
+      for (const slot of due.skip) await dbRun(db, `INSERT INTO news_editions(edition_id, day, slot, trigger, status, closed_at, report_json) VALUES (?,?,?,'schedule','skipped',?,?)`,
+        [newEditionId(), day, slot, iso(t), JSON.stringify({ reason: 'MISSED' })]);
+      return startEdition({ day, slot: due.slot, trigger: 'schedule', schedule, cutoffMs: due.cutoffMs, readyMs: due.readyMs });
+    });
     if (t - lastPollAt >= L.pollEveryMs) return poll();
     return null;
   }
-  async function listRuns(limit = 14) {
-    const rows = await dbAll(db, 'SELECT * FROM news_harvest_runs ORDER BY started_at DESC LIMIT ?', [Math.max(1, Math.min(50, Number(limit) || 14))]);
-    return rows.map(r => {
-      let report = {}; try { report = JSON.parse(r.report_json || '{}'); } catch (_) {}
-      return { run_id: r.run_id, day: r.day, trigger: r.trigger, status: r.status, started_at: r.started_at, finished_at: r.finished_at,
-        articles: r.articles, images: r.images, bytes: r.bytes, file_name: r.file_name, outlets: report.outlets || {}, error: report.error || null,
-        overview_items: report.items || 0, stories: report.stories || 0,
-        has_file: !!(r.file_name && fs.existsSync(path.join(dir, path.basename(r.file_name)))) };
-    });
+
+  // dot took the archive: its articles are «in work» for leaseHours and go in no other archive meanwhile.
+  async function downloadEdition(editionId) {
+    const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId)]);
+    if (!e || !e.file_name) return null;
+    const file = path.join(dir, path.basename(e.file_name));
+    if (!fs.existsSync(file)) return null;
+    if (!e.downloaded_at && e.status === 'archived') {
+      const schedule = await loadSchedule(), until = iso(now() + schedule.leaseHours * 3600e3), rep = parse(e.report_json) || {};
+      await dbRun(db, `UPDATE news_editions SET status='downloaded', downloaded_at=?, lease_until=? WHERE edition_id=?`, [iso(now()), until, e.edition_id]);
+      const keys = [...new Set([...(rep.overview_keys || []), ...(rep.main_keys || [])])];
+      for (let i = 0; i < keys.length; i += 200) {
+        const part = keys.slice(i, i + 200);
+        await dbRun(db, `UPDATE news_harvest_items SET lease_until=? WHERE url_key IN (${part.map(() => '?').join(',')})`, [until, ...part]);
+      }
+    }
+    return { path: file, name: path.basename(e.file_name), edition_id: e.edition_id };
   }
-  // What the next morning archive will hold so far.
+
+  // The editor's list: editions (and the pre-editions daily runs) in one shape.
+  async function listRuns(limit = 14) {
+    const lim = Math.max(1, Math.min(50, Number(limit) || 14));
+    const eds = await dbAll(db, 'SELECT * FROM news_editions ORDER BY COALESCE(cut_at, cutoff_at, closed_at) DESC LIMIT ?', [lim]).catch(() => []);
+    const old = await dbAll(db, 'SELECT * FROM news_harvest_runs ORDER BY started_at DESC LIMIT ?', [lim]);
+    const fileOk = f => !!(f && fs.existsSync(path.join(dir, path.basename(f))));
+    return [
+      ...eds.map(e => { const report = parse(e.report_json) || {}; return { run_id: e.edition_id, edition_id: e.edition_id, day: e.day, slot: e.slot, trigger: e.trigger, status: e.status,
+        started_at: e.cutoff_at || e.cut_at, finished_at: e.archive_ready_at, articles: e.main_count + e.rework_count, images: 0, bytes: e.bytes, file_name: e.file_name,
+        outlets: report.outlets || {}, error: report.error || null, overview_items: e.overview_count, stories: report.stories || 0, has_file: fileOk(e.file_name) }; }),
+      ...old.map(r => {
+        const report = parse(r.report_json) || {};
+        return { run_id: r.run_id, day: r.day, trigger: r.trigger, status: r.status, started_at: r.started_at, finished_at: r.finished_at,
+          articles: r.articles, images: r.images, bytes: r.bytes, file_name: r.file_name, outlets: report.outlets || {}, error: report.error || null,
+          overview_items: report.items || 0, stories: report.stories || 0, has_file: fileOk(r.file_name) };
+      }),
+    ].slice(0, lim);
+  }
+  // What the next edition will hold so far.
   async function pending() {
-    const rows = await dbAll(db, `SELECT outlet_id, COUNT(*) n, SUM(full_ok) full_n FROM news_harvest_items WHERE status='ready' AND run_id IS NULL AND first_seen_at >= ? GROUP BY outlet_id`, [iso(now() - L.maxAgeMs)]);
+    const rows = await dbAll(db, `SELECT outlet_id, COUNT(*) n FROM news_harvest_items WHERE status='ready' AND overview_state='todo' AND first_seen_at >= ? GROUP BY outlet_id`, [iso(now() - L.maxAgeMs)]);
     const queued = await dbGet(db, `SELECT COUNT(*) n FROM news_harvest_items WHERE status='queued'`);
     return { items: rows.reduce((a, r) => a + r.n, 0), outlets: Object.fromEntries(rows.map(r => [r.outlet_id, r.n])), queued: queued ? queued.n : 0, last_poll_at: lastPollAt ? iso(lastPollAt) : null };
   }
   async function runFile(runId) {
+    const e = await dbGet(db, 'SELECT edition_id FROM news_editions WHERE edition_id = ?', [String(runId)]).catch(() => null);
+    if (e) return downloadEdition(e.edition_id);
     const r = await dbGet(db, 'SELECT file_name FROM news_harvest_runs WHERE run_id = ?', [String(runId)]);
     if (!r || !r.file_name) return null;
     const file = path.join(dir, path.basename(r.file_name));
     return fs.existsSync(file) ? { path: file, name: path.basename(r.file_name) } : null;
   }
-  return { runOnce, poll, tick, listRuns, pending, runFile, isRunning: () => !!busy, cleanup };
+  return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, isRunning: () => !!busy, cleanup };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

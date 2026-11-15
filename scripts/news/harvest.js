@@ -16,14 +16,17 @@ async function main() {
   const main = Number(opt('--main')) || undefined, pages = Number(opt('--pages')) || 400;
   fs.mkdirSync(out, { recursive: true });
   const db = new sqlite3.Database(path.join(out, '.harvest.sqlite'));
-  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql'])
-    await new Promise((res, rej) => db.exec(fs.readFileSync(path.join(__dirname, '..', '..', 'migrations', m), 'utf8'), e => e ? rej(e) : res()));
+  const run = sql => new Promise((res, rej) => db.exec(sql, e => e ? rej(e) : res()));
+  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql']) await run(fs.readFileSync(path.join(__dirname, '..', '..', 'migrations', m), 'utf8'));
+  // 083 adds columns: once only.
+  const has083 = await new Promise((res, rej) => db.get("SELECT 1 FROM sqlite_master WHERE name='news_editions'", (e, r) => e ? rej(e) : res(!!r)));
+  if (!has083) await run(fs.readFileSync(path.join(__dirname, '..', '..', 'migrations', '083_news_editions.sql'), 'utf8'));
   // The archive goes to <out>/news-harvest/ (the server layout); move it up next to the user.
   const harvester = createNewsHarvester({ db, dataDir: out, sources: only.length ? SOURCES.filter(s => only.includes(s.outlet_id)) : SOURCES,
     limits: { pagesPerPoll: pages, ...(main ? { mainStories: main } : {}) }, log: m => console.log(m) });
   const r = await harvester.runOnce({ trigger: 'manual' });
   for (const [id, o] of Object.entries(r.report.outlets)) console.log(`${id}: в обзоре ${o.items}, полный разбор ${o.main}` + (o.errors ? ', ошибки ' + o.errors.join(' ') : ''));
-  console.log(`Сюжетов ${r.stories}, статей в «Обзоре дня» ${r.overview_items}`);
+  console.log(`Выпуск ${r.slot} ${r.day} · сюжетов ${r.stories}, статей в «Обзоре дня» ${r.overview_items}`);
   if (r.file_name) {
     const target = path.join(out, r.file_name);
     fs.renameSync(path.join(out, 'news-harvest', r.file_name), target);

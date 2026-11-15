@@ -13,6 +13,7 @@ const { flightSections } = require('../news/harvest/newsFlight');
 const { sourceFor } = require('../news/harvest/newsHarvestSources');
 const { createNewsHarvester, parseFeed, parseRobots } = require('../news/harvest/newsHarvest');
 const { buildPack } = require('../scripts/news/build-pack');
+const C = require('../news/newsPackCore');
 const { mountNewsRoutes } = require('../news/newsRoutes');
 
 const exec = (db, sql) => new Promise((res, rej) => db.exec(sql, e => e ? rej(e) : res()));
@@ -121,7 +122,7 @@ test('RSS items and robots.txt', () => {
 // ---- end to end with a fake web ---------------------------------------------------------------------
 async function harvesterSetup(t, { clock, pages = {} } = {}) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
-  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
+  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql', '083_news_editions.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-harvest-'));
   t.after(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); });
   const photo = await sharp({ create: { width: 2400, height: 1600, channels: 3, background: '#8899aa' } }).jpeg().toBuffer();
@@ -147,7 +148,7 @@ async function harvesterSetup(t, { clock, pages = {} } = {}) {
   return { db, dataDir, harvester, requests };
 }
 
-test('hourly poll keeps every new article; the morning build makes main drafts + «Обзор дня» that pack once dot translates', async t => {
+test('hourly poll keeps every new article; an edition makes main drafts + «Обзор дня» that pack once dot translates', async t => {
   const clock = { now: Date.parse('2026-11-15T03:30:00+02:00') };
   const { harvester, requests, dataDir } = await harvesterSetup(t, { clock });
   const poll = await harvester.poll();
@@ -160,6 +161,7 @@ test('hourly poll keeps every new article; the morning build makes main drafts +
   const r = await harvester.runOnce({ trigger: 'manual' });
   assert.equal(r.articles, 1, JSON.stringify(r.report)); assert.equal(r.images, 2);
   assert.equal(r.overview_items, 2); assert.equal(r.stories, 2);
+  assert.equal(r.slot, 'extra'); assert.match(r.edition_id, /^ne_[0-9a-f]{18}$/);
   const zip = new AdmZip((await harvester.runFile(r.run_id)).path), names = zip.getEntries().map(e => e.entryName).sort();
   assert.deepEqual(names, ['README-dot.md', 'harvest.json', 'overview.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
   const img = await sharp(zip.readFile('ynet-0001/img-1.jpg')).metadata();
@@ -169,9 +171,13 @@ test('hourly poll keeps every new article; the morning build makes main drafts +
   assert.deepEqual(draft.images.map(i => [i.file, i.role, i.after_p]), [['img-1.jpg', 'hero', undefined], ['img-2.jpg', 'inline', 1]]);
   assert.match(draft.learning.story_key, /^2026-11-15-[0-9a-f]{8}$/);
   const ov = JSON.parse(zip.readAsText('overview.json'));
-  assert.equal(ov.day, '2026-11-15');
+  assert.equal(ov.day, '2026-11-15'); assert.equal(ov.schema_version, 2); assert.equal(ov.edition_id, r.edition_id);
   assert.equal(ov.stories[0].main, true); assert.equal(ov.stories[0].story_key, draft.learning.story_key);
-  assert.deepEqual(ov.stories[0].items[0], { outlet_id: 'ynet', url: 'https://www.ynet.co.il/news/article/abc123', published_at: '2026-11-14T21:49:59+02:00', section: 'politics',
+  const hj = JSON.parse(zip.readAsText('harvest.json'));
+  assert.equal(hj.schema_version, 3); assert.equal(hj.edition_id, r.edition_id);
+  assert.deepEqual(Object.keys(hj.main[0].images), ['img-1.jpg', 'img-2.jpg']);
+  assert.equal(hj.main[0].images['img-1.jpg'], require('node:crypto').createHash('sha256').update(zip.readFile('ynet-0001/img-1.jpg')).digest('hex'));
+  assert.deepEqual(ov.stories[0].items[0], { item_key: C.articleKey('ynet', 'https://www.ynet.co.il/news/article/abc123'), outlet_id: 'ynet', url: 'https://www.ynet.co.il/news/article/abc123', published_at: '2026-11-14T21:49:59+02:00', section: 'politics',
     title_he: 'נתניהו נאם בכנסת: "נעבור את זה"', title_ru: '', subtitle_he: 'הממשלה מתכוננת לשבוע סוער בכנסת, והאופוזיציה מאיימת בהפגנות', subtitle_ru: '',
     lead_he: 'ראש הממשלה נאם הערב בכנסת ואמר כי הממשלה תמשיך לפעול. הוא הוסיף כי "המצב קשה, אבל נעבור את זה" ופנה לאופוזיציה.', lead_ru: '', draft: 'ynet-0001.draft.json' });
   assert.equal(ov.stories[1].items[0].title_he, 'קצר'); assert.equal(ov.stories[1].main, false);
@@ -191,34 +197,82 @@ test('hourly poll keeps every new article; the morning build makes main drafts +
   const pz = new AdmZip(packed.written), manifest = JSON.parse(pz.readAsText('manifest.json'));
   assert.equal(manifest.overview.path, 'overview.json'); assert.equal(manifest.overview.sha256, require('node:crypto').createHash('sha256').update(pz.readFile('overview.json')).digest('hex'));
 
-  // The next build takes nothing twice.
+  // dot took this archive: the next edition takes nothing of it while it is in work.
+  await harvester.downloadEdition(r.edition_id);
   const again = await harvester.runOnce({ trigger: 'manual' });
-  assert.equal(again.overview_items, 0); assert.equal(again.file_name, null);
+  assert.equal(again.overview_items, 0); assert.equal(again.file_name, null); assert.equal(again.status, 'skipped');
   assert.equal((await harvester.listRuns()).find(x => x.run_id === r.run_id).overview_items, 2);
 });
 
-test('schedule: the feeds are polled every hour, the archive is built once a day after 06:00 Israel time', async t => {
+const editionRows = db => new Promise((res, rej) => db.all('SELECT slot, status FROM news_editions ORDER BY rowid', (e, r) => e ? rej(e) : res(r)));
+test('tick: morning at 06:00 builds an edition; the next tick before 10:30 only polls', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester, db } = await harvesterSetup(t, { clock });
+  const r = await harvester.tick();
+  assert.equal(r.slot, 'morning'); assert.equal(r.trigger, 'schedule'); assert.equal(r.articles, 1);
+  clock.now = Date.parse('2026-11-16T06:20:00+02:00');
+  await harvester.tick();
+  assert.deepEqual(await editionRows(db), [{ slot: 'morning', status: 'archived' }]);
+});
+test('tick: missed midday is skipped, evening carries everything', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester, db } = await harvesterSetup(t, { clock });
+  const m = await harvester.tick();
+  clock.now = Date.parse('2026-11-16T17:00:00+02:00');
+  const ev = await harvester.tick();
+  assert.equal(ev.slot, 'evening');
+  assert.deepEqual(await editionRows(db), [{ slot: 'morning', status: 'superseded' }, { slot: 'midday', status: 'skipped' }, { slot: 'evening', status: 'archived' }]);
+  assert.equal(ev.overview_items, m.overview_items, 'the morning archive was not taken by dot: its material is in the evening one');
+  assert.equal(ev.articles, 1, 'the morning draft is carried over');
+});
+test('edition: items of a downloaded edition are leased for 4 h and not repeated', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester } = await harvesterSetup(t, { clock });
+  const m = await harvester.tick();
+  clock.now = Date.parse('2026-11-16T07:00:00+02:00');
+  await harvester.downloadEdition(m.edition_id); // in work until 11:00
+  clock.now = Date.parse('2026-11-16T10:31:00+02:00');
+  const mid = await harvester.tick();
+  assert.equal(mid.slot, 'midday'); assert.equal(mid.overview_items, 0); assert.equal(mid.articles, 0);
+  // the lease is over and nothing was published: the material comes back
+  clock.now = Date.parse('2026-11-16T16:31:00+02:00');
+  const ev = await harvester.tick();
+  assert.equal(ev.overview_items, m.overview_items); assert.equal(ev.articles, 1);
+});
+test('edition: carried-over drafts come on top of the new ones', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester, db } = await harvesterSetup(t, { clock });
+  await harvester.tick();
+  clock.now = Date.parse('2026-11-16T10:31:00+02:00');
+  await harvester.saveSchedule({ slots: { midday: { main: 1 } } });
+  const mid = await harvester.tick();
+  const states = await new Promise((res, rej) => db.all("SELECT main_state, main_edition_id FROM news_harvest_items WHERE main_state<>'none'", (e, r) => e ? rej(e) : res(r)));
+  assert.equal(states.length, 1); assert.equal(states[0].main_edition_id, mid.edition_id);
+  assert.equal(mid.articles, 1);
+});
+test('manual run makes an extra edition of the current day', async t => {
+  const clock = { now: Date.parse('2026-11-16T05:00:00+02:00') };
+  const { harvester, db } = await harvesterSetup(t, { clock });
+  const r = await harvester.runOnce({ trigger: 'manual' });
+  assert.equal(r.slot, 'extra'); assert.equal(r.day, '2026-11-15'); assert.equal(r.trigger, 'manual');
+  assert.deepEqual(await editionRows(db), [{ slot: 'extra', status: 'archived' }]);
+});
+
+test('schedule: the feeds are polled every hour between cut-offs', async t => {
   const clock = { now: Date.parse('2026-11-15T05:00:00+02:00') };
   const { harvester, db } = await harvesterSetup(t, { clock });
-  const runs = () => new Promise((res, rej) => db.get('SELECT COUNT(*) n FROM news_harvest_runs', (e, r) => e ? rej(e) : res(r.n)));
-  const first = await harvester.tick();
-  assert.ok(first && first.outlets && !first.run_id, 'before 06:00 a tick polls');
+  // 05:00 belongs to the day before; its late edition (20:30) is due — the first tick builds it.
+  const late = await harvester.tick();
+  assert.equal(late.slot, 'late'); assert.equal(late.day, '2026-11-14');
   clock.now += 20 * 60 * 1000;
   assert.equal(await harvester.tick(), null, 'no second poll within the hour');
+  clock.now = Date.parse('2026-11-15T05:58:00+02:00');
+  const p = await harvester.tick();
+  assert.ok(p && p.outlets && !p.edition_id, 'between cut-offs a tick polls');
   clock.now = Date.parse('2026-11-15T06:05:00+02:00');
-  const r = await harvester.tick();
-  assert.equal(r.trigger, 'schedule'); assert.equal(r.articles, 1);
-  clock.now = Date.parse('2026-11-15T09:00:00+02:00');
-  await harvester.tick();
-  assert.equal(await runs(), 1, 'one archive a day');
-  clock.now = Date.parse('2026-11-16T06:01:00+02:00');
-  assert.equal((await harvester.tick()).trigger, 'schedule');
-  // A manual run after 06:00 stands for the day's run.
-  clock.now = Date.parse('2026-11-17T07:00:00+02:00');
-  await harvester.runOnce({ trigger: 'manual' });
-  clock.now = Date.parse('2026-11-17T07:10:00+02:00');
-  await harvester.tick();
-  assert.equal(await runs(), 3);
+  assert.equal((await harvester.tick()).slot, 'morning');
+  assert.deepEqual((await editionRows(db)).map(e => e.slot + ':' + e.status),
+    ['morning:skipped', 'midday:skipped', 'evening:skipped', 'late:superseded', 'morning:archived']);
 });
 
 test('rubric: a generic «חדשות» article gets its rubric from the words of its title and first paragraph', () => {
