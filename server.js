@@ -4612,12 +4612,14 @@ function newsStore() {
       harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m) }) };
     // Editions: what dot publishes is counted against the edition it came from.
     _newsStore.repo.setEditionListener(r => _newsStore.harvester.accountPack(r));
+    // Archived days offloaded to the owner's PC and back (owner only).
+    _newsStore.offload = require("./news/newsOffload").createNewsOffload({ db, repo: _newsStore.repo, dataDir: DATA_DIR });
   }
   return _newsStore;
 }
 const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
 require("./news/newsRoutes").mountNewsRoutes(app, {
-  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester),
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload),
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
   // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
   audit: (type, actorId, detail, ip) => {
