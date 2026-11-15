@@ -106,4 +106,41 @@ test('stories persist: an unrelated article starts a new story', async () => {
   db.close();
 });
 
+// ---- A3: per-edition selection -------------------------------------------------------------------------
+const { selectEdition } = require('../news/harvest/newsStories');
+const OUT = ['ynet', 'walla', 'maariv', 'n12', 'haaretz', 'c14'];
+let seq = 0;
+const member = (outlet, section = 'news', title = 'כותרת ' + (++seq)) => ({ id: 'm' + (++seq), outlet_id: outlet, section, title, text: '', at: Date.parse('2026-11-16T09:00:00Z') + seq * 1000, full_ok: true, paywalled: 0, images: 2, chars: 3000 });
+const story = (id, outlets, section = 'news', title) => ({ id, members: OUT.slice(0, outlets).map(o => member(o, section, title)) });
+test('selectEdition midday: 8 at most, single-outlet stories capped at 4, no filler', () => {
+  const stories = [story('S1', 3, 'politics'), story('S2', 3, 'economy'), ...Array.from({ length: 10 }, (_, i) => story('X' + i, 1, ['news', 'world', 'sport', 'economy', 'security'][i % 5]))];
+  const r = selectEdition(stories, { slot: 'midday', main: 8 });
+  assert.equal(r.length, 6);
+  assert.equal(r.filter(x => x.outlets === 1).length, 4);
+  assert.ok(r.every(x => x.kind === 'new' && x.pick && x.pick.full_ok));
+});
+test('selectEdition: a story with a full article returns only as a development (+2 outlets), at most 2', () => {
+  const full = new Map([['K1', { full_outlets: 2, full_title_he: 'הכנסת אישרה את התקציב' }], ['K2', { full_outlets: 2, full_title_he: 'שביתה כללית במשק' }],
+    ['K3', { full_outlets: 1, full_title_he: 'סערה בחיפה' }], ['K4', { full_outlets: 1, full_title_he: 'רעידת אדמה' }]]);
+  const k = (id, n, title, total) => ({ ...story(id, n, 'news', title), outlets_total: total });
+  const r = selectEdition([k('K1', 2, 'הכנסת אישרה את התקציב סופית', 4), k('K2', 1, 'שביתה כללית במשק נמשכת', 3), k('K3', 2, 'סערה בחיפה גברה', 3), k('K4', 2, 'רעידת אדמה הורגשה', 3)],
+    { slot: 'evening', main: 8, full });
+  assert.equal(r.length, 2);
+  assert.ok(r.every(x => x.kind === 'development'));
+  assert.ok(!r.some(x => x.story.id === 'K2'));
+});
+test('selectEdition: one rubric gives at most 3 of the day editions', () => {
+  const r = selectEdition(Array.from({ length: 6 }, (_, i) => story('P' + i, 3, 'politics')), { slot: 'late', main: 8 });
+  assert.equal(r.length, 3);
+});
+test('selectEdition morning keeps the rubric quota and total 22', () => {
+  const secs = ['politics', 'security', 'news', 'economy', 'world', 'culture', 'opinion'];
+  const stories = Array.from({ length: 60 }, (_, i) => story('M' + i, 1 + (i % 3), secs[i % 7]));
+  const r = selectEdition(stories, { slot: 'morning', main: 22 });
+  assert.equal(r.length, 22);
+  // the same picks as the pre-editions morning selection (quotas add up to 23 for 22 places)
+  const { selectStories } = require('../news/harvest/newsStories');
+  assert.deepEqual(r.map(x => x.story.id), selectStories(stories, { total: 22 }).map(x => x.story.id));
+});
+
 module.exports = { openDb, MIGRATIONS };

@@ -126,4 +126,48 @@ function selectStories(stories, { total = 22, quota = QUOTA } = {}) {
   return chosen;
 }
 
-module.exports = { tokens, clusterStories, selectStories, refineSection, GROUPS, QUOTA };
+// One edition's main articles (docs/superpowers/specs/2026-11-15-news-editions-design.md §4.2).
+// stories: [{ id: story_key, members[] (this edition's new articles), outlets_total? }];
+// full: Map story_key → { full_outlets, full_title_he } — stories that already have a full article.
+// Morning: the rubric quota of selectStories. Later editions: stories of 2+ outlets first, single-outlet
+// stories at most main/2, one rubric at most 3 — fewer events give fewer articles, no filler. A story
+// that has its full article comes back only as a development (+2 outlets since, or a new turn), at most 2.
+const DEV_MAX = 2, RUBRIC_MAX = 3, NEW_TURN = 0.2;
+function jaccard(a, b) { let n = 0; for (const w of a) if (b.has(w)) n++; return a.size + b.size - n ? n / (a.size + b.size - n) : 1; }
+function selectEdition(stories, { slot, main, full = new Map() } = {}) {
+  const withFull = stories.filter(s => full.has(s.id)), fresh = stories.filter(s => !full.has(s.id));
+  const outletsOf = ms => new Set(ms.map(m => m.outlet_id)).size;
+  const devs = [];
+  for (const s of withFull) {
+    const f = full.get(s.id), ready = s.members.filter(m => m.full_ok);
+    if (!ready.length) continue;
+    const total = s.outlets_total != null ? s.outlets_total : outletsOf(s.members);
+    const ft = tokens(f.full_title_he || '');
+    const newTurn = outletsOf(s.members) >= 2 && ready.some(m => jaccard(tokens(m.title), ft) < NEW_TURN);
+    if (total - (f.full_outlets || 0) >= 2 || newTurn) devs.push({ s, total });
+  }
+  devs.sort((a, b) => b.total - a.total);
+  const devPicks = devs.slice(0, Math.min(DEV_MAX, main)).map(({ s, total }) => {
+    const [x] = selectStories([s], { total: 1 });
+    return x && { ...x, outlets: total, kind: 'development' };
+  }).filter(Boolean);
+  const room = main - devPicks.length;
+  let news;
+  if (slot === 'morning') news = selectStories(fresh, { total: room });
+  else {
+    const ranked = selectStories(fresh, { total: fresh.length, quota: {} });
+    const multi = ranked.filter(x => x.outlets >= 2), single = ranked.filter(x => x.outlets < 2);
+    const used = {}, picked = [];
+    let singles = 0;
+    for (const x of [...multi, ...single]) {
+      if (picked.length >= room) break;
+      if ((used[x.group] || 0) >= RUBRIC_MAX) continue;
+      if (x.outlets < 2 && singles >= Math.floor(main / 2)) continue;
+      picked.push(x); used[x.group] = (used[x.group] || 0) + 1; if (x.outlets < 2) singles++;
+    }
+    news = picked;
+  }
+  return [...news.map(x => ({ ...x, kind: 'new' })), ...devPicks];
+}
+
+module.exports = { tokens, clusterStories, selectStories, selectEdition, refineSection, GROUPS, QUOTA };
