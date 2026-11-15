@@ -57,8 +57,12 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
   }
   // 2. What this edition carries: not yet in a published overview, not leased by an edition in work.
   const free = `(lease_until IS NULL OR lease_until < ?)`;
-  const rows = (await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='ready' AND story_key IS NOT NULL AND overview_state IN ('todo','sent') AND ${free} AND first_seen_at >= ? ORDER BY first_seen_at`,
-    [iso(now), iso(now - OVERVIEW_WINDOW_MS)])).filter(r => r.title_he || r.feed_title);
+  // An older row comes back only when the outlet changed its title (it is already in «Обзор дня»).
+  const knownRow = `(url_key IN (SELECT item_key FROM news_overview_items) OR canonical_key IN (SELECT item_key FROM news_overview_items))`;
+  const rows = (await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='ready' AND story_key IS NOT NULL AND overview_state IN ('todo','sent') AND ${free}
+    AND (first_seen_at >= ? OR (overview_state='todo' AND ${knownRow})) ORDER BY first_seen_at`,
+    [iso(now), iso(now - OVERVIEW_WINDOW_MS)]).catch(() => dbAll(db, `SELECT * FROM news_harvest_items WHERE status='ready' AND story_key IS NOT NULL AND overview_state IN ('todo','sent') AND ${free} AND first_seen_at >= ? ORDER BY first_seen_at`,
+    [iso(now), iso(now - OVERVIEW_WINDOW_MS)]))).filter(r => r.title_he || r.feed_title);
   const carried = await dbAll(db, `SELECT * FROM news_harvest_items WHERE main_state='drafted' AND ${free} AND main_attempts < ? ORDER BY first_seen_at`, [iso(now), schedule.maxAttempts]);
   // 3. Main articles of the edition.
   const active = await stories.activeSince(now - ACTIVE_MS);

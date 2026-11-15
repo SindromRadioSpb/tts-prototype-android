@@ -464,10 +464,11 @@ async function recheckSetup(t, { page = ynetPage(), robots = 'User-agent: *\nAll
       [x.items[0].article_id, u, fp.title_hash, JSON.stringify(fp.para_hashes), new Date(clock.now).toISOString()], e => e ? rej(e) : res()));
   }
   const requests = [];
-  const fetchImpl = async url => { requests.push(url); return url.endsWith('/robots.txt') ? new Response(robots) : url.includes('abc123') ? new Response(page, { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 }); };
+  let current = page;
+  const fetchImpl = async url => { requests.push(url); return url.endsWith('/robots.txt') ? new Response(robots) : url.includes('abc123') ? new Response(current, { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 }); };
   const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources: [sourceFor('ynet')], delayMs: 0, now: () => clock.now });
   const q = (sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, x) => e ? rej(e) : res(x)));
-  return { db, harvester, id, clock, requests, q };
+  return { db, harvester, id, clock, requests, q, repo, setPage: p => { current = p; } };
 }
 test('recheck: an article updated by the outlet gets a change row; the article itself is untouched', async t => {
   const { harvester, id, q } = await recheckSetup(t);
@@ -703,4 +704,52 @@ test('debt A: a story keeps at most 200 words', async t => {
   await store.assign([{ id: 'w1', outlet_id: 'ynet', title: 'כותרת ארוכה מאוד', text: words.join(' '), at: Date.parse('2026-11-16T11:00:00Z') }], { day: '2026-11-16' });
   const row = await new Promise((res, rej) => db.get('SELECT words_json FROM news_stories', (e, r) => e ? rej(e) : res(r)));
   assert.ok(Object.keys(JSON.parse(row.words_json)).length <= 200);
+});
+
+// ---- 897 debt, part B ------------------------------------------------------------------------------------
+test('debt B: the outlet changing the title back restores the overview row and drops the note', async t => {
+  const s = await recheckSetup(t);
+  await s.harvester.recheckPublished({});
+  // the page is back to what we published: the old title and the three paragraphs
+  s.setPage(ynetPage().replace('<h1>נתניהו נאם בכנסת: "נעבור את זה"</h1>', '<h1>כותרת ישנה</h1>')
+    .replace(/<h3 class="pHeader">[\s\S]*?<\/h3>/, '').replace('<strong>תגובה חריפה</strong><br>', ''));
+  await s.harvester.recheckPublished({});
+  const ov = (await s.q('SELECT title_he, title_ru, changed_at FROM news_overview_items WHERE item_key=?', [s.id]))[0];
+  assert.equal(ov.title_he, 'הכנסת אישרה בקריאה ראשונה את תקציב המדינה');
+  assert.equal(ov.changed_at, null);
+  assert.equal((await s.q('SELECT COUNT(*) n FROM news_article_changes WHERE significant=1'))[0].n, 0);
+  assert.equal((await s.q('SELECT overview_state FROM news_harvest_items WHERE url_key=?', [s.id]))[0].overview_state, 'todo');
+});
+test('debt B: the edition report says how many articles were re-checked', async t => {
+  const clock = { now: Date.parse('2026-11-16T06:05:00+02:00') };
+  const { harvester } = await harvesterSetup(t, { clock });
+  const m = await harvester.tick();
+  assert.deepEqual(m.report.recheck, { checked: 0, changed: 0 });
+});
+test('debt B: a changed title of an older article still goes to dot', async t => {
+  const s = await recheckSetup(t);
+  await s.q("UPDATE news_harvest_items SET first_seen_at=?, story_key='S'", [new Date(s.clock.now - 5 * 86400e3).toISOString()]);
+  await s.harvester.recheckPublished({});
+  const r = await s.harvester.runOnce({ trigger: 'manual' });
+  const zip = new AdmZip((await s.harvester.downloadEdition(r.edition_id, { lease: false })).path);
+  const ov = JSON.parse(zip.readAsText('overview.json'));
+  const it = ov.stories.flatMap(x => x.items).find(x => x.item_key === s.id);
+  assert.ok(it, 'the row is in the overview'); assert.equal(it.changed, true);
+});
+test('debt B: a new revision drops the old change note', async t => {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack, studyRows, glossFor, SOURCE } = require('./helpers/newsFixture.cjs');
+  const db = await openDb(['084_news_fingerprints.sql']); t.after(() => db.close());
+  const clock = { now: Date.parse('2026-11-12T08:00:00+02:00') };
+  const repo = createNewsRepo({ db, now: () => clock.now });
+  const rows = studyRows([{ p: 1, he_plain: SOURCE.split(' ').slice(0, 17).join(' ') + '.', ru: 'Первая часть.' }]);
+  const mk = rev => fixtureArticle({ revision: rev, learning: { versions: [{ level: 'OR', rows, word_gloss_ai: 'or.word-gloss-ai.json' }] }, prepared: { method: 'original' }, __files: { 'or.word-gloss-ai.json': glossFor(rows) } });
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([mk(1)]));
+  await new Promise((res, rej) => db.run(`INSERT INTO news_article_changes(article_id, detected_at, added, changed, removed, title_changed, significant) VALUES (?,?,2,0,0,0,1)`,
+    [r.items[0].article_id, new Date(clock.now + 3600e3).toISOString()], e => e ? rej(e) : res()));
+  clock.now += 2 * 3600e3;
+  assert.ok((await repo.getCard(r.items[0].work_id)).source_change);
+  await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([mk(2)]));
+  assert.equal((await repo.getCard(r.items[0].work_id)).source_change, undefined);
 });

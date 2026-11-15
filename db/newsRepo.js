@@ -224,7 +224,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
         // The outlet's own title (dot may shorten the study title); cut like the harvester cuts it.
         const fp = fingerprintOf(String(s.original_title_he || l.title_he).slice(0, 300), paragraphsOfRows(orv.rows));
         await dbRun(db, `INSERT INTO news_article_fingerprints(article_id, url, title_hash, para_hashes_json, created_at) VALUES (?,?,?,?,?)
-          ON CONFLICT(article_id) DO UPDATE SET url=excluded.url, title_hash=excluded.title_hash, para_hashes_json=excluded.para_hashes_json, last_seen_json=NULL`,
+          ON CONFLICT(article_id) DO UPDATE SET url=excluded.url, title_hash=excluded.title_hash, para_hashes_json=excluded.para_hashes_json, last_seen_json=NULL, created_at=excluded.created_at`,
           [articleId, canonical, fp.title_hash, JSON.stringify(fp.para_hashes), t]);
       }
       await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [articleId]);
@@ -416,7 +416,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     // The outlet updated the article after we took it (migration 084): the latest significant change.
     if (await hasPrints()) {
       const ch = await dbGet(db, `SELECT c.*, f.created_at fp_at FROM news_article_changes c LEFT JOIN news_article_fingerprints f ON f.article_id=c.article_id
-        WHERE c.article_id=? AND c.significant=1 ORDER BY c.detected_at DESC, c.id DESC LIMIT 1`, [row.article_id]);
+        WHERE c.article_id=? AND c.significant=1 AND (f.created_at IS NULL OR c.detected_at > f.created_at) ORDER BY c.detected_at DESC, c.id DESC LIMIT 1`, [row.article_id]);
       // The outlet's modification time only when it is later than our copy; otherwise only when we noticed it.
       const outletTime = ch && ch.source_updated_at && ch.fp_at && Date.parse(ch.source_updated_at) > Date.parse(ch.fp_at) ? ch.source_updated_at : null;
       if (ch) card.source_change = { at: ch.detected_at, source_updated_at: outletTime, added: ch.added, changed: ch.changed, removed: ch.removed, title_changed: !!ch.title_changed };

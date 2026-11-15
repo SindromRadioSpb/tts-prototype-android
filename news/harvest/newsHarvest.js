@@ -262,7 +262,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
 
   async function buildNow(editionId, { day, slot, trigger, schedule }) {
     await pollNow().catch(e => log('[news-harvest] poll before build failed: ' + (e && e.message)));
-    await recheckPublished({ editionId }).catch(e => log('[news-harvest] re-check failed: ' + (e && e.message)));
+    const recheck = await recheckPublished({ editionId }).catch(e => { log('[news-harvest] re-check failed: ' + (e && e.message)); return { checked: 0, changed: 0, error: String(e && e.message || e) }; });
     const sharp = loadSharp();
     try { sharp.concurrency(1); sharp.cache(false); } catch (_) {}
     await supersede();
@@ -272,6 +272,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       extraFiles: { 'interests.md': interests || 'Интересы не записаны.\n', 'reading.json': JSON.stringify(reading || { days: 14, by_section: {}, by_outlet: {}, by_selected: {}, recent: [] }, null, 1) },
       readme: fs.readFileSync(path.join(__dirname, 'dotTask.md'), 'utf8'), sleep: () => sleep(Math.round(delayMs / 3)) });
     for (const [id, o] of Object.entries((lastPollReport && lastPollReport.outlets) || {})) if (o.errors.length) (r.report.outlets[id] = r.report.outlets[id] || { items: 0, main: 0 }).errors = o.errors;
+    r.report.recheck = recheck;
     const t = iso(now()), status = r.file_name ? 'archived' : 'skipped';
     await dbRun(db, `UPDATE news_editions SET status=?, cut_at=?, archive_ready_at=?, main_count=?, rework_count=?, overview_count=?, file_name=?, bytes=?, report_json=? WHERE edition_id=?`,
       [status, t, r.file_name ? t : null, r.main, r.rework, r.overview_items, r.file_name, r.bytes, JSON.stringify(r.report), editionId]);
@@ -490,7 +491,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   async function recheckPublished({ editionId = null } = {}) {
     const has = await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_article_fingerprints'").catch(() => null);
     if (!has) return { checked: 0, changed: 0 };
-    const rows = await dbAll(db, `SELECT f.*, a.outlet_id FROM news_article_fingerprints f JOIN news_articles a ON a.article_id = f.article_id
+    const rows = await dbAll(db, `SELECT f.*, a.outlet_id, a.original_title_he FROM news_article_fingerprints f JOIN news_articles a ON a.article_id = f.article_id
       WHERE a.tier='fresh' AND f.created_at >= ? ORDER BY f.created_at`, [iso(now() - 24 * 3600e3)]);
     let checked = 0, changed = 0;
     // Polite and bounded: one request at a time with a pause (also after a failure), an outlet that
@@ -523,7 +524,16 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
         // Most of the text is different: another page under this address, not an update.
         if (d.changed + d.removed > 0.6 * Math.max(1, base.para_hashes.length)) { log('[news-recheck] replaced, not recorded: ' + f.url); continue; }
         await dbRun(db, 'UPDATE news_article_fingerprints SET last_seen_json=? WHERE article_id=?', [JSON.stringify(nowPrint), f.article_id]);
-        if (!d.significant) continue; // back to what we published
+        if (!d.significant) {
+          // Back to what we published: the overview row gets its first title back (to translate again), the note goes.
+          const t0 = String(f.original_title_he || '').slice(0, 300);
+          await dbRun(db, 'UPDATE news_article_changes SET significant=0 WHERE article_id=?', [f.article_id]);
+          if (t0) {
+            await dbRun(db, `UPDATE news_overview_items SET title_he=?, title_ru=NULL, changed_at=NULL, change_json=NULL, updated_at=? WHERE item_key=? AND title_he<>?`, [t0, iso(now()), f.article_id, t0]).catch(() => {});
+            await dbRun(db, `UPDATE news_harvest_items SET title_he=?, overview_state='todo' WHERE (url_key=? OR canonical_key=?) AND COALESCE(title_he,'')<>?`, [t0, f.article_id, f.article_id, t0]);
+          }
+          continue;
+        }
         changed++;
         const t = iso(now());
         await dbRun(db, `INSERT INTO news_article_changes(article_id, detected_at, edition_id, source_updated_at, added, changed, removed, title_changed, new_title_he, significant)
