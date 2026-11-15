@@ -99,6 +99,13 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
     overviewStories.get(r.story_key).push(memberOf(r));
   }
   const drafted = new Set([...draftOfKey.keys()]);
+  // A row already in «Обзор дня» comes back only because the outlet changed its title: dot translates the new one.
+  const known = new Set();
+  const keysOf = rows.map(r => itemKeyOf(r.outlet_id, canonicalOf(r))).filter(Boolean);
+  for (let i = 0; i < keysOf.length; i += 400) {
+    const part = keysOf.slice(i, i + 400);
+    for (const x of await dbAll(db, `SELECT item_key FROM news_overview_items WHERE item_key IN (${part.map(() => '?').join(',')})`, part).catch(() => [])) known.add(x.item_key);
+  }
   const rank = s => { const i = picks.findIndex(p => p.story.id === s.key); return i >= 0 ? i : 1e6; };
   const ordered = [...overviewStories.entries()].map(([key, ms]) => ({ key, ms })).sort((a, b) => (rank(a) - rank(b))
     || (new Set(b.ms.map(m => m.outlet_id)).size - new Set(a.ms.map(m => m.outlet_id)).size) || (Math.max(...b.ms.map(m => m.at)) - Math.max(...a.ms.map(m => m.at))));
@@ -110,7 +117,7 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
         items: ms.sort((a, b) => b.at - a.at).map(m => { const url = canonicalOf(m.row); return { item_key: itemKeyOf(m.outlet_id, url), outlet_id: m.outlet_id, url,
           published_at: m.row.published_at || m.row.feed_pub_at || null, section: m.section, title_he: m.title, title_ru: '',
           ...(m.row.subtitle_he ? { subtitle_he: m.row.subtitle_he, subtitle_ru: '' } : {}), ...(m.row.lead_he ? { lead_he: m.row.lead_he, lead_ru: '' } : {}),
-          ...(m.row.paywalled ? { paywalled: true } : {}), ...(drafted.has(m.id) ? { draft: draftOfKey.get(m.id) } : {}) }; }) };
+          ...(m.row.paywalled ? { paywalled: true } : {}), ...(drafted.has(m.id) ? { draft: draftOfKey.get(m.id) } : {}), ...(known.has(itemKeyOf(m.outlet_id, url)) ? { changed: true } : {}) }; }) };
     }) };
   for (let i = 0; i < rows.length; i += 200) {
     const ids = rows.slice(i, i + 200).map(r => r.url_key);

@@ -436,3 +436,57 @@ test('review: a pack ingested while the edition fetches photos is not undone by 
   const row = await new Promise((res, rej) => db.get("SELECT main_state, overview_state FROM news_harvest_items WHERE url LIKE '%abc123%'", (e, r) => e ? rej(e) : res(r)));
   assert.deepEqual(row, { main_state: 'published', overview_state: 'done' });
 });
+
+// ---- B2: re-check published articles at each cut-off (spec §4.4, §5.5) ---------------------------------
+async function recheckSetup(t, { page = ynetPage(), robots = 'User-agent: *\nAllow: /' } = {}) {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const { fingerprintOf } = require('../news/newsFingerprint');
+  const db = await openDb(['084_news_fingerprints.sql']);
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-recheck-'));
+  t.after(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); });
+  const clock = { now: Date.parse('2026-11-12T10:00:00+02:00') };
+  const repo = createNewsRepo({ db, now: () => clock.now });
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle()]));
+  const id = r.items[0].article_id;
+  // The published original: the old title and three paragraphs; the page now has five and a new title.
+  const fp = fingerprintOf('כותרת ישנה', [P1, P2, P3]);
+  await new Promise((res, rej) => db.run(`INSERT INTO news_article_fingerprints(article_id, url, title_hash, para_hashes_json, created_at) VALUES (?,?,?,?,?)`,
+    [id, 'https://www.ynet.co.il/news/article/abc123', fp.title_hash, JSON.stringify(fp.para_hashes), new Date(clock.now).toISOString()], e => e ? rej(e) : res()));
+  await new Promise((res, rej) => db.run(`INSERT INTO news_overview_items(item_key, day, story_key, outlet_id, url, title_he, title_ru, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)`,
+    [id, '2026-11-12', 'S', 'ynet', 'https://www.ynet.co.il/news/article/abc123', 'כותרת ישנה', 'Старый заголовок', 't', 't'], e => e ? rej(e) : res()));
+  await new Promise((res, rej) => db.run(`INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status, overview_state, title_he) VALUES (?,?,?,?,'ready','done','כותרת ישנה')`,
+    [id, 'ynet', 'https://www.ynet.co.il/news/article/abc123', new Date(clock.now - 3600e3).toISOString()], e => e ? rej(e) : res()));
+  const requests = [];
+  const fetchImpl = async url => { requests.push(url); return url.endsWith('/robots.txt') ? new Response(robots) : url.includes('abc123') ? new Response(page, { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 }); };
+  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources: [sourceFor('ynet')], delayMs: 0, now: () => clock.now });
+  const q = (sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, x) => e ? rej(e) : res(x)));
+  return { db, harvester, id, clock, requests, q };
+}
+test('recheck: an article updated by the outlet gets a change row; the article itself is untouched', async t => {
+  const { harvester, id, q } = await recheckSetup(t);
+  const before = (await q('SELECT snapshot_json FROM news_works WHERE article_id=?', [id]))[0].snapshot_json;
+  const r = await harvester.recheckPublished({ editionId: null });
+  assert.deepEqual(r, { checked: 1, changed: 1 });
+  const ch = await q('SELECT added, changed, removed, title_changed, new_title_he, significant FROM news_article_changes');
+  assert.deepEqual(ch, [{ added: 2, changed: 0, removed: 0, title_changed: 1, new_title_he: 'נתניהו נאם בכנסת: "נעבור את זה"', significant: 1 }]);
+  assert.equal((await q('SELECT snapshot_json FROM news_works WHERE article_id=?', [id]))[0].snapshot_json, before);
+  const ov = (await q('SELECT title_he, title_ru, changed_at FROM news_overview_items WHERE item_key=?', [id]))[0];
+  assert.equal(ov.title_he, 'נתניהו נאם בכנסת: "נעבור את זה"'); assert.equal(ov.title_ru, null); assert.ok(ov.changed_at);
+  assert.equal((await q('SELECT overview_state s, title_he FROM news_harvest_items WHERE url_key=?', [id]))[0].s, 'todo', 'the new title goes to dot');
+});
+test('recheck: the same update is recorded once', async t => {
+  const { harvester, q } = await recheckSetup(t);
+  await harvester.recheckPublished({});
+  await harvester.recheckPublished({});
+  assert.equal((await q('SELECT COUNT(*) n FROM news_article_changes'))[0].n, 1);
+});
+test('recheck: only articles of the last 24 h, robots respected', async t => {
+  const a = await recheckSetup(t, { robots: 'User-agent: *\nDisallow: /news/' });
+  assert.deepEqual(await a.harvester.recheckPublished({}), { checked: 0, changed: 0 });
+  assert.ok(!a.requests.some(u => u.includes('abc123')));
+  const b = await recheckSetup(t);
+  b.clock.now += 25 * 3600e3;
+  assert.deepEqual(await b.harvester.recheckPublished({}), { checked: 0, changed: 0 });
+});

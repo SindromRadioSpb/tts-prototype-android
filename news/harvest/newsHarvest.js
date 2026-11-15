@@ -20,6 +20,7 @@ const { refineSection } = require('./newsStories');
 const { createStoryStore } = require('./newsStoryStore');
 const { normalizeSchedule, dayOf, dueSlot, slotTimes } = require('./newsEditions');
 const { buildEdition } = require('./newsEditionBuild');
+const { fingerprintOf, diffPrints } = require('../newsFingerprint');
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
 const LIMITS = { mainStories: 22, imagesPerArticle: 8, rows: 400, page: 4 * 1024 * 1024, feed: 2 * 1024 * 1024, image: 15 * 1024 * 1024,
@@ -246,6 +247,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
 
   async function buildNow(editionId, { day, slot, trigger, schedule }) {
     await pollNow().catch(e => log('[news-harvest] poll before build failed: ' + (e && e.message)));
+    await recheckPublished({ editionId }).catch(e => log('[news-harvest] re-check failed: ' + (e && e.message)));
     const sharp = loadSharp();
     try { sharp.concurrency(1); sharp.cache(false); } catch (_) {}
     await supersede();
@@ -366,6 +368,47 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const file = path.join(dir, path.basename(r.file_name));
     return fs.existsSync(file) ? { path: file, name: path.basename(r.file_name) } : null;
   }
+  // ---- re-check published articles (spec §4.4, §5.5): the outlet may update an article after we took it.
+  // The published article is never changed; the change is recorded, shown as a note, and a new title of
+  // the overview row goes to dot in the next edition.
+  async function recheckPublished({ editionId = null } = {}) {
+    const has = await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_article_fingerprints'").catch(() => null);
+    if (!has) return { checked: 0, changed: 0 };
+    const rows = await dbAll(db, `SELECT f.*, a.outlet_id FROM news_article_fingerprints f JOIN news_articles a ON a.article_id = f.article_id
+      WHERE a.tier='fresh' AND f.created_at >= ? ORDER BY f.created_at`, [iso(now() - 24 * 3600e3)]);
+    let checked = 0, changed = 0;
+    for (const f of rows) {
+      const src = sources.find(s => s.outlet_id === f.outlet_id);
+      if (!src || blocked.includes(f.outlet_id)) continue;
+      try {
+        if (!(await allowed(f.url))) continue;
+        const page = await get(f.url, { max: L.page, accept: 'text/html' });
+        await sleep(delayMs);
+        const r = extractArticle(page.buf.toString('utf8'), { url: f.url, source: src, feed: {} });
+        if (!r.ok) continue;
+        checked++;
+        const nowPrint = fingerprintOf(r.article.title_he, r.article.paragraphs);
+        const base = { title_hash: f.title_hash, para_hashes: JSON.parse(f.para_hashes_json) };
+        const last = parse(f.last_seen_json) || base;
+        await dbRun(db, 'UPDATE news_article_fingerprints SET checked_at=? WHERE article_id=?', [iso(now()), f.article_id]);
+        if (!diffPrints(last, nowPrint).significant) continue;
+        const d = diffPrints(base, nowPrint);
+        await dbRun(db, 'UPDATE news_article_fingerprints SET last_seen_json=? WHERE article_id=?', [JSON.stringify(nowPrint), f.article_id]);
+        if (!d.significant) continue; // back to what we published
+        changed++;
+        const t = iso(now());
+        await dbRun(db, `INSERT INTO news_article_changes(article_id, detected_at, edition_id, source_updated_at, added, changed, removed, title_changed, new_title_he, significant)
+          VALUES (?,?,?,?,?,?,?,?,?,1)`, [f.article_id, t, editionId, r.article.updated_at || null, d.added, d.changed, d.removed, d.title_changed ? 1 : 0, d.title_changed ? r.article.title_he : null]);
+        const change = JSON.stringify({ added: d.added, changed: d.changed, removed: d.removed, title_changed: d.title_changed, source_updated_at: r.article.updated_at || null });
+        if (d.title_changed) {
+          await dbRun(db, `UPDATE news_overview_items SET title_he=?, title_ru=NULL, changed_at=?, change_json=?, updated_at=? WHERE item_key=?`, [r.article.title_he, t, change, t, f.article_id]).catch(() => {});
+          await dbRun(db, `UPDATE news_harvest_items SET title_he=?, overview_state='todo' WHERE url_key=? OR canonical_key=?`, [r.article.title_he, f.article_id, f.article_id]);
+        } else await dbRun(db, `UPDATE news_overview_items SET changed_at=?, change_json=? WHERE item_key=?`, [t, change, f.article_id]).catch(() => {});
+      } catch (e) { /* a page that does not load is checked next time */ }
+    }
+    return { checked, changed };
+  }
+
   // ---- accounting: what dot published (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.3, §5.8) --
   const keyFor = (outletId, url) => { try { return C.articleKey(outletId, C.canonicalizeUrl(url)); } catch (_) { return null; } };
   const PUBLISHED = new Set(['published', 'revised', 'duplicate', 'archived']);
@@ -470,7 +513,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
+    closeExpired: () => closeExpired(), recheckPublished, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };
