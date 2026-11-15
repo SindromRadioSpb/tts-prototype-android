@@ -188,12 +188,16 @@ test('hourly poll keeps every new article; an edition makes main drafts + «Об
   const raw = await buildPack(dir, { checkOnly: true, now: clock.now });
   assert.equal(raw.articles[0].code, 'TRANSLATION_MISSING'); assert.deepEqual(raw.overview.warnings, ['OVERVIEW_TRANSLATION_MISSING:2']);
   Object.assign(draft.learning, { title_ru: 'Нетаньяху выступил в Кнессете', summary_ru: 'О чём статья.', subtitle_ru: 'Подзаголовок' });
-  for (const row of draft.learning.versions[0].rows) row.ru = 'Перевод';
+  const { studyRows, glossFor } = require('./helpers/newsFixture.cjs');
+  draft.learning.versions[0].rows = studyRows(draft.learning.versions[0].rows.map(row => ({ ...row, he_niqqud: undefined, translit: undefined, translit_ru: undefined, ru: 'Перевод' })))
+    .map(r => ({ ...r, he_niqqud: r.he_niqqud || r.he_plain, translit: r.translit || 'translit', translit_ru: r.translit_ru || 'транслит' }));
+  draft.learning.versions[0].word_gloss_ai = 'or.word-gloss-ai.json';
+  fs.writeFileSync(path.join(dir, 'ynet-0001', 'or.word-gloss-ai.json'), glossFor(draft.learning.versions[0].rows));
   fs.writeFileSync(path.join(dir, 'ynet-0001.draft.json'), JSON.stringify(draft));
   for (const s of ov.stories) for (const it of s.items) { it.title_ru = 'Заголовок'; if (it.subtitle_he) it.subtitle_ru = 'Подзаголовок'; if (it.lead_he) it.lead_ru = 'Первый абзац'; }
   fs.writeFileSync(path.join(dir, 'overview.json'), JSON.stringify(ov));
   const packed = await buildPack(dir, { now: clock.now, out: path.join(dir, 'pack.lpnews.zip') });
-  assert.equal(packed.ok, true, JSON.stringify(packed)); assert.equal(packed.articles[0].fidelity, 1); assert.deepEqual(packed.overview.warnings, []);
+  assert.equal(packed.ok, true, JSON.stringify(packed)); assert.equal(packed.articles[0].ok, true, JSON.stringify(packed.articles)); assert.equal(packed.articles[0].fidelity, 1); assert.deepEqual(packed.overview.warnings, []);
   const pz = new AdmZip(packed.written), manifest = JSON.parse(pz.readAsText('manifest.json'));
   assert.equal(manifest.overview.path, 'overview.json'); assert.equal(manifest.overview.sha256, require('node:crypto').createHash('sha256').update(pz.readFile('overview.json')).digest('hex'));
 

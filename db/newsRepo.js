@@ -139,6 +139,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       warnings.push('IMAGE_LICENSED_NOT_STORED_V1');
     }
     for (const version of article.learning.versions) {
+      if (C.isOriginal(version)) continue;
       const missing = version.rows.filter(r => !r.he_niqqud).length;
       if (missing) warnings.push('NIQQUD_MISSING:' + version.level + ':' + missing);
     }
@@ -158,6 +159,16 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     }
     const canonical = C.canonicalizeUrl(article.source.canonical_url);
     const articleId = C.articleKey(article.source.outlet_id, canonical);
+    // Checks before publishing (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.8).
+    const orIndex = article.learning.versions.findIndex(C.isOriginal);
+    const study = orIndex >= 0 ? C.checkStudyLayers(article, { glossLayer: glossLayers[orIndex] }) : [];
+    if (study.length) return { ...item, article_id: articleId, code: 'STUDY_LAYER_INVALID', detail: study };
+    if (manifest.edition_id && photos.length) {
+      const h = await dbGet(db, 'SELECT draft_images_json FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND draft_images_json IS NOT NULL', [articleId, articleId]).catch(() => null);
+      let want = null; try { want = h && JSON.parse(h.draft_images_json); } catch (_) { want = null; }
+      const changed = want && photos.find(ph => want[ph.name] && want[ph.name] !== ph.sha256);
+      if (changed) return { ...item, article_id: articleId, code: 'IMAGE_CHANGED', image: changed.name };
+    }
     const publishedMs = Date.parse(article.source.published_at);
     const tier = tierFor(publishedMs, nowMs());
     const flagged = overlap > FLAG_OVER;

@@ -40,6 +40,11 @@ function deepMerge(a, b) {
   return out;
 }
 const sha256 = buf => crypto.createHash('sha256').update(buf).digest('hex');
+// An original's rows with all study layers (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.8)
+// and the «в контексте (ИИ)» layer that covers them.
+const studyRows = rows => rows.map(r => ({ ...r, he_niqqud: r.he_niqqud || r.he_plain, translit: r.translit || 'translit', translit_ru: r.translit_ru || 'транслит' }));
+const glossFor = rows => JSON.stringify({ schema: 'word-gloss-ai-layer-v1', rows: rows.map((r, i) => { const n = String(r.he_plain).split(/\s+/).filter(Boolean).length;
+  return { order_index: i, key: 'k' + i + ':' + n, model: 'dot', glosses: Array.from({ length: n }, () => ({ gloss: 'слово' })), mwe: [] }; }) });
 
 // articles: array of article objects, or {path, json|buffer, extra:{name:buffer}} for hostile cases.
 function fixturePack(articles, { packId = crypto.randomUUID(), withdraw = [], manifestOver = {}, entries = [] } = {}) {
@@ -58,4 +63,4 @@ function fixturePack(articles, { packId = crypto.randomUUID(), withdraw = [], ma
   zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest)));
   return zip.toBuffer();
 }
-module.exports = { fixtureArticle, fixturePack, SOURCE, sha256, deepMerge };
+module.exports = { studyRows, glossFor, fixtureArticle, fixturePack, SOURCE, sha256, deepMerge };

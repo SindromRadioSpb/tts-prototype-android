@@ -205,8 +205,32 @@ function validateOverview(o) {
   return { ok: true, warnings: missing ? ['OVERVIEW_TRANSLATION_MISSING:' + missing] : [], stories: o.stories.length, items };
 }
 
+// The study layers of the original (OR) version are filled (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.8):
+// translation and transliteration in every row, the vowelled row has the same words as the plain one
+// (helper letters may differ — Dicta style), and «в контексте (ИИ)» covers at least 90% of the rows.
+// glossLayer: the parsed word-gloss-ai layer (or null). → codes, empty when all is well.
+const NIQQUD_MARKS = /[֑-ׇ]/g;
+const wordCount = s => String(s || '').replace(NIQQUD_MARKS, '').split(/[\s־]+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+function checkStudyLayers(article, { glossLayer = null } = {}) {
+  const v = ((article && article.learning && article.learning.versions) || []).find(isOriginal);
+  if (!v) return [];
+  const rows = v.rows || [], out = [];
+  const ru = rows.filter(r => !str(r.ru)).length, tr = rows.filter(r => !str(r.translit) || !str(r.translit_ru)).length;
+  const nq = rows.filter(r => !str(r.he_niqqud) || /[A-Za-zА-Яа-яЁё]/.test(r.he_niqqud) || wordCount(r.he_niqqud) !== wordCount(r.he_plain)).length;
+  if (ru) out.push('RU_MISSING:' + ru);
+  if (tr) out.push('TRANSLIT_MISSING:' + tr);
+  if (nq) out.push('NIQQUD_WORDS:' + nq);
+  if (!v.word_gloss_ai || !glossLayer) out.push('GLOSS_MISSING');
+  else {
+    const covered = new Set(((glossLayer && glossLayer.rows) || []).map(r => r && r.order_index).filter(i => Number.isInteger(i) && i >= 0 && i < rows.length)).size;
+    const pct = rows.length ? Math.floor(covered * 100 / rows.length) : 100;
+    if (pct < 90) out.push('GLOSS_COVERAGE:' + pct);
+  }
+  return out;
+}
+
 module.exports = {
-  validateOverview, OVERVIEW_LIMITS,
+  validateOverview, OVERVIEW_LIMITS, checkStudyLayers,
   SECTIONS, CONTENT_TYPES, LEVELS, ORIGINAL, SENSITIVE_KINDS, IMAGE_MODES, IMAGE_FILE, MAX_IMAGES,
   normalizeHebrewText, quotedSpans, shingles, overlapRatio, articleOverlap, articleFidelity, isOriginal, validateImages,
   canonicalizeUrl, articleKey, validateArticle, sha256,

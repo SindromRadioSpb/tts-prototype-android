@@ -167,13 +167,14 @@ test('review fix: the reader snapshot carries the normalized https original url'
 
 // Owner decision 2026-11-14: originals one-to-one ('OR') with photos from the article, stored by us.
 const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(64, 1)]);
-const origRows = () => [{ p: 1, he_plain: SOURCE.split(' ').slice(0, 17).join(' ') + '.', ru: 'Первая часть.' },
-  { p: 2, he_plain: SOURCE.split(' ').slice(17).join(' ') + '.', ru: 'Вторая часть.' }];
+const { studyRows, glossFor } = require('./helpers/newsFixture.cjs');
+const origRows = () => studyRows([{ p: 1, he_plain: SOURCE.split(' ').slice(0, 17).join(' ') + '.', ru: 'Первая часть.' },
+  { p: 2, he_plain: SOURCE.split(' ').slice(17).join(' ') + '.', ru: 'Вторая часть.' }]);
 const original = (over = {}) => art({ learning: { title_he: 'הכנסת אישרה בקריאה ראשונה את תקציב המדינה', subtitle_he: 'הצעת התקציב עברה', subtitle_ru: 'Проект прошёл',
-  versions: [{ level: 'OR', rows: origRows() }, art().learning.versions[0]] }, prepared: { method: 'original' },
+  versions: [{ level: 'OR', rows: origRows(), word_gloss_ai: 'or.word-gloss-ai.json' }, art().learning.versions[0]] }, prepared: { method: 'original' },
   images: [{ file: 'img-1.jpg', role: 'hero', source_url: 'https://ynet-pic1.yit.co.il/p/1.jpg', credit_he: 'צילום: א', caption_he: 'המליאה', caption_ru: 'Пленум' },
     { file: 'img-2.jpg', role: 'inline', after_p: 1, source_url: 'https://ynet-pic1.yit.co.il/p/2.jpg', credit_he: 'צילום: ב' }],
-  __files: { 'img-1.jpg': JPEG, 'img-2.jpg': JPEG }, ...over });
+  __files: { 'img-1.jpg': JPEG, 'img-2.jpg': JPEG, 'or.word-gloss-ai.json': glossFor(origRows()) }, ...over });
 test('original + photos: published, verbatim allowed, photos stored and served via the card and snapshot', async t => {
   const { repo, db } = await setup(t);
   const r = await repo.ingestPack(OWNER, fixturePack([original()]));
