@@ -231,3 +231,57 @@ test('ingest: a dot label without an order is dropped with SELECTED_BY_UNVERIFIE
   const card = await repo.getCard(r2.items[0].work_id);
   assert.equal(card.selected_by, 'dot'); assert.equal(card.selection_note_ru, 'Про экономику');
 });
+
+// ---- C2: owner interests and the reading signal (spec §4.5, §5.7) -------------------------------------
+async function readingSetup(t) {
+  const { createNewsRepo } = require('../db/newsRepo');
+  const { fixtureArticle, fixturePack } = require('./helpers/newsFixture.cjs');
+  const db = await openDb(['084_news_fingerprints.sql', '085_news_reading.sql']);
+  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-read-'));
+  t.after(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); });
+  const clock = { now: Date.parse('2026-11-12T08:00:00+02:00') };
+  const repo = createNewsRepo({ db, now: () => clock.now });
+  const r = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([fixtureArticle()]));
+  const h = createNewsHarvester({ db, dataDir, sources: [], delayMs: 0, now: () => clock.now, fetchImpl: async () => new Response('', { status: 404 }) });
+  return { db, h, clock, workId: r.items[0].work_id, articleId: r.items[0].article_id };
+}
+test('read: only the owner\'s reading is recorded; others get 204 and nothing is stored', async t => {
+  const { db, h, workId } = await readingSetup(t);
+  const base = await server(t, h);
+  const post = (headers, body) => fetch(base + '/api/news/read', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
+  assert.equal((await post({}, { work_id: workId, event: 'open' })).status, 204);
+  assert.equal((await post({ cookie: 'lp=editor' }, { work_id: workId, event: 'open' })).status, 204);
+  assert.equal((await get(db, 'SELECT COUNT(*) n FROM news_read_signals')).n, 0);
+  assert.equal((await post({ cookie: 'lp=owner' }, { work_id: workId, event: 'open' })).status, 204);
+  assert.equal((await post({ cookie: 'lp=owner' }, { work_id: 'junk', event: 'open' })).status, 204);
+  assert.deepEqual(await all(db, 'SELECT event FROM news_read_signals'), [{ event: 'open' }]);
+});
+test('read: open is recorded once per hour, finish once per day', async t => {
+  const { db, h, workId, clock } = await readingSetup(t);
+  for (let i = 0; i < 3; i++) await h.recordRead(workId, 'open');
+  clock.now += 61 * 60e3; await h.recordRead(workId, 'open');
+  await h.recordRead(workId, 'finish'); clock.now += 3600e3; await h.recordRead(workId, 'finish');
+  assert.deepEqual((await all(db, 'SELECT event, COUNT(*) n FROM news_read_signals GROUP BY event ORDER BY event')).map(r => [r.event, r.n]), [['finish', 1], ['open', 2]]);
+});
+test('interests: the owner writes, the editor reads, more than 4000 characters is refused', async t => {
+  const { h } = await readingSetup(t);
+  const base = await server(t, h);
+  const put = (headers, text) => fetch(base + '/api/news/editor/interests', { method: 'PUT', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify({ text }) });
+  assert.equal((await put({ cookie: 'lp=editor' }, 'x')).status, 403);
+  assert.equal((await put({ cookie: 'lp=owner', 'x-lp-csrf': 'c' }, 'a'.repeat(4001))).status, 400);
+  assert.equal((await put({ cookie: 'lp=owner', 'x-lp-csrf': 'c' }, 'Больше экономики, меньше криминала')).status, 200);
+  const got = await (await fetch(base + '/api/news/editor/interests', { headers: { cookie: 'lp=editor' } })).json();
+  assert.equal(got.text, 'Больше экономики, меньше криминала'); assert.ok(got.updated_at);
+});
+test('edition archive carries interests.md and reading.json with 14-day counts', async t => {
+  const { h, workId } = await readingSetup(t);
+  await h.saveInterests('Больше экономики');
+  await h.recordRead(workId, 'open'); await h.recordRead(workId, 'finish');
+  const r = await h.readingSummary();
+  assert.equal(r.days, 14);
+  assert.deepEqual(r.by_section.politics, { open: 1, finish: 1 });
+  assert.deepEqual(r.by_outlet.ynet, { open: 1, finish: 1 });
+  assert.deepEqual(r.by_selected.auto, { open: 1, finish: 1 });
+  assert.equal(r.recent[0].title_ru, 'Бюджет прошёл первое чтение'); assert.equal(r.recent[0].finished, true);
+  assert.equal(await h.interestsText(), 'Больше экономики');
+});

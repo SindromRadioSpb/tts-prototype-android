@@ -10738,6 +10738,7 @@ function renderReaderNewsSource(textRow, epoch) {
   };
   paint(false);
   wireNewsFigures(meta, epoch);
+  wireNewsReading(work, epoch);
   if (work) fetch('/api/news/feed?work=' + encodeURIComponent(work), { cache: 'no-cache' })
     .then(r => (r.status === 404 ? { card: { tier: 'withdrawn' } } : r.ok ? r.json() : null))
     .then(p => { if (p && p.card && (p.card.tier === 'withdrawn' || p.card.source_change)) paint(p.card.tier === 'withdrawn', p.card.source_change || null); }).catch(() => {});
@@ -10762,6 +10763,18 @@ function wireNewsFigures(meta, epoch) {
   observer.observe(mount, { childList: true, subtree: true });
   _newsFigureObserver = observer;
   place();
+}
+// The owner's reading signal for dot (news-reader.js watchReading; the server keeps it only for the owner).
+let _newsReadingStop = null;
+function wireNewsReading(work, epoch) {
+  if (_newsReadingStop) { _newsReadingStop(); _newsReadingStop = null; }
+  const mount = $('roomReaderTable');
+  if (!work || !mount || !window.NewsReader || !window.NewsReader.watchReading) return;
+  _newsReadingStop = window.NewsReader.watchReading(window, mount, work, event => {
+    if (epoch !== readerOpenEpoch) return;
+    fetch('/api/news/read', { method: 'POST', credentials: 'same-origin', keepalive: true, headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ work_id: work, event }) }).catch(() => {});
+  });
 }
 // ?news=<work_id>: opens a news article on the public-work path (no corpus catalog needed).
 // Offline or withdrawn articles fall back to this device's copy, which stays the learner's.

@@ -141,6 +141,30 @@
     if (href) { p.appendChild(doc.createTextNode(" · ")); var a = doc.createElement("a"); a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = t("news.plate.original", "Оригинал ↗"); p.appendChild(a); }
     return p;
   }
+  // The reading signal (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.7): «open» at once,
+  // «finish» when the table's last row is seen. The server keeps it only for the owner.
+  function watchReading(win, mount, workId, send) {
+    var done = false, io = null, mo = null, watched = null;
+    try { send("open"); } catch (_) {}
+    if (!win || !win.IntersectionObserver || !mount) return function () {};
+    function lastRow() { var rows = mount.querySelectorAll("tr"); return rows.length ? rows[rows.length - 1] : null; }
+    function arm() {
+      if (done) return;
+      var row = lastRow();
+      if (!row || row === watched) return;
+      if (io) io.disconnect();
+      watched = row;
+      io = new win.IntersectionObserver(function (entries) {
+        if (done) return;
+        if (entries.some(function (e) { return e.isIntersecting; })) { done = true; io.disconnect(); if (mo) mo.disconnect(); try { send("finish"); } catch (_) {} }
+      });
+      io.observe(row);
+    }
+    arm();
+    // The table is repainted on many paths: follow the new last row.
+    if (win.MutationObserver) { mo = new win.MutationObserver(arm); mo.observe(mount, { childList: true, subtree: true }); }
+    return function () { done = true; if (io) io.disconnect(); if (mo) mo.disconnect(); };
+  }
   // meta: text.source_meta.news; t(key, fallback); place: 'head' | 'foot'; sourceChange: the card's source_change.
   function renderPlate(doc, meta, opts) {
     opts = opts || {};
@@ -202,5 +226,5 @@
     extra.forEach(function (text) { var p = doc.createElement("p"); p.className = "reader-news-source-note"; p.textContent = text; box.appendChild(p); });
     return box;
   }
-  return { parseEntry: parseEntry, returnHref: returnHref, renderPlate: renderPlate, dateLabel: dateLabel, levelLabel: levelLabel, safeImage: safeImage, creditText: creditText, placeInlineFigures: placeInlineFigures, COLLAPSE_KEY: COLLAPSE_KEY, WORK: WORK };
+  return { watchReading: watchReading, parseEntry: parseEntry, returnHref: returnHref, renderPlate: renderPlate, dateLabel: dateLabel, levelLabel: levelLabel, safeImage: safeImage, creditText: creditText, placeInlineFigures: placeInlineFigures, COLLAPSE_KEY: COLLAPSE_KEY, WORK: WORK };
 });

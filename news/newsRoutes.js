@@ -226,6 +226,25 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
           res.send(r.buffer);
         } catch (e) { if (e && EXTRAS_STATUS[e.code]) return res.status(EXTRAS_STATUS[e.code]).json({ ok: false, error: e.code }); send(res, e); }
       });
+      // The owner's interests for dot (spec §5.7): the owner writes, an editor (dot) reads.
+      app.get('/api/news/editor/interests', read, noStore, async (req, res) => {
+        const actor = await actorFor(req, res); if (!actor) return;
+        try { res.json({ ok: true, ...(await harvester.interestsRow()) }); } catch (e) { send(res, e); }
+      });
+      app.put('/api/news/editor/interests', write, json, noStore, async (req, res) => {
+        const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+        try { res.json({ ok: true, ...(await harvester.saveInterests(req.body && req.body.text)) }); }
+        catch (e) { if (e && e.code === 'INTERESTS_TOO_LONG') return res.status(400).json({ ok: false, error: e.code }); send(res, e); }
+      });
+      // The reading signal: recorded only for the owner; anyone else gets the same 204 and nothing is stored.
+      app.post('/api/news/read', write, json, noStore, async (req, res) => {
+        try {
+          const auth = await Promise.resolve(resolveUser(req)).catch(() => null);
+          const owner = auth && auth.user && String(auth.user.role || '').toLowerCase() === 'owner';
+          if (owner && req.body) await harvester.recordRead(String(req.body.work_id || ''), String(req.body.event || '')).catch(() => false);
+        } catch (_) {}
+        res.status(204).end();
+      });
       app.get('/api/news/editor/schedule', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;
         try { res.json({ ok: true, schedule: await harvester.loadSchedule() }); } catch (e) { send(res, e); }

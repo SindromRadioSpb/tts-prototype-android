@@ -252,7 +252,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     try { sharp.concurrency(1); sharp.cache(false); } catch (_) {}
     await supersede();
     if (closeExpired) await closeExpired();
+    const interests = await interestsText().catch(() => ''), reading = await readingSummary().catch(() => null);
     const r = await buildEdition({ db, stories, editionId, day, slot, schedule, nowMs: now(), photo: src => photo(src, sharp), dir, draftOf, limits: L, log,
+      extraFiles: { 'interests.md': interests || 'Интересы не записаны.\n', 'reading.json': JSON.stringify(reading || { days: 14, by_section: {}, by_outlet: {}, by_selected: {}, recent: [] }, null, 1) },
       readme: fs.readFileSync(path.join(__dirname, 'dotTask.md'), 'utf8'), sleep: () => sleep(Math.round(delayMs / 3)) });
     for (const [id, o] of Object.entries((lastPollReport && lastPollReport.outlets) || {})) if (o.errors.length) (r.report.outlets[id] = r.report.outlets[id] || { items: 0, main: 0 }).errors = o.errors;
     const t = iso(now()), status = r.file_name ? 'archived' : 'skipped';
@@ -283,6 +285,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     }
     await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL WHERE data_json IS NOT NULL AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
+    await dbRun(db, 'DELETE FROM news_read_signals WHERE at < ?', [iso(now() - 90 * 86400000)]).catch(() => {});
     await dbRun(db, `UPDATE news_editions SET status='failed', closed_at=?, report_json=? WHERE status='building' AND cutoff_at < ?`,
       [iso(now()), JSON.stringify({ error: 'STALE' }), iso(now() - L.staleRunMs)]).catch(() => {});
   }
@@ -368,6 +371,44 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const file = path.join(dir, path.basename(r.file_name));
     return fs.existsSync(file) ? { path: file, name: path.basename(r.file_name) } : null;
   }
+  // ---- the owner's interests and reading (spec §4.5, §5.7): what dot reads before choosing its own articles.
+  const READ_WINDOW = { open: 3600e3, finish: 86400e3 };
+  async function interestsRow() { const r = await dbGet(db, `SELECT value_json, updated_at FROM news_settings WHERE key='interests'`).catch(() => null); return r ? { text: (parse(r.value_json) || {}).text || '', updated_at: r.updated_at } : { text: '', updated_at: null }; }
+  async function interestsText() { return (await interestsRow()).text; }
+  async function saveInterests(text) {
+    const v = String(text == null ? '' : text);
+    if (v.length > 4000) { const e = new Error('INTERESTS_TOO_LONG'); e.code = 'INTERESTS_TOO_LONG'; throw e; }
+    await dbRun(db, `INSERT INTO news_settings(key, value_json, updated_at) VALUES ('interests', ?, ?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, updated_at=excluded.updated_at`,
+      [JSON.stringify({ text: v }), iso(now())]);
+    return interestsRow();
+  }
+  // The caller has checked that the reader is the owner. Opens once per hour, finishes once per day.
+  async function recordRead(workId, event) {
+    const m = String(workId || '').match(/^(na_[0-9a-f]{24})\.[a-z0-9]{2}$/);
+    if (!m || !READ_WINDOW[event]) return false;
+    const recent = await dbGet(db, 'SELECT 1 FROM news_read_signals WHERE article_id=? AND event=? AND at>=? LIMIT 1', [m[1], event, iso(now() - READ_WINDOW[event])]);
+    if (recent) return false;
+    await dbRun(db, 'INSERT INTO news_read_signals(article_id, event, at) VALUES (?,?,?)', [m[1], event, iso(now())]);
+    return true;
+  }
+  async function readingSummary(days = 14) {
+    const has = await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_read_signals'").catch(() => null);
+    const out = { days, by_section: {}, by_outlet: {}, by_selected: {}, recent: [] };
+    if (!has) return out;
+    const rows = await dbAll(db, `SELECT s.article_id, s.event, s.at, a.section, a.outlet_id, a.title_he, a.title_ru, a.story_key, a.provenance_json FROM news_read_signals s
+      JOIN news_articles a ON a.article_id = s.article_id WHERE s.at >= ? ORDER BY s.at DESC`, [iso(now() - days * 86400e3)]);
+    const bump = (o, k, ev) => { const x = o[k] = o[k] || { open: 0, finish: 0 }; x[ev]++; };
+    const seen = new Map();
+    for (const r of rows) {
+      const sel = (parse(r.provenance_json) || {}).selected_by === 'dot' ? 'dot' : 'auto';
+      bump(out.by_section, r.section || 'news', r.event); bump(out.by_outlet, r.outlet_id, r.event); bump(out.by_selected, sel, r.event);
+      if (!seen.has(r.article_id)) seen.set(r.article_id, { title_he: r.title_he, title_ru: r.title_ru, story_key: r.story_key, section: r.section, outlet_id: r.outlet_id, selected_by: sel, finished: false, at: r.at });
+      if (r.event === 'finish') seen.get(r.article_id).finished = true;
+    }
+    out.recent = [...seen.values()].slice(0, 30);
+    return out;
+  }
+
   // ---- dot's own choice (spec §4.5, §5.6): drafts of articles the selection left out, at most
   // schedule.extras per edition; the server makes them one-to-one, dot only says which and why.
   function extrasError(code) { const e = new Error(code); e.code = code; return e; }
@@ -551,7 +592,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), recheckPublished, orderExtras, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
+    closeExpired: () => closeExpired(), recheckPublished, orderExtras, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

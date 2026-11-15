@@ -46,7 +46,7 @@ async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrie
   return { draft, shas, files };
 }
 
-async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs, photo, dir, draftOf, readme, limits, log = () => {}, sleep = async () => {} }) {
+async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs, photo, dir, draftOf, readme, limits, log = () => {}, sleep = async () => {}, extraFiles = {} }) {
   const now = nowMs, retrievedAt = israelIso(now), L = limits;
   // 1. New articles join their stories.
   const fresh = await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='ready' AND story_key IS NULL AND first_seen_at >= ? ORDER BY first_seen_at`, [iso(now - OVERVIEW_WINDOW_MS)]);
@@ -145,6 +145,7 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
   if (rows.length || draftOfKey.size) {
     zip.addFile('overview.json', Buffer.from(JSON.stringify(overview, null, 1)));
     zip.addFile('candidates.json', Buffer.from(JSON.stringify(candidates, null, 1)));
+    for (const [name, text] of Object.entries(extraFiles)) zip.addFile(name, Buffer.from(String(text)));
     zip.addFile('README-dot.md', Buffer.from(readme));
     zip.addFile('harvest.json', Buffer.from(JSON.stringify({ schema: 'linguistpro-news-harvest', schema_version: 3, edition_id: editionId, day, slot, created_at: retrievedAt,
       items: rows.length, stories: overviewStories.size, main, rework, outlets: report.outlets }, null, 1)));

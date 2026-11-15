@@ -164,7 +164,7 @@ test('hourly poll keeps every new article; an edition makes main drafts + «Об
   assert.equal(r.overview_items, 2); assert.equal(r.stories, 2);
   assert.equal(r.slot, 'extra'); assert.match(r.edition_id, /^ne_[0-9a-f]{18}$/);
   const zip = new AdmZip((await harvester.runFile(r.run_id)).path), names = zip.getEntries().map(e => e.entryName).sort();
-  assert.deepEqual(names, ['README-dot.md', 'candidates.json', 'harvest.json', 'overview.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
+  assert.deepEqual(names, ['README-dot.md', 'candidates.json', 'harvest.json', 'interests.md', 'overview.json', 'reading.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
   const img = await sharp(zip.readFile('ynet-0001/img-1.jpg')).metadata();
   assert.equal(img.width, 1600); assert.ok(zip.readFile('ynet-0001/img-1.jpg').length <= 600 * 1024);
   const draft = JSON.parse(zip.readAsText('ynet-0001.draft.json'));

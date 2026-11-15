@@ -137,3 +137,25 @@ test('card: the latest significant change of the source rides on the card', asyn
     [id, '2026-11-12T09:00:00.000Z', null, 2, 0, 0, 1], e => e ? rej(e) : res()));
   assert.deepEqual((await repo.getCard(r.items[0].work_id)).source_change, { at: '2026-11-12T09:00:00.000Z', source_updated_at: null, added: 2, changed: 0, removed: 0, title_changed: true });
 });
+
+// ---- C2: the reading signal from the Room (spec §5.7) ---------------------------------------------------
+test('reader: open is sent at once, finish when the last row becomes visible (once)', () => {
+  const { document } = parseHTML('<html><body><div id="m"><table><tr><td>1</td></tr><tr><td>2</td></tr></table></div></body></html>');
+  const sent = [], observers = [];
+  class IO { constructor(cb) { this.cb = cb; this.targets = []; observers.push(this); } observe(el) { this.targets.push(el); } disconnect() { this.off = true; } }
+  const win = { IntersectionObserver: IO, MutationObserver: class { observe() {} disconnect() {} } };
+  const stop = NR.watchReading(win, document.getElementById('m'), 'na_' + 'a'.repeat(24) + '.or', ev => sent.push(ev));
+  assert.deepEqual(sent, ['open']);
+  const io = observers[0];
+  assert.equal(io.targets[0].textContent, '2', 'the last row is watched');
+  io.cb([{ isIntersecting: false, target: io.targets[0] }]);
+  assert.deepEqual(sent, ['open']);
+  io.cb([{ isIntersecting: true, target: io.targets[0] }]);
+  io.cb([{ isIntersecting: true, target: io.targets[0] }]);
+  assert.deepEqual(sent, ['open', 'finish']);
+  assert.equal(io.off, true);
+  stop();
+  const none = [];
+  NR.watchReading({}, document.getElementById('m'), 'na_' + 'a'.repeat(24) + '.or', ev => none.push(ev));
+  assert.deepEqual(none, ['open'], 'no IntersectionObserver → no finish, no error');
+});
