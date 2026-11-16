@@ -93,3 +93,52 @@ test('server: STUDY_LAYER_INVALID rejects one article and publishes the others',
   const rej = receipt.items.find(i => i.status === 'rejected');
   assert.equal(rej.code, 'STUDY_LAYER_INVALID'); assert.deepEqual(rej.detail, ['TRANSLIT_MISSING:1']);
 });
+
+// ---- Latin words in the original (ynet, X, Pew): kept as they are in he_niqqud ------------------------
+// he_plain / he_niqqud pairs; the check must accept a Latin token only where the original has it.
+const ROWS_LATIN = {
+  ynet: ['כתב ynet דיווח הערב על ההחלטה.', 'כָּתַב ynet דִּוֵּחַ הָעֶרֶב עַל הַהַחְלָטָה.'],
+  ynetEnd: ['לפי הדיווח ב-ynet.', 'לְפִי הַדִּוּוּחַ בְּ-ynet.'],
+  x: ['הוא כתב ברשת X שהוא יתמודד.', 'הוּא כָּתַב בָּרֶשֶׁת X שֶׁהוּא יִתְמוֹדֵד.'],
+  pew: ['לפי סקר של מכון Pew רוב הציבור תומך.', 'לְפִי סֶקֶר שֶׁל מָכוֹן Pew רֹב הַצִּבּוּר תּוֹמֵךְ.'],
+  hebrew: ['היא הייתה שם.', 'הִיא הָיְתָה שָׁם.'],
+};
+const withRow = ([he, nq]) => { const a = orArticle(); a.learning.versions[0].rows = [{ p: 1, he_plain: he, he_niqqud: nq, translit: 't', translit_ru: 'т', ru: 'Перевод' }]; return a; };
+const checkRow = pair => { const a = withRow(pair); return C.checkStudyLayers(a, { glossLayer: layerFor(a.learning.versions[0].rows) }); };
+test('latin: ynet, X and Pew kept from the original pass; a Hebrew-only row still passes', () => {
+  for (const k of ['ynet', 'ynetEnd', 'x', 'pew', 'hebrew']) assert.deepEqual(checkRow(ROWS_LATIN[k]), [], k);
+});
+test('latin: an added, a missing or a changed Latin word fails; a missing Hebrew word fails', () => {
+  const [he, nq] = ROWS_LATIN.ynet;
+  assert.deepEqual(checkRow([he, nq.replace('הָעֶרֶב', 'הָעֶרֶב BBC')]), ['NIQQUD_WORDS:1'], 'added Latin word');
+  assert.deepEqual(checkRow([he, nq.replace(' ynet', '')]), ['NIQQUD_WORDS:1'], 'missing Latin word');
+  assert.deepEqual(checkRow([he, nq.replace('ynet', 'mako')]), ['NIQQUD_WORDS:1'], 'changed Latin word');
+  assert.deepEqual(checkRow([he, nq.replace('ynet', 'Ynet')]), ['NIQQUD_WORDS:1'], 'changed case');
+  assert.deepEqual(checkRow([he, nq.replace('הָעֶרֶב ', '')]), ['NIQQUD_WORDS:1'], 'missing Hebrew word');
+  assert.deepEqual(checkRow([he, nq.replace('הָעֶרֶב', 'ynet').replace('כָּתַב ynet', 'כָּתַב הָעֶרֶב')]), ['NIQQUD_WORDS:1'], 'Latin word moved');
+  // Latin where the original has none is still refused, even in a mixed line.
+  assert.deepEqual(checkRow(['כתב החדשות דיווח הערב.', 'כָּתַב news דִּוֵּחַ הָעֶרֶב.']), ['NIQQUD_WORDS:1']);
+  assert.deepEqual(checkRow([ROWS_LATIN.x[0], ROWS_LATIN.x[1].replace('בָּרֶשֶׁת', 'network')]), ['NIQQUD_WORDS:1'], 'arbitrary Latin in a mixed line');
+});
+test('latin: the packer and the server agree on mixed rows (packed, then published)', async t => {
+  const dir = tmp(t);
+  const ok = orArticle(), bad = orArticle('https://www.ynet.co.il/news/article/bad2');
+  const rowsOk = [ROWS_LATIN.ynet, ROWS_LATIN.pew].map(([he, nq], i) => ({ p: i + 1, he_plain: he, he_niqqud: nq, translit: 't', translit_ru: 'т', ru: 'Перевод ' + i }));
+  ok.learning.versions[0].rows = rowsOk; ok.source_text_he = rowsOk.map(r => r.he_plain).join('\n\n');
+  bad.learning.versions[0].rows = rowsOk.map((r, i) => i ? { ...r, he_niqqud: r.he_niqqud.replace('Pew', 'Gallup') } : r); bad.source_text_he = ok.source_text_he;
+  writeDraft(dir, 'ynet-0001', ok); writeDraft(dir, 'ynet-0002', bad);
+  const r = await buildPack(dir, { now: Date.parse('2026-11-16T08:00:00+02:00'), out: path.join(dir, 'p.lpnews.zip') });
+  assert.deepEqual(r.articles.map(a => [a.file, a.ok, a.code || null]), [['ynet-0001.draft.json', true, null], ['ynet-0002.draft.json', false, 'STUDY_LAYER_INVALID']]);
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsRepo } = require('../db/newsRepo');
+  const db = await openDb(); t.after(() => db.close());
+  const repo = createNewsRepo({ db, now: () => Date.parse('2026-11-16T08:00:00+02:00') });
+  const receipt = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fs.readFileSync(r.written));
+  assert.equal(receipt.totals.published, 1, JSON.stringify(receipt.items));
+  // the server alone refuses the changed Latin word too
+  const { fixturePack } = require('./helpers/newsFixture.cjs');
+  const asPack = a => { const x = { ...a }; const src = x.source_text_he; delete x.source_text_he; x.check = { source_shingles: C.shingles(src), source_word_count: src.split(/\s+/).length };
+    return { ...x, __files: { 'or.word-gloss-ai.json': JSON.stringify(layerFor(a.learning.versions[0].rows)) } }; };
+  const r2 = await repo.ingestPack({ id: 'owner', kind: 'owner' }, fixturePack([asPack(bad)]));
+  assert.equal(r2.items[0].code, 'STUDY_LAYER_INVALID'); assert.deepEqual(r2.items[0].detail, ['NIQQUD_WORDS:1']);
+});

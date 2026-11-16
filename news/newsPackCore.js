@@ -207,16 +207,26 @@ function validateOverview(o) {
 
 // The study layers of the original (OR) version are filled (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.8):
 // translation and transliteration in every row, the vowelled row has the same words as the plain one
-// (helper letters may differ — Dicta style), and «в контексте (ИИ)» covers at least 90% of the rows.
+// (helper letters may differ — Dicta style; a Latin word of the original stays the same word at the same
+// place), and «в контексте (ИИ)» covers at least 90% of the rows.
 // glossLayer: the parsed word-gloss-ai layer (or null). → codes, empty when all is well.
 const NIQQUD_MARKS = /[֑-ׇ]/g;
-const wordCount = s => String(s || '').replace(NIQQUD_MARKS, '').split(/[\s־]+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length;
+// Words of a row (vowels removed), and the Latin/Cyrillic part of each: a word the original writes in Latin
+// (ynet, X, Pew) stays as it is in the vowelled row — at the same place, letter for letter.
+const rowWords = s => String(s || '').replace(NIQQUD_MARKS, '').split(/[\s־]+/).filter(w => /[\p{L}\p{N}]/u.test(w));
+const foreignPart = w => (w.match(/[A-Za-zЀ-ӿ]+/g) || []).join(' ');
+function niqqudWordsOk(plain, niqqud) {
+  const a = rowWords(plain), b = rowWords(niqqud);
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (foreignPart(a[i]) !== foreignPart(b[i])) return false;
+  return true;
+}
 function checkStudyLayers(article, { glossLayer = null } = {}) {
   const v = ((article && article.learning && article.learning.versions) || []).find(isOriginal);
   if (!v) return [];
   const rows = v.rows || [], out = [];
   const ru = rows.filter(r => !str(r.ru)).length, tr = rows.filter(r => !str(r.translit) || !str(r.translit_ru)).length;
-  const nq = rows.filter(r => !str(r.he_niqqud) || /[A-Za-zА-Яа-яЁё]/.test(r.he_niqqud) || wordCount(r.he_niqqud) !== wordCount(r.he_plain)).length;
+  const nq = rows.filter(r => !str(r.he_niqqud) || !niqqudWordsOk(r.he_plain, r.he_niqqud)).length;
   if (ru) out.push('RU_MISSING:' + ru);
   if (tr) out.push('TRANSLIT_MISSING:' + tr);
   if (nq) out.push('NIQQUD_WORDS:' + nq);
