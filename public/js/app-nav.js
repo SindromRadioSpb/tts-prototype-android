@@ -13,6 +13,20 @@
     { id: "dictionary", href: "/dictionary.html", icon: "lp-icon-dictionary", key: "appNav.dictionary", fallback: "Словарь" },
   ];
 
+  // «Гуашь» (css/lp-gouache.css): the look is static CSS keyed on <html data-look="gouache">.
+  // localStorage lp_look_v1 = "classic" switches it off on this device (support / weak phones).
+  var GOUACHE_URL = "/js/lp-gouache.js?v=898"; // lockstep with the sw.js precache key
+  try {
+    if (localStorage.getItem("lp_look_v1") === "classic") document.documentElement.removeAttribute("data-look");
+  } catch (_) {}
+  function gouacheAir() {
+    var root = document.documentElement;
+    if (root.getAttribute("data-look") !== "gouache" || root.hasAttribute("data-world")) return;
+    var s = document.createElement("script");
+    s.src = GOUACHE_URL; s.async = true;
+    document.head.appendChild(s);
+  }
+
   function label(key, fallback) {
     try {
       var v = typeof window.t === "function" ? window.t(key) : "";
@@ -26,8 +40,8 @@
     if (p === "/mediatheque.html") return "mediatheque";
     if (p === "/news.html") return "news";
     if (p === "/dictionary.html") return "dictionary";
-    if (p === "/library.html") return loc.hash === "#review" ? "review" : "room";
-    if (p === "/" || p === "/index.html") return "studio";
+    if (p === "/library.html" || p === "/study-library.html") return loc.hash === "#review" ? "review" : "room";
+    if (p === "/" || p === "/index.html" || p === "/study-studio.html") return "studio";
     return "";
   }
 
@@ -62,5 +76,6 @@
     mount();
     var nav = document.querySelector("nav.lp-app-nav");
     if (nav) render(nav);
+    setTimeout(gouacheAir, 350);
   });
 })();
