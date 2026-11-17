@@ -1,6 +1,6 @@
 # «Гуашь» — общее оформление LinguistPro
 
-Статус: реализовано в 3.11.898 (2026-11-17), заказ владельца от 2026-11-17.
+Статус: на production с 3.11.898, мобильные доработки 3.11.899–900 (2026-11-17); заказ владельца от 2026-11-17. Открытые вопросы — O-173.
 Код: `public/css/lp-gouache.css`, `public/js/lp-gouache.js`, `public/art/gouache/`, генератор картин `scripts/art/gouache/`.
 
 ## Замысел
@@ -43,6 +43,7 @@ LinguistPro — одна нарисованная долина. Каждый р�
 - Все правила вложены в один блок `html[data-look="gouache"]:not([data-world])`. Браузер без вложенности
   CSS (iOS младше 16.5) оставляет прежний Classic целиком. Выбранный мир (`html[data-world]`) отключает слой.
 - Выключатель на устройстве: `localStorage.lp_look_v1 = "classic"` (читает `app-nav.js` до первой отрисовки).
+- Значки навигации, мазок и пятно встроены в таблицу стилей как data URI (`scripts/art/gouache/inline-masks.js`; запускать после перекраски этих файлов).
 - Картины не входят в precache сервис-воркера: раздел грузит одну свою картину (60–200 КБ, для телефона —
   отдельная обрезка `-m`). Без сети шапка остаётся ровным цветом.
 
@@ -56,6 +57,7 @@ LinguistPro — одна нарисованная долина. Каждый р�
 ```
 node scripts/art/gouache/run.js [сцена…] [--preview]   # → public/art/gouache/*.webp
 node scripts/art/gouache/shots.js <план.js>            # просмотр: живой сайт + локальный public/
+LIVE=1 ENGINE=webkit node scripts/art/gouache/shots.js <план.js>   # production как есть, движок iPhone
 ```
 
 `shots.js` отвечает на запросы файлов из рабочей копии, а данные берёт с production только чтением;
