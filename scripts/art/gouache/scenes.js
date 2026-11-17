@@ -97,7 +97,7 @@
       flower: ["#8f8a4e", "#b3a758", "#d6c66a"], flowerHi: "#f0e39a", flowerSh: "#5c5a3c", con: ["#081424", "#0e2034", "#2c4a78"], vig: "#04081c"
     } : {
       sky: [[0, "#5d88bb"], [0.24, "#8fb1cf"], [0.42, "#c9d6cf"], [0.55, "#f3e6a6"], [0.66, "#fbd47c"]],
-      cloud: { shadow: "#4a5f8e", deep: "#3a4b78", mid: "#7389ad", light: "#cfc9b2", hi: "#fff2b8", base: "#6a7fa6" },
+      cloud: { shadow: "#6f86b0", deep: "#5a709e", mid: "#a9b6c8", light: "#eadfbe", hi: "#fff6cf", base: "#8aa0c2" },
       streaks: ["#fff3bd", "#fbe08e", "#e9c9a0", "#b9c1cf"],
       r1: ["#8e9fd0", "#c6cfe6"], r2: ["#5d73b0", "#a3b3d8"], r3: ["#17324e", "#2b5a66"], rim: "#f4e08a",
       mist: "#e8e6dc", sun: "#fff6c8", sunA: 0.95, shaft: "#fff0b0", shaftA: 0.2,
@@ -112,7 +112,7 @@
     if (!night) { G.blob(ctx, sunX, sunY, 44, 44, 0, "#fffdf2", 1, 0.03); G.glow(ctx, sunX, sunY, 190, "#fff8d0", 1); }
     if (night) { G.blob(ctx, W * 0.82, H * 0.2, 46, 46, 0, "#f3ecd2", 1, 0.03); G.blob(ctx, W * 0.82 + 20, H * 0.2 - 9, 44, 44, 0, G.ramp(P.sky, 0.2), 1, 0.03); G.glow(ctx, W * 0.82, H * 0.2, 220, "#cfd6ff", 0.35); }
     /* clouds, lit from below by the rising sun */
-    var L = night ? { lx: 0.5, ly: -0.6 } : { lx: 0.3, ly: 0.5 };
+    var L = night ? { lx: 0.5, ly: -0.6 } : { lx: 0.5, ly: -0.3 };
     G.cloud(ctx, W * 0.2, H * 0.19, W * 0.42, H * 0.15, P.cloud, L);
     G.cloud(ctx, W * 0.63, H * 0.13, W * 0.5, H * 0.13, P.cloud, L);
     G.cloud(ctx, W * 0.93, H * 0.27, W * 0.3, H * 0.12, P.cloud, L);

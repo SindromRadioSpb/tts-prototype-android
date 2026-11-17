@@ -6,7 +6,7 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { chromium } = require("playwright");
+const { chromium, webkit } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..", "..", "..");
 const PUB = path.join(ROOT, "public");
@@ -48,7 +48,7 @@ async function open(browser, o) {
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const plan = require(path.resolve(process.argv[2]));
-  const browser = await chromium.launch({ headless: process.env.HEADED !== "1", args: process.env.HEADED === "1" ? ["--window-position=-2400,0"] : [] });
+  const browser = process.env.ENGINE === "webkit" ? await webkit.launch() : await chromium.launch({ headless: process.env.HEADED !== "1" });
   const shot = async (page, name, opts) => {
     const file = path.join(OUT, name + ".jpg");
     await page.screenshot(Object.assign({ path: file, type: "jpeg", quality: 82 }, opts || {}));

@@ -22,6 +22,15 @@
   function gouacheAir() {
     var root = document.documentElement;
     if (root.getAttribute("data-look") !== "gouache" || root.hasAttribute("data-world")) return;
+    // the browser bar takes the colour of the sky at the top of the section's painting
+    try {
+      var sec = root.getAttribute("data-lp-section") || "studio", cl = document.body.className;
+      var dark = /(theme-dark|nw-dark|ml-dark)/.test(cl) || (sec !== "news" && sec !== "mediatheque" && !/theme-light/.test(cl) &&
+        window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var SKY = { studio: ["#6a90c0", "#0b1433"], room: ["#0b2a36", "#050d22"], mediatheque: ["#3fb8b0", "#04061a"], news: ["#5a4c20", "#0d0b2a"], dictionary: ["#3aa4d6", "#070c2e"] };
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta && SKY[sec]) meta.setAttribute("content", SKY[sec][dark ? 1 : 0]);
+    } catch (_) {}
     var s = document.createElement("script");
     s.src = GOUACHE_URL; s.async = true;
     document.head.appendChild(s);

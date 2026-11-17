@@ -208,12 +208,12 @@
       });
     };
     if (pal.deep) { x.filter = "blur(" + Math.round(h * 0.03) + "px)"; lobes.forEach(function (p) { if (G.r() < 0.6) G.blob(x, p[0] - lx * p[2] * 0.4, p[1] - ly * p[2] * 0.5, p[2] * 0.7, p[2] * 0.42, R(-0.3, 0.3), G.jit(pal.deep, 0.01, 0.04, 0.02), 0.8, 0.2); }); }
-    pass(pal.mid, 0.86, 0.22, 0.95, h * 0.05, 0.025);
+    pass(pal.mid, 0.9, 0.2, 0.95, h * 0.075, 0.025);
     pass(pal.light, 0.62, 0.44, 0.96, h * 0.03, 0.02);
     pass(pal.hi, 0.36, 0.62, 0.8, h * 0.02, 0.01);
     x.filter = "none";
     lobes.forEach(function (p) {
-      for (var k = 0; k < 5; k++) {
+      for (var k = 0; k < 2; k++) {
         var a = Math.atan2(ly, lx) + R(-0.9, 0.9);
         G.blob(x, p[0] + Math.cos(a) * p[2] * R(0.7, 0.97), p[1] + Math.sin(a) * p[2] * R(0.7, 0.97), p[2] * R(0.1, 0.24), p[2] * R(0.035, 0.08), a + 1.57, G.jit(pal.hi, 0.01, 0.03, 0.01), R(0.5, 0.95), 0.3);
       }

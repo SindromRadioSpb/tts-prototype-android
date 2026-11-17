@@ -21,7 +21,7 @@
 html[data-look="gouache"]:not([data-world]) {
   /* ── section pigments and scenes ─────────────────────────────────────────── */
   --pL: #e8a81c; --pD: #f6c64a; --pdL: #8a5d00; --pdD: #f6d27a; --psL: #fbf0cf; --psD: #332a12;
-  --sL: url("/art/gouache/studio-day.webp"); --sD: url("/art/gouache/studio-night.webp");
+  --sL: url("/art/gouache/studio-day.webp?v=899"); --sD: url("/art/gouache/studio-night.webp?v=899");
   --lp-mast: 250px;
   --lp-scene: var(--sL);
   position: relative;
@@ -46,7 +46,7 @@ html[data-look="gouache"]:not([data-world]) {
     --sL: url("/art/gouache/dict-day.webp"); --sD: url("/art/gouache/dict-night.webp");
   }
   @media (max-width: 699px) {
-    --sL: url("/art/gouache/studio-day-m.webp"); --sD: url("/art/gouache/studio-night-m.webp");
+    --sL: url("/art/gouache/studio-day-m.webp?v=899"); --sD: url("/art/gouache/studio-night-m.webp?v=899");
     &[data-lp-section="room"] { --sL: url("/art/gouache/room-day-m.webp"); --sD: url("/art/gouache/room-night-m.webp"); }
     &[data-lp-section="mediatheque"] { --sL: url("/art/gouache/media-day-m.webp"); --sD: url("/art/gouache/media-night-m.webp"); }
     &[data-lp-section="news"] { --sL: url("/art/gouache/news-day-m.webp"); --sD: url("/art/gouache/news-night-m.webp"); }
@@ -456,6 +456,53 @@ html[data-look="gouache"]:not([data-world]) {
   & .classic-nav-card { background: var(--lp-sunk); border-color: var(--lp-line); color: var(--lp-ink); border-radius: var(--lp-r-m); }
   & .classic-nav-card.classic-review-card { background: var(--lp-pig-soft); border-color: var(--lp-pig); }
   & .classic-nav-card .classic-nav-icon, & .classic-nav-card svg { color: var(--lp-ink); }
+
+  /* ── arrival: the caption settles, then the brush lays its stroke (once per page load) ── */
+  @media (prefers-reduced-motion: no-preference) {
+    & :is(.nw-heading, .ml-heading-copy, .room-brand-block, .classic-shell-copy, .dict-title) { animation: lp-settle .46s var(--lp-ease) both; }
+    & :is(.nw-heading h1, .ml-heading-copy h1, .room-brand-block .room-title, .classic-shell-copy h1, .dict-title)::after { animation: lp-stroke .6s .22s var(--lp-ease) both; }
+    &[dir="rtl"] :is(.nw-heading h1, .ml-heading-copy h1, .room-brand-block .room-title, .classic-shell-copy h1, .dict-title)::after { animation-name: lp-stroke-rtl; }
+    & .lp-app-nav-item[aria-current="page"]::after { animation: lp-stroke .5s .1s var(--lp-ease) both; }
+  }
+  @keyframes lp-settle { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes lp-stroke { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  @keyframes lp-stroke-rtl { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+
+  /* ── touch: a pressed thing gives way under the finger ───────────────────── */
+  & a, & button, & summary, & [role="button"] { -webkit-tap-highlight-color: transparent; }
+  @media (hover: none) {
+    & :is(.nw-tile, .nw-card, .ml-item, .learning-corpus-entry, .dict-row, .classic-nav-card, .nw-ov-teaser):active { transform: scale(.985); transition: transform .08s; }
+    & .lp-app-nav-item:active::before { transform: scale(.88); transition: transform .08s; }
+    & .nw-tile:hover, & .nw-card:hover, & .learning-corpus-entry:hover { transform: none; box-shadow: var(--lp-shadow-1); }
+  }
+
+  /* ── an open text keeps the Room header out of the way ───────────────────── */
+  & body.room-reading .room-brand-block .room-subtitle { display: none; }
+  & body.room-reading .room-brand-block { box-shadow: none; background: transparent; padding: 0; animation: none; }
+  & body.room-reading .room-brand-block .room-title::after { display: none; }
+  @media (min-width: 600px) {
+    & body.room-reading.lp-has-app-nav .room-header { padding-top: 66px; padding-bottom: 6px; }
+  }
+
+  /* ── phone composition: the picture first, the caption on its lower edge ─── */
+  @media (max-width: 699px) {
+    &[data-lp-section="studio"] { --lp-mast: 268px; }
+    &[data-lp-section="news"] { --lp-mast: 252px; }
+    &[data-lp-section="mediatheque"] { --lp-mast: 236px; }
+    &[data-lp-section="dictionary"] { --lp-mast: 196px; }
+    & .classic-shell-head { margin-top: 96px; }
+    & .classic-shell-copy { padding: 14px 18px 16px; min-height: 0; }
+    & .classic-shell-copy h1 { font-size: 1.55rem; }
+    & .nw-header, & .ml-header { padding-block: 12px 54px; }
+    & .nw-lead { font-size: .92rem; line-height: 1.5; }
+    & .dict-header { row-gap: 62px; }
+    /* Room: the tall painted header scrolls away with the page; the bar at the bottom stays */
+    & .room-header { position: relative; top: auto; padding-top: calc(74px + env(safe-area-inset-top, 0px)); padding-bottom: 22px; }
+    & .room-header::before { inset-block-start: 0; }
+    & body.room-reading .room-header { padding-top: calc(8px + env(safe-area-inset-top, 0px)); padding-bottom: 6px; }
+    & .room-brand-block { padding: 10px 16px 12px; }
+    & .lp-app-nav-item { -webkit-user-select: none; user-select: none; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     & *, & *::before, & *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
