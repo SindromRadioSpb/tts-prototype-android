@@ -22,10 +22,11 @@ async function open(browser, o) {
     deviceScaleFactor: o.dpr || 1,
     isMobile: !!o.mobile, hasTouch: !!o.mobile,
     colorScheme: o.scheme || "light",
-    serviceWorkers: "block",
+    serviceWorkers: process.env.LIVE === "1" ? "allow" : "block",
     locale: "ru-RU",
   });
-  await context.route(ORIGIN + "/**", async (route) => {
+  /* LIVE=1: no overlay at all, production exactly as served */
+  if (process.env.LIVE !== "1") await context.route(ORIGIN + "/**", async (route) => {
     const req = route.request();
     if (req.method() !== "GET") return route.continue();
     const u = new URL(req.url());
