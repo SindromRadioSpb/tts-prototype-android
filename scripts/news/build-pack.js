@@ -8,6 +8,7 @@
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const AdmZip = require('adm-zip');
 const C = require('../../news/newsPackCore');
+const { ARCHIVE_ORDER_ID, ARTICLE_ID, archiveDraftHash } = require('../../news/newsArchiveOrder');
 
 const REJECT_OVER = 0.15, FLAG_OVER = 0.08, FIDELITY_REJECT = 0.5, FIDELITY_WARN = 0.85, IMAGE_MAX = 600 * 1024;
 const NAME = /^[A-Za-z0-9._-]+$/;
@@ -25,6 +26,17 @@ async function buildPack(dir, { out, checkOnly = false, producer = 'dot', now = 
   let harvest = null;
   try { harvest = JSON.parse(fs.readFileSync(path.join(dir, 'harvest.json'), 'utf8').replace(/^﻿/, '')); } catch (_) { harvest = null; }
   const photosOf = new Map([...((harvest && harvest.main) || []), ...((harvest && harvest.rework) || [])].filter(x => x && x.draft && x.images).map(x => [x.draft, x.images]));
+  const orderFile = path.join(dir, 'archive-order.json');
+  let order = null;
+  if (fs.existsSync(orderFile)) {
+    order = JSON.parse(fs.readFileSync(orderFile, 'utf8'));
+    if (!order || !ARCHIVE_ORDER_ID.test(order.order_id) || !ARTICLE_ID.test(order.item_key)
+      || files.length !== 1 || files[0] !== order.draft || fs.existsSync(path.join(dir, 'overview.json'))
+      || fs.existsSync(path.join(dir, 'harvest.json')))
+      throw new Error('ARCHIVE_ORDER_SCOPE');
+    if (!Number.isFinite(Date.parse(order.expires_at)) || Date.parse(order.expires_at) <= now) throw new Error('ARCHIVE_ORDER_EXPIRED');
+    photosOf.set(order.draft, order.images || {});
+  }
   const zip = new AdmZip(), manifestArticles = [], articles = [], rejected = [];
   let n = 0;
   for (const file of files) {
@@ -42,6 +54,8 @@ async function buildPack(dir, { out, checkOnly = false, producer = 'dot', now = 
     else delete article.check;
     const v = C.validateArticle(article, { now });
     if (!v.ok) { refuse(v.code); continue; }
+    if (order && (C.articleKey(article.source.outlet_id, C.canonicalizeUrl(article.source.canonical_url)) !== order.item_key
+      || archiveDraftHash(article, order.images || {}) !== order.draft_sha256)) { refuse('ARCHIVE_SOURCE_CHANGED'); continue; }
     report.overlap = Math.round(C.articleOverlap(article) * 1000) / 1000;
     if (report.overlap > REJECT_OVER) { refuse('VERBATIM_OVERLAP'); continue; }
     if (report.overlap > FLAG_OVER) report.flagged = true;
@@ -94,6 +108,7 @@ async function buildPack(dir, { out, checkOnly = false, producer = 'dot', now = 
   if (checkOnly || !ok) return { ok, articles, overview: overviewReport, rejected };
   const manifest = { schema: 'linguistpro-news-pack', schema_version: 1, pack_id: crypto.randomUUID(), created_at: localIso(now),
     producer: { name: producer }, ui_languages: ['ru'], articles: manifestArticles,
+    ...(order ? { archive_order_id: order.order_id } : {}),
     ...(harvest && /^ne_[0-9a-f]{18}$/.test(String(harvest.edition_id || '')) ? { edition_id: harvest.edition_id } : {}), ...(rejected.length ? { rejected } : {}) };
   if (overview && overview.ok) { zip.addFile('overview.json', overview.buf); manifest.overview = { path: 'overview.json', sha256: C.sha256(overview.buf) }; }
   zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 1)));

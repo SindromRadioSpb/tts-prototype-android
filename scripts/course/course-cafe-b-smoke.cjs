@@ -51,7 +51,12 @@ async function main() {
       const home = base + '/library.html#room=course%3A' + courseId;
       await page.goto(home, { waitUntil: 'domcontentloaded' });
       await page.waitForSelector('[data-course-lesson="B000-foundations"]', { timeout: 60000 });
-      await page.evaluate(async () => { if (window.LPWorld) await window.LPWorld.set(null); });
+      // The init script selects Classic before boot. In Classic the lazy World API
+      // exposes current(), but does not load the engine solely to provide set().
+      assert.deepEqual(await page.evaluate(() => ({
+        selected: JSON.parse(localStorage.getItem('lp_world_v1'))?.id,
+        active: window.LPWorld.current(),
+      })), { selected: 'classic', active: null }, 'Café B starts in Classic');
       assert.equal(await page.locator('[data-course-lesson]').count(), 2);
       for (const lesson of lessons) {
         const steps = lesson.flow.flatMap(part => part.steps);

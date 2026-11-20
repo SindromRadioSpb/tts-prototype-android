@@ -29,14 +29,14 @@ const memberOf = r => ({ id: r.url_key, row: r, outlet_id: r.outlet_id, section:
   full_ok: !!r.full_ok && !!r.data_json, paywalled: r.paywalled ? 1 : 0, images: r.images, chars: r.chars });
 
 // One draft with its photos into the zip (used by the edition build and by dot's extra orders).
-async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle, sleep = async () => {} }) {
+async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle, strictPhotos = false, sleep = async () => {} }) {
   const files = [], shas = {};
   for (const im of a.images.slice(0, imagesPerArticle)) {
     try {
       const bytes = await photo(im.src), file = 'img-' + (files.length + 1) + '.jpg';
       zip.addFile(folder + '/' + file, bytes);
       files.push({ ...im, file, source_url: im.src }); shas[file] = sha(bytes);
-    } catch (_) { /* a photo that does not load is left out; the article stays */ }
+    } catch (err) { if (strictPhotos) throw err; /* ordinary editions can keep an article without a missing photo */ }
     await sleep();
   }
   if (files.length && !files.some(f => f.role === 'hero')) files[0] = { ...files[0], role: 'hero' };
@@ -69,8 +69,10 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
   const full = new Map(active.filter(s => s.full_at).map(s => [s.story_key, { full_outlets: s.full_outlets, full_title_he: s.full_title_he }]));
   const storyRow = new Map(active.map(s => [s.story_key, s]));
   const byStory = new Map();
+  const reserved = new Set((await dbAll(db, `SELECT url_key FROM news_archive_orders
+    WHERE expires_at>? AND emitted_pack_id IS NULL`, [iso(now)]).catch(() => [])).map(r => r.url_key));
   for (const r of rows) {
-    if (r.main_state !== 'none') continue;
+    if (r.main_state !== 'none' || reserved.has(r.url_key)) continue;
     if (!byStory.has(r.story_key)) byStory.set(r.story_key, { id: r.story_key, members: [] });
     byStory.get(r.story_key).members.push(memberOf(r));
   }
@@ -140,7 +142,7 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
     overview_keys: rows.map(r => r.url_key), main_keys: [...draftOfKey.keys()] };
   for (const r of rows) { const o = report.outlets[r.outlet_id] = report.outlets[r.outlet_id] || { items: 0, main: 0 }; o.items++; if (drafted.has(r.url_key)) o.main++; }
   // For dot's own choice (spec §4.5): the edition's articles nobody picked for the full treatment.
-  const candidates = { edition_id: editionId, day, slot, items: rows.filter(r => r.main_state === 'none' && !drafted.has(r.url_key)).map(r => {
+  const candidates = { edition_id: editionId, day, slot, items: rows.filter(r => r.main_state === 'none' && !reserved.has(r.url_key) && !drafted.has(r.url_key)).map(r => {
     const m = memberOf(r), url = canonicalOf(r);
     return { item_key: itemKeyOf(r.outlet_id, url), story_key: r.story_key, outlet_id: r.outlet_id, section: m.section, title_he: m.title, lead_he: r.lead_he || null,
       full_ok: m.full_ok, paywalled: !!r.paywalled, images: r.images || 0, url };

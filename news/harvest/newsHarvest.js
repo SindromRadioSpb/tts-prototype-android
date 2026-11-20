@@ -13,7 +13,7 @@ const path = require('node:path');
 const AdmZip = require('adm-zip');
 const C = require('../newsPackCore');
 const Outlets = require('../../public/js/news-outlets');
-const { SOURCES } = require('./newsHarvestSources');
+const { SOURCES, canFetchArchiveImage } = require('./newsHarvestSources');
 const { extractArticle, israelIso } = require('./newsExtract');
 const { splitSentences } = require('./newsText');
 const { refineSection } = require('./newsStories');
@@ -21,6 +21,7 @@ const { createStoryStore } = require('./newsStoryStore');
 const { normalizeSchedule, dayOf, dueSlot, slotTimes } = require('./newsEditions');
 const { buildEdition, makeDraft } = require('./newsEditionBuild');
 const { fingerprintOf, diffPrints, paragraphsOfRows } = require('../newsFingerprint');
+const { ARTICLE_ID, ORDER_TTL_MS, ARCHIVE_WINDOW_MS, archiveDraftHash } = require('../newsArchiveOrder');
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
 const LIMITS = { mainStories: 22, imagesPerArticle: 8, rows: 400, page: 4 * 1024 * 1024, feed: 2 * 1024 * 1024, image: 15 * 1024 * 1024,
@@ -122,14 +123,23 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   const dir = path.join(dataDir, 'news-harvest');
   let busy = null, lastPollAt = 0, lastPollReport = null;
 
-  async function get(url, { max, accept }) {
-    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 25000);
+  async function get(url, { max, accept, redirect = 'follow', timeoutMs = 25000, streamBounded = false }) {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs);
     try {
-      const r = await fetchImpl(url, { headers: { 'user-agent': USER_AGENT, accept: accept || '*/*', 'accept-language': 'he,en;q=0.5' }, redirect: 'follow', signal: ctl.signal });
+      const r = await fetchImpl(url, { headers: { 'user-agent': USER_AGENT, accept: accept || '*/*', 'accept-language': 'he,en;q=0.5' }, redirect, signal: ctl.signal });
       if (!r.ok) { const e = new Error('HTTP_' + r.status); e.status = r.status; e.challenge = r.status === 403 || r.status === 503; throw e; }
       const len = Number(r.headers.get('content-length') || 0);
       if (len && len > max) throw new Error('TOO_LARGE');
-      const buf = Buffer.from(await r.arrayBuffer());
+      let buf;
+      if (streamBounded && r.body) {
+        const chunks = []; let size = 0;
+        for await (const chunk of r.body) {
+          size += chunk.byteLength;
+          if (size > max) throw new Error('TOO_LARGE');
+          chunks.push(chunk);
+        }
+        buf = Buffer.concat(chunks, size);
+      } else buf = Buffer.from(await r.arrayBuffer());
       if (buf.length > max) throw new Error('TOO_LARGE');
       return { buf, type: String(r.headers.get('content-type') || ''), url: r.url || url };
     } finally { clearTimeout(timer); }
@@ -149,15 +159,21 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
 
   // A photo once fetched and resized is kept 3 days on disk: a carried draft does not ask the outlet again.
   const photoCache = path.join(dir, 'photo-cache');
+  const cachedPhotoPath = src => path.join(photoCache, crypto.createHash('sha256').update(String(src)).digest('hex').slice(0, 32) + '.jpg');
+  function cachedPhoto(src) {
+    const b = fs.readFileSync(cachedPhotoPath(src));
+    if (b.length > 1000 && b.length <= L.imageOut && b[0] === 0xff && b[1] === 0xd8 && b[b.length - 2] === 0xff && b[b.length - 1] === 0xd9) return b;
+    throw new Error('PHOTO_NOT_CACHED');
+  }
   async function photo(src, sharp) {
-    const cached = path.join(photoCache, crypto.createHash('sha256').update(String(src)).digest('hex').slice(0, 32) + '.jpg');
-    try { const b = fs.readFileSync(cached); if (b.length > 1000 && b[0] === 0xff && b[1] === 0xd8 && b[b.length - 2] === 0xff && b[b.length - 1] === 0xd9) return b; } catch (_) {} // a whole JPEG only
+    const cached = cachedPhotoPath(src);
+    try { return cachedPhoto(src); } catch (_) {} // a whole JPEG only
     const out = await photoFresh(src, sharp);
     try { fs.mkdirSync(photoCache, { recursive: true }); fs.writeFileSync(cached + '.part', out); fs.renameSync(cached + '.part', cached); } catch (_) {}
     return out;
   }
-  async function photoFresh(src, sharp) {
-    const { buf } = await get(src, { max: L.image, accept: 'image/jpeg,image/png,image/webp;q=0.9,*/*;q=0.5' });
+  async function photoFresh(src, sharp, opts = {}) {
+    const { buf } = await get(src, { max: L.image, accept: 'image/jpeg,image/png,image/webp;q=0.9,*/*;q=0.5', ...opts });
     const info = await sharp(buf, { failOn: 'none' }).metadata();
     if (!info.width || info.width < 200 || (info.height || 0) < 120) throw new Error('TOO_SMALL');
     for (const [side, q] of [[1600, 82], [1600, 72], [1280, 72], [1024, 68]]) {
@@ -166,6 +182,24 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       if (out.length <= L.imageOut) return out;
     }
     throw new Error('TOO_LARGE');
+  }
+  function archivePhotoLoader(outletId, sharp) {
+    const rules = new Map();
+    const opts = { redirect: 'error', timeoutMs: 5000, streamBounded: true };
+    return async src => {
+      // Even previously cached bytes must originate from a permitted captured photo host.
+      if (!canFetchArchiveImage(outletId, src)) throw new Error('ARCHIVE_IMAGE_HOST');
+      try { return cachedPhoto(src); } catch (_) {}
+      const u = new URL(src);
+      if (!rules.has(u.origin)) {
+        let allow;
+        try { allow = parseRobots((await get(u.origin + '/robots.txt', { ...opts, max: 512 * 1024, accept: 'text/plain' })).buf.toString('utf8')); }
+        catch (e) { if (e.status !== 404 && e.status !== 410) throw e; allow = () => true; }
+        rules.set(u.origin, allow);
+      }
+      if (!rules.get(u.origin)(u.pathname)) throw new Error('ROBOTS');
+      return photoFresh(src, sharp, opts);
+    };
   }
   const keyOf = (outletId, url) => { try { return C.articleKey(outletId, C.canonicalizeUrl(url)); } catch (_) { return null; } };
   const iso = ms => new Date(ms).toISOString();
@@ -291,6 +325,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   }
 
   async function cleanup() {
+    for (const r of await dbAll(db, `SELECT order_id, file_name FROM news_archive_orders
+      WHERE file_name IS NOT NULL AND expires_at <= ? ORDER BY expires_at LIMIT 100`, [iso(now())]).catch(() => [])) {
+      if (r.file_name !== `news-archive-order-${r.order_id}.zip`) continue;
+      try {
+        fs.rmSync(path.join(dir, path.basename(r.file_name)), { force: true });
+        await dbRun(db, 'UPDATE news_archive_orders SET file_name=NULL WHERE order_id=? AND file_name=?', [r.order_id, r.file_name]);
+      } catch (_) {} // keep metadata and retry file cleanup on the next pass
+    }
     for (const r of await dbAll(db, 'SELECT run_id, file_name FROM news_harvest_runs WHERE started_at < ?', [iso(now() - L.keepRunsDays * 86400000)])) {
       if (r.file_name) try { fs.rmSync(path.join(dir, path.basename(r.file_name)), { force: true }); } catch (_) {}
       await dbRun(db, 'DELETE FROM news_harvest_runs WHERE run_id = ?', [r.run_id]);
@@ -461,7 +503,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       const k = String((it && it.item_key) || '');
       const row = await dbGet(db, 'SELECT * FROM news_harvest_items WHERE url_key=? OR canonical_key=? LIMIT 1', [k, k]);
       if (!row) throw extrasError('UNKNOWN_ITEM');
-      if (row.main_state !== 'none') throw extrasError('ALREADY_TAKEN');
+      if (row.main_state !== 'none' || await dbGet(db, `SELECT 1 FROM news_archive_orders
+        WHERE url_key=? AND (emitted_pack_id IS NOT NULL OR expires_at>?)`, [row.url_key, iso(now())]).catch(() => null)) throw extrasError('ALREADY_TAKEN');
       // Only this edition's own articles (its overview), not another edition's material.
       if (row.edition_id !== e.edition_id && !(rep.overview_keys || []).includes(row.url_key)) throw extrasError('NOT_A_CANDIDATE');
       if (row.paywalled) throw extrasError('PAYWALL');
@@ -492,6 +535,113 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const report = { ...rep, main_keys: [...new Set([...(rep.main_keys || []), ...out.map(o => o.url_key)])], extras: [...(rep.extras || []), { file: name, keys: keysAsked, items: items2 }] };
     await dbRun(db, 'UPDATE news_editions SET extras_count=?, report_json=? WHERE edition_id=?', [n, JSON.stringify(report), e.edition_id]);
     return { edition_id: e.edition_id, items: items2, buffer, name };
+  }
+
+  let archiveOrders = Promise.resolve();
+  // A deliberately separate order: an exact historical candidate, not a new edition or a
+  // re-lease. The original cut, job counters and overview are never edited by this path.
+  async function orderArchivedCandidate(editionId, item, actor) {
+    const itemKey = item && item.item_key, note = String(item && item.note_ru || '').trim();
+    if (typeof itemKey !== 'string' || !ARTICLE_ID.test(itemKey)) throw extrasError('UNKNOWN_ITEM');
+    if (!note || note.length > 200) throw extrasError('NOTE_REQUIRED');
+    if (!actor || !['owner', 'editor'].includes(actor.kind) || !actor.id) throw extrasError('ARCHIVE_ORDER_ACTOR');
+    const task = archiveOrders.then(async () => {
+      const t = now(), when = iso(t);
+      const e = await dbGet(db, 'SELECT * FROM news_editions WHERE edition_id=?', [String(editionId)]);
+      if (!e || !e.closed_at || !['archived', 'downloaded', 'partial', 'published'].includes(e.status)) throw extrasError('EDITION_NOT_CLOSED');
+      const old = await dbGet(db, 'SELECT * FROM news_archive_orders WHERE article_id=?', [itemKey]);
+      if (old && old.emitted_pack_id) throw extrasError('ALREADY_TAKEN');
+      if (old && old.expires_at > when) {
+        if (old.edition_id !== e.edition_id || old.actor_kind !== actor.kind || old.actor_id !== String(actor.id) || old.note_ru !== note)
+          throw extrasError('ALREADY_TAKEN');
+        try { return { order_id: old.order_id, buffer: fs.readFileSync(path.join(dir, path.basename(old.file_name))), name: old.file_name }; }
+        catch (_) { throw extrasError('SOURCES_EXPIRED'); }
+      }
+      const cutAt = Date.parse(e.cut_at || e.cutoff_at);
+      if (!e.file_name || !Number.isFinite(cutAt) || cutAt <= t - ARCHIVE_WINDOW_MS) throw extrasError('SOURCES_EXPIRED');
+      let catalog, overview;
+      try {
+        const cut = new AdmZip(path.join(dir, path.basename(e.file_name)));
+        catalog = parse(cut.readAsText('candidates.json'));
+        overview = parse(cut.readAsText('overview.json'));
+      } catch (_) { throw extrasError('SOURCES_EXPIRED'); }
+      if (!catalog || catalog.edition_id !== e.edition_id || catalog.day !== e.day || catalog.slot !== e.slot || !Array.isArray(catalog.items)
+        || !overview || overview.edition_id !== e.edition_id || overview.day !== e.day || overview.slot !== e.slot || !Array.isArray(overview.stories))
+        throw extrasError('SOURCES_EXPIRED');
+      const candidate = catalog.items.find(x => x.item_key === itemKey);
+      if (!candidate) throw extrasError('NOT_A_CANDIDATE');
+      if (candidate.paywalled) throw extrasError('PAYWALL');
+      if (!candidate.full_ok) throw extrasError('NO_BODY');
+      const archivedStory = overview.stories.find(s => s.story_key === candidate.story_key && s.items.some(x => x.item_key === itemKey));
+      const archived = archivedStory && archivedStory.items.find(x => x.item_key === itemKey);
+      if (!archived || archived.draft || archived.url !== candidate.url || archived.outlet_id !== candidate.outlet_id) throw extrasError('NOT_A_CANDIDATE');
+      if (archived.paywalled) throw extrasError('PAYWALL');
+      const row = await dbGet(db, `SELECT * FROM news_harvest_items WHERE outlet_id=? AND (url_key=? OR canonical_key=?)
+        ORDER BY status='ready' DESC LIMIT 1`, [candidate.outlet_id, itemKey, itemKey]);
+      const firstSeen = row && Date.parse(row.first_seen_at);
+      if (!row || !row.data_json || !Number.isFinite(firstSeen) || firstSeen <= t - L.keepBodyDays * 86400000) throw extrasError('SOURCES_EXPIRED');
+      if (row.paywalled) throw extrasError('PAYWALL');
+      if (row.main_state !== 'none' || (row.lease_until && row.lease_until > when)
+        || await dbGet(db, 'SELECT 1 FROM news_articles WHERE article_id=?', [itemKey])) throw extrasError('ALREADY_TAKEN');
+      const a = row.full_ok ? parse(row.data_json) : null;
+      if (!a || !Array.isArray(a.paragraphs) || !a.paragraphs.length || !Array.isArray(a.images)) throw extrasError('NO_BODY');
+      if (a.paywalled) throw extrasError('PAYWALL');
+      if (row.status !== 'ready' || row.story_key !== candidate.story_key || a.title_he !== candidate.title_he
+        || a.canonical_url !== archived.url || keyOf(row.outlet_id, a.canonical_url) !== itemKey || a.images.length !== candidate.images
+        || !Number.isFinite(Date.parse(archived.published_at)) || Date.parse(a.published_at) !== Date.parse(archived.published_at))
+        throw extrasError('ARCHIVE_SOURCE_CHANGED');
+      const id = 'nso_' + crypto.randomBytes(16).toString('hex');
+      const folder = row.outlet_id + '-archive-01', zip = new AdmZip();
+      // Check limit before requesting images; do not make a shortened archive order.
+      if (a.images.length > C.MAX_IMAGES) throw extrasError('ARCHIVE_PHOTOS_UNAVAILABLE');
+      if (draftOf(a, { outletId: row.outlet_id, storyKey: candidate.story_key, images: [], retrievedAt: israelIso(t) }).quality.warnings.includes('TRUNCATED'))
+        throw extrasError('NO_BODY');
+      const sharp = a.images.length ? loadSharp() : null;
+      let built;
+      try {
+        built = await makeDraft({ zip, row: { ...row, selected_by: 'dot', selection_note_ru: note },
+          a, folder, storyKey: candidate.story_key, photo: archivePhotoLoader(row.outlet_id, sharp), draftOf,
+          retrievedAt: israelIso(t), imagesPerArticle: C.MAX_IMAGES, strictPhotos: true, sleep: () => sleep(Math.round(delayMs / 3)) });
+      } catch (_) { throw extrasError('ARCHIVE_PHOTOS_UNAVAILABLE'); }
+      const { draft, shas, files } = built;
+      if (files.length !== a.images.length) throw extrasError('ARCHIVE_PHOTOS_UNAVAILABLE');
+      // Slow CDN work does not hold the scheduler. Join its critical section only to claim
+      // the candidate after rechecking its state (a scheduled draft may have won meanwhile).
+      while (busy) await busy.catch(() => {});
+      return exclusive(async () => {
+        const readyAt = now();
+        const expires = iso(Math.min(readyAt + ORDER_TTL_MS, firstSeen + L.keepBodyDays * 86400000));
+        if (expires <= iso(readyAt)) throw extrasError('SOURCES_EXPIRED');
+        const draftSha = archiveDraftHash(draft, shas);
+        zip.addFile('archive-order.json', Buffer.from(JSON.stringify({
+          order_id: id, parent_edition_id: e.edition_id, day: e.day, slot: e.slot, expires_at: expires,
+          item_key: itemKey, draft: folder + '.draft.json', images: shas, draft_sha256: draftSha,
+        }, null, 1)));
+        const buffer = zip.toBuffer(), name = `news-archive-order-${id}.zip`, file = path.join(dir, name);
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(file, buffer, { flag: 'wx', mode: 0o600 });
+        let saved;
+        try {
+          // Recheck the same cached source/lease atomically; another writer or canonical publish
+          // that won the race cannot be silently re-ordered or overwritten.
+          saved = await dbRun(db, `INSERT INTO news_archive_orders(article_id,order_id,edition_id,actor_kind,actor_id,url_key,note_ru,created_at,expires_at,draft_sha256,file_name)
+            SELECT ?,?,?,?,?,?,?,?,?,?,? FROM news_harvest_items AS h
+            WHERE h.url_key=? AND h.status='ready' AND h.main_state='none' AND h.full_ok=1 AND h.paywalled=0 AND h.data_json=? AND h.story_key=?
+              AND (h.lease_until IS NULL OR h.lease_until<=?) AND NOT EXISTS(SELECT 1 FROM news_articles WHERE article_id=?)
+            ON CONFLICT(article_id) DO UPDATE SET order_id=excluded.order_id,edition_id=excluded.edition_id,actor_kind=excluded.actor_kind,
+              actor_id=excluded.actor_id,url_key=excluded.url_key,note_ru=excluded.note_ru,created_at=excluded.created_at,expires_at=excluded.expires_at,
+              draft_sha256=excluded.draft_sha256,file_name=excluded.file_name
+            WHERE news_archive_orders.expires_at<=? AND news_archive_orders.emitted_pack_id IS NULL`,
+            [itemKey, id, e.edition_id, actor.kind, String(actor.id), row.url_key, note, when, expires, draftSha, name,
+              row.url_key, row.data_json, candidate.story_key, iso(readyAt), itemKey, iso(readyAt)]);
+          if (!saved.changes) throw extrasError('ALREADY_TAKEN');
+        } catch (err) { fs.rmSync(file, { force: true }); throw err; }
+        if (old && old.file_name) try { fs.rmSync(path.join(dir, path.basename(old.file_name)), { force: true }); } catch (_) {}
+        return { order_id: id, buffer, name };
+      });
+    });
+    archiveOrders = task.catch(() => {});
+    return task;
   }
 
   // ---- re-check published articles (spec §4.4, §5.5): the outlet may update an article after we took it.
@@ -677,7 +827,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), recheckPublished, orderExtras, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
+    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

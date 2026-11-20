@@ -348,8 +348,9 @@
   var GLOSS_ON = "rm-gloss-on";
   var _memo = new Map();   // surface\u0001niqqud → composed gloss (resolver output is deterministic)
 
+  function glossKey(surface, niqqud) { return surface + "\u0001" + niqqud; }
   async function glossFor(surface, niqqud) {
-    var key = surface + "\u0001" + niqqud;
+    var key = glossKey(surface, niqqud);
     if (_memo.has(key)) return _memo.get(key);
     var RM = window.ReaderMorph, g = null;
     // Ф2 form translations: loaded once (≈200 KB gz); unavailable → the F1 lemma gloss, never a stall
@@ -386,6 +387,10 @@
     span.setAttribute("data-gloss-label", g.label);
   }
 
+  function capturePosition(mount) {
+    var RM = window.ReaderMorph;
+    return RM && RM.captureReadingPosition ? RM.captureReadingPosition(mount) : function () {};
+  }
   var _glossGeneration = new WeakMap();
   var _rowViews = new WeakMap();
   function stopRowView(mount) {
@@ -408,8 +413,8 @@
       if (!view.isCurrent()) return;
       var reveal = visible.filter(function (row) { return row.classList.contains('rm-gloss-pending'); });
       if (!reveal.length) return;
-      var anchor = RM.createRowQueue(mount, visible, view.isCurrent, { preservePosition: true, observe: false });
-      try { reveal.forEach(view.reveal); } finally { if (anchor) anchor.close(); }
+      var restore = capturePosition(mount);
+      try { reveal.forEach(view.reveal); } finally { restore(); }
     } });
     _rowViews.set(mount, view); return view;
   }
@@ -424,17 +429,18 @@
     if (!mount || !isCurrent()) return;
     var rows = Array.prototype.slice.call(mount.querySelectorAll('#proTable tbody tr'));
     var RM = window.ReaderMorph, AI = window.WordGlossAI, cursor = 0, fallbackRow = null;
-    var queue = RM && RM.createRowQueue ? RM.createRowQueue(mount, rows, isCurrent, { preservePosition: opts.paint !== false }) : {
-      next: function () { return fallbackRow || (fallbackRow = rows[cursor++] || null); }, done: function () { fallbackRow = null; }, close: function () {}, flush: function () {},
+    var queue = RM && RM.createRowQueue ? RM.createRowQueue(mount, rows, isCurrent) : {
+      next: function () { return fallbackRow || (fallbackRow = rows[cursor++] || null); }, done: function () { fallbackRow = null; }, close: function () {},
     };
-    var work = new Map(), hydrated = new Set(), tr, deadline = workNow() + 8, sliceWords = 0, positionDirty = false;
-    function flushPosition() { if (positionDirty) { queue.flush(); positionDirty = false; } }
+    var work = new Map(), hydrated = new Set(), tr, deadline = workNow() + 8, sliceWords = 0, restorePosition = null;
+    function beginPosition() { if (!restorePosition) restorePosition = capturePosition(mount); }
+    function flushPosition() { if (restorePosition) { restorePosition(); restorePosition = null; } }
     try {
     while ((tr = queue.next())) {
       if (!isCurrent()) return;
       var item = work.get(tr);
       if (!item) {
-        if (opts.prepareRow) opts.prepareRow(tr);
+        if (opts.prepareRow) { if (!opts.view || queue.isPriority(tr) || !tr.classList.contains("rm-gloss-pending")) beginPosition(); opts.prepareRow(tr); }
         if (AI && opts.hydrate !== false) {
           if (!hydrated.has(tr)) {
             var candidates = queue.batch ? queue.batch(tr, 32, queue.isPriority(tr)) : [tr], batch = [], chars = 0;
@@ -452,9 +458,10 @@
         if (opts.onHydrated) opts.onHydrated(tr);
         item = { spans: rowSpans(tr), at: 0 }; work.set(tr, item);
       }
-      if (opts.paint !== false && !mount.classList.contains(GLOSS_ON)) mount.classList.add(GLOSS_ON);
-      if (opts.view && queue.isPriority && queue.isPriority(tr)) opts.view.reveal(tr);
-      if (!opts.view || !tr.classList.contains('rm-gloss-pending')) { queue.flush(); positionDirty = true; }
+      if (opts.paint !== false && !mount.classList.contains(GLOSS_ON)) { beginPosition(); mount.classList.add(GLOSS_ON); }
+      var visible = !opts.view || !tr.classList.contains('rm-gloss-pending');
+      if (!visible && queue.isPriority && queue.isPriority(tr)) { beginPosition(); opts.view.reveal(tr); visible = true; }
+      if (visible && opts.paint !== false) beginPosition();
       var end = Math.min(item.at + Math.max(1, 60 - sliceWords), item.spans.length);
       for (; item.at < end; item.at++) {
         if (!isCurrent()) return;
@@ -470,8 +477,15 @@
           sp.setAttribute("data-gloss", "—"); sp.setAttribute("data-gloss-label", "unknown");
           sp.setAttribute("data-gloss-source", "missing"); sp.setAttribute("title", t("contextLayer.missing", "Контекстный перевод отсутствует"));
         } else {
-          var dictionary = await glossFor(sp.getAttribute("data-surface") || "", sp.getAttribute("data-niqqud") || "");
-          if (!isCurrent()) return;
+          var surface = sp.getAttribute("data-surface") || "", niqqud = sp.getAttribute("data-niqqud") || "", key = glossKey(surface, niqqud);
+          var dictionary;
+          if (_memo.has(key)) dictionary = _memo.get(key);
+          else {
+            flushPosition();
+            dictionary = await glossFor(surface, niqqud);
+            if (!isCurrent()) return;
+            if (visible) beginPosition();
+          }
           ['data-gloss-hint', 'data-gloss-ai', 'data-gloss-mwe'].forEach(function (a) { if (sp.hasAttribute(a)) sp.removeAttribute(a); });
           paint(sp, dictionary);
           sp.setAttribute("data-gloss", "◇ " + (sp.getAttribute("data-gloss") || ""));
@@ -486,7 +500,7 @@
         deadline = workNow() + 8; sliceWords = 0;
       }
     }
-    } finally { queue.close(); }
+    } finally { flushPosition(); queue.close(); }
   }
 
   // ── ribbon: words of the current row ─────────────────────────────────────────────────────────
@@ -640,11 +654,13 @@
     var aiFetch = !!(opts.ai && mode.aiOn);
     // A lazy observer belongs to this application generation, including its delayed callbacks.
     if (AI) AI.stopLazy(mount);
+    var restoreSetup = capturePosition(mount);
     if (opts.ribbon) { var st = ensureRibbon(mount); st.isCurrent = isCurrent; st.epoch = (st.epoch || 0) + 1; st.rowIdx = undefined; place(st); }
     else removeRibbon(mount);
     var view = null;
     if (!opts.gloss) { clearGloss(mount); stopRowView(mount); }
     else view = rowView(mount, isCurrent);
+    restoreSetup();
     if (mode.aiOn || opts.gloss) await applyGloss(mount, { isCurrent: isCurrent, strict: !!opts.strict, paint: !!opts.gloss, prepareRow: opts.prepareRow,
       view: view, onHydrated: opts.ribbon ? function (tr) { if (tr === currentRow(hostOf(mount))) refreshRibbon(mount); } : null });
     if (!isCurrent()) return;
@@ -655,6 +671,7 @@
       if (aiFetch) AI.startLazy(mount, function () { return isCurrent() && mode.aiOn && opts.ai; });
     }
     if (!isCurrent()) return;
+    var restoreCoverage = capturePosition(mount);
     var coverage = _coverage.get(mount), host = hostOf(mount);
     if (mode.aiOn && !coverage) {
       coverage = document.createElement("div"); coverage.className = "rm-context-coverage"; coverage.setAttribute("role", "status");
@@ -663,6 +680,7 @@
     }
     if (coverage) coverage.hidden = !mode.aiOn;
     updateCoverage(mount);
+    restoreCoverage();
   }
 
   // Toggle storage. Studio inherits the Room value on its first read (like «Статус слов»).

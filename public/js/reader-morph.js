@@ -3321,12 +3321,62 @@
     for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null && niq[j].textContent !== n) niq[j].textContent = n; }
   }
 
+  // Capture immediately before a synchronous layout batch, not before a yield.
+  // The user (or scrollIntoView) can pick a new reading line between batches.
+  function captureReadingPosition(mount) {
+    if (!mount || !mount.isConnected) return function () {};
+    var doc = mount.ownerDocument, win = doc.defaultView, page = doc.scrollingElement;
+    if (!win || !win.getComputedStyle || !doc.elementsFromPoint) return function () {};
+    var scrollHost = mount;
+    while (scrollHost && scrollHost !== page &&
+      !(/auto|scroll/.test(win.getComputedStyle(scrollHost).overflowY) && scrollHost.scrollHeight > scrollHost.clientHeight)) scrollHost = scrollHost.parentElement;
+    scrollHost = scrollHost || page;
+    if (!scrollHost) return function () {};
+    var r = mount.getBoundingClientRect(), top = Math.max(0, r.top), bottom = Math.min(win.innerHeight, r.bottom);
+    if (scrollHost !== page) {
+      var clip = scrollHost.getBoundingClientRect(), clipTop = clip.top + scrollHost.clientTop;
+      top = Math.max(top, clipTop); bottom = Math.min(bottom, clipTop + scrollHost.clientHeight);
+    }
+    var left = Math.max(0, r.left), right = Math.min(win.innerWidth, r.right);
+    if (!(bottom > top && right > left)) return function () {};
+    var row = null, readingY = 0;
+    [0.5, 0.25, 0.75].some(function (fy) {
+      var y = top + (bottom - top) * fy;
+      return [0.5, 0.25, 0.75].some(function (fx) {
+        return doc.elementsFromPoint(left + (right - left) * fx, y).some(function (el) {
+          var candidate = el.closest('tbody tr');
+          if (!candidate || !mount.contains(candidate)) return false;
+          row = candidate; readingY = y; return true;
+        });
+      });
+    });
+    if (!row) return function () {};
+    var words = row.querySelectorAll('td[data-col="niqqud"] .rm-w');
+    if (!words.length || !words[0].getClientRects().length) words = row.querySelectorAll('td[data-col="he"] .rm-w');
+    if (!words.length) words = row.querySelectorAll('.rm-w');
+    var lo = 0, hi = words.length;
+    while (lo < hi) {
+      var mid = (lo + hi) >> 1;
+      if (words[mid].getBoundingClientRect().bottom <= readingY) lo = mid + 1; else hi = mid;
+    }
+    var word = words[Math.min(lo, words.length - 1)], box = word && word.getBoundingClientRect();
+    var anchor = box && box.height > 0 && box.bottom > top && box.top < bottom ? word : row;
+    var before = anchor.getBoundingClientRect().top;
+    return function () {
+      if (!anchor.isConnected || !mount.contains(anchor)) return;
+      // Measuring first incorporates any native anchoring already performed.
+      // Correct only the remaining visual delta, without starting smooth scrolling.
+      var delta = anchor.getBoundingClientRect().top - before;
+      if (Math.abs(delta) > 1) scrollHost.scrollTo({ top: scrollHost.scrollTop + delta, behavior: 'instant' });
+    };
+  }
+
   // Shared row order for gloss and morphology. Hit testing seeds the restored
   // viewport without measuring every row; actual scrolls refresh that range.
   // A partially processed long paragraph yields to newly visible/focused rows.
   function createRowQueue(mount, rows, isCurrent, options) {
     rows = Array.prototype.slice.call(rows);
-    var done = new Set(), priority = new Set(), started = new Set(), positions = new Map(), cursor = 0, current = null, closed = false, seedRow = null, viewportFrame = null, sizeObserver = null;
+    var done = new Set(), priority = new Set(), started = new Set(), positions = new Map(), cursor = 0, current = null, closed = false, viewportFrame = null, sizeObserver = null;
     rows.forEach(function (row, i) { positions.set(row, i); });
     function add(row) { if (!closed && positions.has(row) && !done.has(row)) priority.add(row); }
     function fromNode(node) { return node && node.closest ? node.closest('tr') : null; }
@@ -3347,7 +3397,6 @@
           for (var h = 0; h < hits.length; h++) {
             var row = fromNode(hits[h]), at = positions.get(row);
             if (at == null) continue;
-            if (!seedRow) seedRow = row;
             add(row); low = Math.min(low, at); high = Math.max(high, at);
             break;
           }
@@ -3364,43 +3413,6 @@
       if (viewportFrame != null || closed) return;
       if (typeof requestAnimationFrame === 'function') viewportFrame = requestAnimationFrame(function () { viewportFrame = null; refreshViewport(); });
       else refreshViewport();
-    }
-    // Table-row height changes do not reliably participate in native scroll
-    // anchoring. Keep the visible word in place while distant glosses arrive.
-    // A real/programmatic scroll chooses a new anchor instead of fighting it.
-    var anchor = null, anchorTop = 0, scrollHost = null, scrollTarget = null, expectedScroll = 0;
-    function chooseAnchor(row) {
-      if (!row) return;
-      var words = row.querySelectorAll('td[data-col="niqqud"] .rm-w');
-      if (!words.length) words = row.querySelectorAll('.rm-w');
-      var lo = 0, hi = words.length;
-      while (lo < hi) { var mid = (lo + hi) >> 1; if (words[mid].getBoundingClientRect().bottom < Math.max(0, mount.getBoundingClientRect().top)) lo = mid + 1; else hi = mid; }
-      anchor = words[Math.min(lo, words.length - 1)] || row;
-      anchorTop = anchor.getBoundingClientRect().top;
-    }
-    function scrolled() { if (scrollHost.scrollTop !== expectedScroll) { anchor = null; expectedScroll = scrollHost.scrollTop; } }
-    function flushPosition() {
-      if (!scrollHost || closed || (isCurrent && !isCurrent())) return;
-      if (!anchor) { chooseCurrentAnchor(); return; }
-      if (!anchor.isConnected) return;
-      var delta = anchor.getBoundingClientRect().top - anchorTop;
-      if (Math.abs(delta) > 1) { scrollHost.scrollTop += delta; expectedScroll = scrollHost.scrollTop; }
-    }
-    function chooseCurrentAnchor() {
-        try {
-          var r = mount.getBoundingClientRect(), x = Math.max(0, Math.min(window.innerWidth - 1, (r.left + r.right) / 2));
-          var y = (Math.max(0, r.top) + Math.min(window.innerHeight, r.bottom)) / 2;
-          var hits = doc.elementsFromPoint(x, y);
-          for (var i = 0; i < hits.length; i++) { var row = fromNode(hits[i]); if (positions.has(row)) { chooseAnchor(row); break; } }
-        } catch (_) {}
-    }
-    if (options && options.preservePosition && seedRow) {
-      try {
-        chooseAnchor(seedRow); scrollHost = anchor.parentElement;
-        while (scrollHost && !(/auto|scroll/.test(getComputedStyle(scrollHost).overflowY) && scrollHost.scrollHeight > scrollHost.clientHeight)) scrollHost = scrollHost.parentElement;
-        scrollHost = scrollHost || doc.scrollingElement; scrollTarget = scrollHost === doc.scrollingElement ? window : scrollHost;
-        expectedScroll = scrollHost.scrollTop; scrollTarget.addEventListener('scroll', scrolled, { passive: true });
-      } catch (_) { anchor = null; scrollHost = null; }
     }
     mount.addEventListener('focusin', focus); mount.addEventListener('pointerdown', focus);
     if (!(options && options.observe === false)) {
@@ -3430,11 +3442,8 @@
       prioritize: add,
       refresh: refreshViewport,
       isPriority: function (row) { return priority.has(row); },
-      flush: flushPosition,
       close: function () {
-        flushPosition();
         closed = true;
-        if (scrollTarget) scrollTarget.removeEventListener('scroll', scrolled);
         if (viewportFrame != null) cancelAnimationFrame(viewportFrame);
         if (sizeObserver) sizeObserver.disconnect();
         if (window.removeEventListener) { window.removeEventListener('scroll', viewportScroll, true); window.removeEventListener('resize', viewportScroll); }
@@ -4566,7 +4575,7 @@
     headTranslitHtml: headTranslitHtml,
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords, setDictaLexicon: setDictaLexicon,
-    createRowQueue: createRowQueue, yieldWordWork: yieldWordWork,
+    createRowQueue: createRowQueue, captureReadingPosition: captureReadingPosition, yieldWordWork: yieldWordWork,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore, relativeStrippedForm: relativeStrippedForm,
     applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,

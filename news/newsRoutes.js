@@ -255,6 +255,19 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
           res.send(r.buffer);
         } catch (e) { if (e && EXTRAS_STATUS[e.code]) return res.status(EXTRAS_STATUS[e.code]).json({ ok: false, error: e.code }); send(res, e); }
       });
+      app.post('/api/news/editor/editions/:id/archive-order', write, json, noStore, async (req, res) => {
+        const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+        try {
+          const r = await harvester.orderArchivedCandidate(req.params.id, req.body, actor);
+          audit('news_archive_order', actor.id, { edition_id: req.params.id, order_id: r.order_id, item_key: req.body.item_key }, req.ip);
+          res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="' + r.name + '"', 'X-Content-Type-Options': 'nosniff' });
+          res.send(r.buffer);
+        } catch (e) {
+          const status = e && ({ ...EXTRAS_STATUS, EDITION_NOT_CLOSED: 409, SOURCES_EXPIRED: 410, ARCHIVE_SOURCE_CHANGED: 409, ARCHIVE_PHOTOS_UNAVAILABLE: 409, ARCHIVE_ORDER_ACTOR: 403 })[e.code];
+          if (status) return res.status(status).json({ ok: false, error: e.code });
+          send(res, e);
+        }
+      });
       // The owner's interests for dot (spec §5.7): the owner writes, an editor (dot) reads.
       app.get('/api/news/editor/interests', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;

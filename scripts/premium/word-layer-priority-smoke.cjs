@@ -203,6 +203,42 @@ assert.ok(['classic', 'ide', 'room'].includes(surface)); assert.ok(['rows', 'par
    if (priority) { assert.equal(report.print.pending, true); assert.equal(report.print.display, 'block'); }
    await page.emulateMedia({ media: 'screen' });
   }
+  if (priority && surface === 'room' && shape === 'paragraphs' && !ref && !remote) {
+   report.stage = 'repeat Room reading-aid toggle';
+   report.toggle = await page.evaluate(async later => {
+    const afterPaint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const mount = __s4Mount, row = mount.querySelector('tr[data-row-idx="' + later + '"]');
+    const word = row.querySelector('td[data-col="niqqud"] .rm-w');
+    const roomAids = document.getElementById('readerAidsToggle');
+    if (document.getElementById('readerAids').hidden) roomAids.click();
+    const toggle = document.getElementById('readerWordGlossToggle');
+    // Use the real checkbox/change path without focus or scrollIntoView from the automation driver.
+    const originalApply = WordGloss.apply;
+    let inFlight;
+    WordGloss.apply = function (...args) { return (inFlight = originalApply.apply(this, args)); };
+    const result = [];
+    try {
+     WordGloss.setEnabled('room', 'GlossStrict', true); // stay on the saved-context fixture
+     WordGloss.setEnabled('room', 'GlossAi', false);
+     toggle.checked = true; // already applied by the initial layer probe
+     for (const enabled of [false, true, false, true]) {
+      word.scrollIntoView({ block: 'center' }); await afterPaint();
+      const before = word.getBoundingClientRect().top;
+      inFlight = null; toggle.click();
+      if (!inFlight) throw Error('Room checkbox did not run the reading-aid handler');
+      await inFlight; await afterPaint();
+      result.push({ disabledOrEnabledAsAsked: mount.classList.contains('rm-gloss-on') === enabled,
+       sameToken: word === row.querySelector('td[data-col="niqqud"] .rm-w'), delta: word.getBoundingClientRect().top - before });
+     }
+    } finally { WordGloss.apply = originalApply; }
+    return result;
+   }, later);
+   for (const step of report.toggle) {
+    assert.equal(step.disabledOrEnabledAsAsked, true);
+    assert.equal(step.sameToken, true);
+    assert.ok(Math.abs(step.delta) < 60, 'Room gloss checkbox keeps the same visible reading word: ' + step.delta);
+   }
+  }
   report.reviewLogCount = await page.evaluate(async () => (await __localDB.dbQuery('SELECT COUNT(*) n FROM review_log'))[0].n);
   assert.equal(report.reviewLogCount, 0); assert.deepEqual(report.deniedWrites, []); assert.deepEqual(report.errors, []);
   report.result = 'PASS'; console.log(JSON.stringify({ ...report, layers: { ...report.layers, longTasks: undefined } }));
