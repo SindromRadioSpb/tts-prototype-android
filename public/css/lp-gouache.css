@@ -134,16 +134,16 @@ html[data-look="gouache"]:not([data-world]) {
     /* Reading Room */
     --bg-page: transparent; --bg-card: var(--lp-sheet); --bg-muted: var(--lp-sunk);
     --text-primary: var(--lp-ink); --text-secondary: var(--lp-ink-2); --text-faint: var(--lp-ink-3);
-    --border-soft: var(--lp-line); --accent: var(--lp-primary); --accent-contrast: var(--lp-primary-ink); --accent-soft: var(--lp-primary-soft);
+    --border-soft: var(--lp-line); --accent: var(--lp-pig-deep); --accent-contrast: var(--lp-sheet); --accent-soft: var(--lp-pig-soft);
     --shadow: var(--lp-shadow-1);
     /* News, Mediatheque */
     --nw-bg: transparent; --nw-paper: var(--lp-sheet); --nw-text: var(--lp-ink); --nw-muted: var(--lp-ink-2); --nw-line: var(--lp-line);
-    --nw-accent: var(--lp-primary); --nw-soft: var(--lp-primary-soft); --nw-radius: var(--lp-r-m);
+    --nw-accent: var(--lp-pig-deep); --nw-soft: var(--lp-pig-soft); --nw-radius: var(--lp-r-m);
     --ml-bg: transparent; --ml-paper: var(--lp-sheet); --ml-text: var(--lp-ink); --ml-muted: var(--lp-ink-2); --ml-line: var(--lp-line);
-    --ml-accent: var(--lp-primary); --ml-soft: var(--lp-primary-soft); --ml-danger: var(--lp-bad); --ml-radius: var(--lp-r-m);
+    --ml-accent: var(--lp-pig-deep); --ml-soft: var(--lp-pig-soft); --ml-danger: var(--lp-bad); --ml-radius: var(--lp-r-m);
     /* Dictionary */
     --d-bg: transparent; --d-card: var(--lp-sheet); --d-muted-bg: var(--lp-sunk); --d-ink: var(--lp-ink); --d-ink-2: var(--lp-ink-2); --d-ink-3: var(--lp-ink-3);
-    --d-line: var(--lp-line); --d-accent: var(--lp-primary); --d-accent-ink: var(--lp-primary-ink); --d-warn: var(--lp-warn); --d-good: var(--lp-ok);
+    --d-line: var(--lp-line); --d-accent: var(--lp-pig-deep); --d-accent-ink: var(--lp-sheet); --d-warn: var(--lp-warn); --d-good: var(--lp-ok);
 
     background: transparent !important;
     color: var(--lp-ink);
@@ -236,7 +236,7 @@ html[data-look="gouache"]:not([data-world]) {
     content: ""; position: absolute; inset: -4px 20px auto 20px; height: 5px; background: var(--lp-line-2); opacity: .7;
     -webkit-mask: var(--lp-m-stroke) center / 100% 100% no-repeat; mask: var(--lp-m-stroke) center / 100% 100% no-repeat;
   }
-  & .lp-footer-chip { background: var(--lp-ok-soft); color: var(--lp-ok); border-color: transparent; font-weight: 600; }
+  & .lp-footer-chip { background: color-mix(in srgb, var(--lp-pig) 13%, var(--lp-sheet)) !important; color: var(--lp-pig-deep) !important; border-color: transparent !important; font-weight: 600; }
   & footer[data-lp-footer] .lp-footer-link:focus-visible, & footer[data-lp-footer] .lp-footer-version:focus-visible { outline-color: var(--lp-focus); }
   & .lp-app-about { border-radius: var(--lp-r-l); box-shadow: var(--lp-shadow-2); border-color: var(--lp-line); }
   & .lp-app-about::backdrop, & dialog::backdrop { background: var(--L, rgba(20, 28, 66, .5)) var(--D, rgba(3, 6, 22, .7)); }
@@ -991,8 +991,201 @@ html[data-look="gouache"]:not([data-world]) {
   /* Dictionary: the explanatory card and the filter line, tighter */
   & .dict-btn:not(.primary) { min-height: 36px !important; }
 
+  /* ══ 3.11.906 — the corpus page to the last control (owner: «Можно начать сразу», the catalog's
+     «Поиск»/«Сортировка», «Фильтры» were still stock) ══ */
+  /* the corpus head: the count, «Что доступно здесь» and the copyright contact in the pigment */
+  & .corpus-shell-count { color: var(--lp-q-ink) !important; }
+  & :is(.corpus-capability-disclosure summary, .room-copyright-contact) { color: var(--lp-q-ink) !important; text-decoration-color: var(--lp-q-rim); }
+  & .corpus-capability-disclosure summary { min-height: 24px !important; }
+  /* «Можно начать сразу»: a slip of the place's paper, the button quiet and only as wide as its words */
+  & .public-corpus-guest {
+    background: color-mix(in srgb, var(--lp-pig) 7%, var(--lp-sheet)) !important; border: 1px solid var(--lp-q-rim) !important;
+    border-radius: 14px 12px 15px 13px !important; padding: 10px 12px !important; gap: 8px 14px !important; margin: 4px 0 8px !important;
+    box-shadow: var(--lp-q-shadow);
+  }
+  & .public-corpus-guest strong { font-family: var(--lp-font-editorial); color: var(--lp-q-ink) !important; font-size: 16px; }
+  & .public-corpus-guest p { margin-top: 2px !important; }
+  & :is(.public-corpus-guest, .public-corpus-actions) .group-action {
+    width: auto !important; min-height: 36px !important; padding: 6px 14px !important; font-size: 13.5px !important; font-weight: 650 !important;
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important;
+  }
+  & :is(.public-corpus-guest, .public-corpus-actions) .group-action:hover { background: var(--lp-q-bg-hover) !important; }
+  & .public-corpus-actions { justify-content: flex-start !important; margin: 0 0 6px !important; }
+  & .public-corpus-actions .group-action::before { content: "↗"; margin-inline-end: 7px; font-weight: 700; }
+
+  /* the catalog's search tools (Room corpora, Studio texts): one paper slip with pigment fields */
+  & .catalog-discovery { --discovery-accent: var(--lp-pig-deep); --discovery-border: var(--lp-q-rim); }
+  & .corpus-browse-tools {
+    background: color-mix(in srgb, var(--lp-sheet) 72%, transparent) !important; border: 1px solid var(--lp-q-rim) !important;
+    border-radius: 14px 12px 15px 13px !important; padding: 10px 12px 4px !important; margin: 8px 0 6px !important;
+  }
+  & .catalog-discovery :is(input, select), & select.mytexts-select {
+    background-color: var(--lp-sheet) !important; border: 1px solid var(--lp-q-rim) !important; border-radius: var(--lp-q-r) !important;
+    color: var(--lp-ink) !important; min-height: 40px !important; padding-block: 7px !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--lp-pig) 8%, transparent) !important;
+  }
+  & .catalog-discovery :is(input, select):focus, & select.mytexts-select:focus {
+    border-color: var(--lp-pig) !important; outline: none !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--lp-pig) 22%, transparent) !important;
+  }
+  & .catalog-discovery input::placeholder { color: color-mix(in srgb, var(--lp-pig-deep) 55%, var(--lp-ink-3)) !important; }
+  & :is(.catalog-discovery, .corpus-browse-tools) .room-field-label { color: var(--lp-q-ink) !important; font-size: 11.5px; letter-spacing: .02em; }
+  & .discovery-field { gap: 3px !important; }
+  & .discovery-filters { border-block: 0 !important; border-top: 1px dashed var(--lp-q-rim) !important; margin-block-start: 8px !important; }
+  & .discovery-filter-summary {
+    color: var(--lp-q-ink) !important; min-height: 40px !important; padding-block: 9px !important; display: flex !important; align-items: center;
+    list-style: none; font-size: 14.5px !important;
+  }
+  & .discovery-filter-summary::-webkit-details-marker { display: none; }
+  & .discovery-filter-summary::after {
+    content: ""; width: 8px; height: 8px; margin-inline-start: auto; margin-inline-end: 4px; border: solid var(--lp-pig); border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translateY(-2px); transition: transform .18s;
+  }
+  & .discovery-filters[open] > .discovery-filter-summary::after { transform: rotate(-135deg) translateY(-2px); }
+  & .discovery-filter-icon { color: var(--lp-pig); }
+  & .discovery-filter-panel { gap: 10px !important; padding-block-end: 10px !important; }
+  /* the smart chips and tags: small pills of the pigment; chosen = a wash and the deep ink */
+  & .catalog-discovery button:not(.discovery-reset):not(.discovery-more-tags) {
+    min-height: 34px !important; padding: 4px 11px !important; border-radius: 999px !important; font-weight: 600;
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+  }
+  & .catalog-discovery button:not(.discovery-reset):not(.discovery-more-tags):hover { background: var(--lp-q-bg-hover) !important; }
+  & .catalog-discovery button[aria-pressed="true"]:not(.discovery-reset) {
+    background: color-mix(in srgb, var(--lp-pig) 20%, var(--lp-sheet)) !important; border-color: var(--lp-pig) !important; color: var(--lp-pig-deep) !important;
+  }
+  & .catalog-discovery :is(.discovery-reset, .discovery-more-tags) { color: var(--lp-q-ink) !important; }
+  & .discovery-count {
+    margin-inline-start: 6px !important; min-width: 18px; padding: 0 5px; border-radius: 999px; text-align: center;
+    background: color-mix(in srgb, var(--lp-pig) 12%, transparent); color: var(--lp-q-ink) !important; font-size: 11px !important; line-height: 17px;
+  }
+  & .catalog-discovery :is(button, input, select, summary):focus-visible { outline-color: var(--lp-pig) !important; }
+  & :is(.learning-index-status, .room-browse-summary) { color: var(--lp-ink-3) !important; font-size: 12.5px; }
+
+  /* public-corpus card, the inside: the title and «Читать» on one line, the corpus name small, the
+     reading guide's chips in one row */
+  & .group-work-card.room-material-row { display: grid !important; grid-template-columns: auto minmax(0, 1fr); position: relative; }
+  & .group-work-card > .group-work-identity { min-width: 0; grid-column: 2; }
+  /* ••• sits low at the end, beside the guide's chips, so the title has the whole width */
+  & .group-work-card > .material-actions { position: absolute !important; inset-block-end: 7px; inset-inline-end: 8px; }
+  & .group-work-card .room-row-more { width: 32px !important; height: 32px !important; min-width: 32px !important; min-height: 32px !important; font-size: 14px !important; }
+  & .group-work-card .learning-compass { padding-inline-end: 40px; }
+  & .group-work-card .room-text-title-link { display: flex !important; align-items: baseline !important; gap: 10px !important; min-height: 0 !important; padding: 0 !important; margin: 0 !important; }
+  & .group-work-card .room-item-title-copy { flex: 1 1 auto; min-width: 0; display: block; }
+  & .group-work-card .group-work-title { display: inline; font-size: 15px !important; line-height: 1.32 !important; }
+  & .group-work-card .group-work-artist { display: inline !important; margin: 0 0 0 8px !important; font-size: 12px !important; color: var(--lp-ink-3) !important; font-weight: 600; }
+  & .group-work-card .learning-compass { display: flex !important; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 3px !important; }
+  & .room-text-primary { color: var(--lp-q-ink) !important; }
+  & .room-text-primary::after { content: " ›"; color: var(--lp-pig); }
+  & .learning-media { min-height: 0 !important; padding: 1px 9px !important; font-size: 12px !important; line-height: 1.5 !important; }
+  & .learning-compass-details > summary { color: var(--lp-q-ink) !important; border-color: var(--lp-q-rim) !important; }
+  & .learning-compass-panel, & .mytext-secondary-panel {
+    background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px !important; border: 1px solid var(--lp-q-rim) !important;
+    border-radius: 13px 11px 14px 12px !important; box-shadow: 0 16px 30px -16px rgba(10, 16, 44, .5) !important;
+  }
+  /* the ••• menu's own commands were bare UA buttons (grey with a black rim) */
+  & .mytext-secondary-panel :is(button, a) {
+    display: flex !important; width: 100% !important; align-items: center; justify-content: flex-start; text-align: start;
+    min-height: 38px !important; padding: 6px 12px !important; margin: 0 !important; border: 0 !important; border-radius: 9px !important;
+    background: transparent !important; color: var(--lp-q-ink) !important; font: 600 14px/1.3 inherit !important; box-shadow: none !important; cursor: pointer;
+  }
+  & .mytext-secondary-panel :is(button, a):is(:hover, :focus-visible) { background: var(--lp-q-bg-hover) !important; }
+  & .mytext-secondary-panel :is(button, a) + :is(button, a) { border-top: 1px solid color-mix(in srgb, var(--lp-pig) 12%, transparent) !important; }
+  & .mytext-secondary-panel .room-item-provenance { margin: 2px 12px 4px !important; color: var(--lp-ink-3) !important; font-size: 12px; }
+  & :is(.learning-calibration-toggle, .learning-calibration-reset) {
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important; border-radius: var(--lp-q-r) !important;
+    min-height: 34px !important;
+  }
+  /* «← Предыдущие | Следующие →» and «Показать ещё» */
+  & .corpus-more-btn:not([disabled]) {
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; min-height: 40px; padding: 8px 12px !important;
+  }
+  & .corpus-more-btn:not([disabled]):hover { background: var(--lp-q-bg-hover) !important; }
+  & .corpus-more-btn[disabled] { background: transparent !important; color: var(--lp-ink-3) !important; border: 1px dashed var(--lp-q-rim) !important; }
+  /* one page only: «← Предыдущие | Следующие →» both dead — no pager at all */
+  & .corpus-more:not(:has(.corpus-more-btn:not([disabled]))):has(.corpus-more-btn) { display: none !important; }
+  & .corpus-more { display: flex; gap: 8px; }
+  & .corpus-more .corpus-more-btn { flex: 1 1 0; width: auto !important; }
+  /* a card under the finger / with focus: the pigment's rim, not the stock blue */
+  & :is(.room-text-row, .group-work-card, .learning-corpus-entry):hover { border-color: color-mix(in srgb, var(--lp-pig) 55%, transparent) !important; background-color: color-mix(in srgb, var(--lp-pig) 4%, var(--lp-sheet)) !important; }
+  & .room-text-row:focus-within { border-color: var(--lp-pig) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--lp-pig) 22%, transparent) !important; }
+  /* the library's corpus list: the rim of the pigment, not the stock grey */
+  & .learning-corpus-entry { border-color: var(--lp-q-rim) !important; }
+
+  /* a corpus's «С чего начать» / «Продолжить» card: the Room's sheet, the pigment kicker and the one
+     primary action — not the stock brown card */
+  & .corpus-next-action {
+    background: var(--lp-sheet) !important; border: 0 !important; border-inline-start: 4px solid var(--lp-pig) !important;
+    border-radius: var(--lp-r-l) !important; box-shadow: var(--lp-shadow-2) !important; min-height: 0 !important; padding: 12px 14px !important; gap: 10px 14px !important;
+  }
+  & .corpus-next-kicker { color: var(--lp-pig-deep) !important; }
+  & .corpus-next-cta {
+    background: var(--lp-primary) !important; border-color: var(--lp-primary) !important; color: var(--lp-primary-ink) !important; border-radius: var(--lp-r-m) !important;
+    min-height: 40px !important; box-shadow: inset 0 -2px 0 rgba(8, 14, 44, .24), 0 8px 16px -10px var(--lp-primary) !important;
+  }
+  /* «Учебные подборки с озвучкой» under the Ben-Yehuda catalog was a bare UA button: a quiet way across */
+  & .corpus-curated-link {
+    display: inline-flex; align-items: center; gap: 8px; width: auto; min-height: 38px; margin: 10px 0 4px; padding: 6px 14px; cursor: pointer;
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; font: 650 14px/1.25 var(--lp-font-ui);
+  }
+  & .corpus-curated-link::after { content: "→"; color: var(--lp-pig); }
+  &[dir="rtl"] .corpus-curated-link::after { content: "←"; }
+  & .corpus-curated-link:hover { background: var(--lp-q-bg-hover) !important; }
+  /* the same sentence twice under the empty «Мои тексты» card */
+  & .corpus-next-action + .mytexts-empty { display: none !important; }
+
+  /* the open text's bar and the word card: the place's pigment instead of the Studio tekhelet the
+     word card inherits through --theme-accent */
+  & :is(.rm-sheet, .rm-statpop, .reader-status-legend) { --accent: var(--lp-pig-deep); --accent-contrast: var(--lp-sheet); }
+  & :is(.reader-back, .reader-aids-toggle, .rm-sheet-x, .rm-speak, .rm-meaning-edit, .rm-meaning-add):not(:disabled) {
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; text-decoration: none !important;
+  }
+  & :is(.reader-back, .reader-aids-toggle, .rm-sheet-x, .rm-speak, .rm-meaning-edit, .rm-meaning-add):not(:disabled):hover { background: var(--lp-q-bg-hover) !important; color: var(--lp-q-ink) !important; }
+  & .reader-aids-toggle[aria-expanded="true"], & .reader-aids-toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--lp-pig) 20%, var(--lp-sheet)) !important; border-color: var(--lp-pig) !important; }
+  & .rm-sheet-card { background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px !important; border-top-color: var(--lp-q-rim) !important; }
+  & .rm-usage { background: color-mix(in srgb, var(--lp-pig) 7%, var(--lp-sheet)) !important; border-color: var(--lp-q-rim) !important; border-radius: 13px 11px 14px 12px !important; }
+
+  /* «Доступно обновление»: a paper slip with the pigment, not a black stock toast with a blue button */
+  & .room-update-toast {
+    background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px !important; color: var(--lp-ink) !important;
+    border: 1px solid var(--lp-q-rim); border-radius: 14px 12px 15px 13px !important; font-weight: 600;
+    box-shadow: 0 18px 34px -14px rgba(10, 16, 44, .55), inset 0 -2px 0 color-mix(in srgb, var(--lp-pig) 12%, transparent) !important;
+  }
+  & .room-update-toast .ru-upd { background: var(--lp-pig-deep) !important; color: var(--lp-sheet) !important; border-radius: var(--lp-q-r) !important; min-height: 34px; padding-inline: 14px !important; }
+  & .room-update-toast .ru-later { color: var(--lp-q-ink) !important; min-height: 34px; }
+  & .room-toast { background: var(--lp-ink) !important; color: var(--lp-sheet) !important; border-radius: 13px 11px 14px 12px !important; box-shadow: 0 14px 30px -12px rgba(10, 16, 44, .6); }
+  & .room-connection-status {
+    background: color-mix(in srgb, var(--lp-pig) 7%, var(--lp-sheet)) !important; border-color: var(--lp-q-rim) !important;
+    border-radius: 12px 10px 13px 11px !important; color: var(--lp-ink-2) !important;
+  }
+  & .room-connection-status button { color: var(--lp-q-ink) !important; border-color: var(--lp-q-rim) !important; background: var(--lp-q-bg) !important; }
+
   /* ── phone: the work lists use the width; cards lose their outer air ── */
   @media (max-width: 699px) {
+    /* «Поиск» and «Сортировка» side by side, the four filter selects two by two */
+    & .discovery-primary { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) !important; gap: 8px !important; }
+    & .discovery-selects { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 8px !important; }
+    & .catalog-discovery button:not(.discovery-reset):not(.discovery-more-tags) { min-height: 34px !important; }
+    & .public-corpus-guest { flex-direction: row !important; flex-wrap: wrap; align-items: center !important; }
+    & .public-corpus-guest .group-action { width: auto !important; font-size: 13px !important; padding-inline: 12px !important; }
+    & .group-work-card.room-material-row { padding: 9px 10px !important; gap: 4px 9px !important; }
+    /* Mediatheque on a phone: a card is a picture beside its title, not a picture the width of the screen
+       (owner: «громадные карточки»); the actions run under both */
+    & .ml-materials:not([data-layout="list"]) { gap: 14px !important; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item { display: grid !important; grid-template-columns: minmax(0, 44%) minmax(0, 1fr); column-gap: 11px; row-gap: 6px; align-items: start; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item > a:first-child { grid-column: 1; grid-row: 1; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item > .ml-item-copy { grid-column: 2; grid-row: 1; min-width: 0; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item > .ml-item-footer { grid-column: 1 / -1; margin: 0 !important; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item > :not(a):not(.ml-item-copy):not(.ml-item-footer) { grid-column: 1 / -1; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item h3 { font-size: .9rem !important; line-height: 1.3 !important; margin: 0 0 3px !important; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+    & .ml-materials:not([data-layout="list"]) > .ml-item .ml-item-meta { font-size: .74rem !important; gap: 2px 8px !important; }
+    /* a list head with no sort switch: the title and «Свернуть» on one line */
+    & .corpus-list-head.room-long-list-head:not(:has(> .corpus-sort)) > .room-long-list-title { grid-column: 1 !important; }
+    & .corpus-list-head.room-long-list-head:not(:has(> .corpus-sort)) > .room-section-toggle { grid-row: 1 !important; }
+    & .corpus-list-head.room-long-list-head { padding: 8px 2px 4px !important; }
+    & .room-section-toggle { min-height: 34px !important; padding: 4px 11px !important; }
     & .corpus-crumb { padding: 8px 10px !important; }
     & :is(.corpus-work-section, .room-preview-list, .learning-home-ready-list) { margin-inline: 0 !important; }
     & .corpus-work-row.room-material-row .corpus-work-title { font-size: 16px !important; line-height: 1.35 !important; }
