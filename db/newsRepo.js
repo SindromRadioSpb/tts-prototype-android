@@ -12,6 +12,7 @@ const { wordGlossLayerReport } = require('../publication/materialArchive');
 const { withTxnLock } = require('./txnLock');
 const { createOverviewItems } = require('./newsOverviewItems');
 const { fingerprintOf, paragraphsOfRows } = require('../news/newsFingerprint');
+const { ARCHIVE_ORDER_ID, archiveDraftHash } = require('../news/newsArchiveOrder');
 
 const LIMITS = { packBytes: 50 * 1024 * 1024, articles: 1000, article: 1024 * 1024, image: 1024 * 1024, newsImage: 600 * 1024, gloss: 4 * 1024 * 1024, manifest: 1024 * 1024, overview: 8 * 1024 * 1024, total: 400 * 1024 * 1024 };
 const FRESH_MS = 72 * 3600 * 1000, ARCHIVE_MS = 183 * 24 * 3600 * 1000, TRASH_MS = 30 * 24 * 3600 * 1000, PHOTO_MS = 61 * 24 * 3600 * 1000;
@@ -79,6 +80,11 @@ function openPack(zipBuffer) {
     || !/^[0-9a-f-]{36}$/i.test(String(manifest.pack_id || '')) || !manifest.producer || typeof manifest.producer.name !== 'string'
     || !Array.isArray(manifest.articles) || (manifest.withdraw != null && !Array.isArray(manifest.withdraw))) fail('PACK_INVALID', 400, 'MANIFEST_SCHEMA');
   if (manifest.articles.length > LIMITS.articles) fail('PACK_INVALID', 400, 'TOO_MANY_ARTICLES');
+  if (Object.hasOwn(manifest, 'archive_order_id') && (
+    typeof manifest.archive_order_id !== 'string' || !ARCHIVE_ORDER_ID.test(manifest.archive_order_id)
+    || manifest.articles.length !== 1 || manifest.edition_id != null || manifest.overview != null
+    || manifest.withdraw != null || manifest.rejected != null || byName.has('overview.json')))
+    fail('PACK_INVALID', 400, 'ARCHIVE_ORDER_SCOPE');
   const seen = new Set();
   for (const a of manifest.articles) {
     const m = a && typeof a.path === 'string' && a.path.match(ENTRY);
@@ -103,6 +109,14 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
   const hasOffload = async () => byOffload != null ? byOffload : (byOffload = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_offloads'")));
   let byPrints = null; // migration 084: fingerprints of the original
   const hasPrints = async () => byPrints != null ? byPrints : (byPrints = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_article_fingerprints'")));
+  let byArchiveOrders = null;
+  const hasArchiveOrders = async () => byArchiveOrders != null ? byArchiveOrders : (byArchiveOrders = !!(await dbGet(db,
+    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_archive_orders'")));
+  async function archiveOrderFor(id, actor) {
+    if (!(await hasArchiveOrders())) return null;
+    return dbGet(db, `SELECT * FROM news_archive_orders WHERE order_id=? AND actor_kind=? AND actor_id=?`,
+      [id, actor.kind || '', String(actor.id)]);
+  }
   const serialize = task => { const r = queue.then(task, task); queue = r.catch(() => {}); return r; };
   // Every explicit transaction on the shared connection goes through the process-wide lock (db/txnLock.js).
   const transaction = task => withTxnLock(async () => {
@@ -128,6 +142,18 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const v = C.validateArticle(article, { now: nowMs() });
     if (!v.ok) return { ...item, code: v.code };
     const warnings = [...v.warnings];
+    let archiveOrder = null;
+    if (manifest.archive_order_id) {
+      archiveOrder = await archiveOrderFor(manifest.archive_order_id, actor);
+      if (!archiveOrder) return { ...item, code: 'ARCHIVE_ORDER_UNKNOWN' };
+      if (!archiveOrder.emitted_pack_id && archiveOrder.expires_at <= iso()) return { ...item, code: 'ARCHIVE_ORDER_EXPIRED' };
+      const original = article.learning.versions.find(C.isOriginal);
+      if (!original || article.source.paywalled || article.revision !== 1) return { ...item, code: 'ARCHIVE_SOURCE_CHANGED' };
+      // Do not trust caller-provided shingle lists in this path. The OR layer is required
+      // and compared byte-for-byte below (only derived study layers may differ).
+      const raw = original.rows.map(r => r.he_plain).join(' ');
+      article.check = { source_shingles: C.shingles(raw), source_word_count: raw.split(/\s+/).length };
+    }
     const overlap = C.articleOverlap(article);
     if (overlap > REJECT_OVER) return { ...item, code: 'VERBATIM_OVERLAP', overlap };
     const fidelity = C.articleFidelity(article);
@@ -166,13 +192,17 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     }
     const canonical = C.canonicalizeUrl(article.source.canonical_url);
     const articleId = C.articleKey(article.source.outlet_id, canonical);
+    if (archiveOrder && (articleId !== archiveOrder.article_id
+      || archiveDraftHash(article, Object.fromEntries(photos.map(p => [p.name, p.sha256]))) !== archiveOrder.draft_sha256))
+      return { ...item, code: 'ARCHIVE_SOURCE_CHANGED' };
     // Checks before publishing (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.8).
     const orIndex = article.learning.versions.findIndex(C.isOriginal);
     const study = orIndex >= 0 ? C.checkStudyLayers(article, { glossLayer: glossLayers[orIndex] }) : [];
     if (study.length) return { ...item, article_id: articleId, code: 'STUDY_LAYER_INVALID', detail: study };
     // «выбрано dot» only for an article dot actually ordered (spec §5.6); otherwise the label is dropped.
-    let selected = null;
-    if (article.learning.selected_by === 'dot') {
+    let selected = archiveOrder ? { selected_by: 'dot', selection_note_ru: archiveOrder.note_ru } : null;
+    if (archiveOrder) Object.assign(article.learning, selected);
+    else if (article.learning.selected_by === 'dot') {
       let o = await dbGet(db, "SELECT selection_note_ru FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND selected_by='dot' LIMIT 1", [articleId, articleId]).catch(() => null);
       // A later revision of an article dot chose keeps the label after the harvest rows are pruned (45 days).
       if (!o) { const prev = await dbGet(db, 'SELECT provenance_json FROM news_articles WHERE article_id=?', [articleId]); let pv = null; try { pv = prev && JSON.parse(prev.provenance_json); } catch (_) {} if (pv && pv.selected_by === 'dot') o = { selection_note_ru: pv.selection_note_ru || '' }; }
@@ -198,13 +228,32 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       caption_ru: hero.caption_ru || null, alt_he: hero.alt_he || null, alt_ru: hero.alt_ru || null, source_url: hero.source_url } } : article.image;
     return transaction(async () => {
       const existing = await dbGet(db, 'SELECT revision FROM news_articles WHERE article_id=?', [articleId]);
+      if (archiveOrder) {
+        // An expired order can't win after a replacement; already emitted orders cannot revise.
+        const current = await archiveOrderFor(manifest.archive_order_id, actor);
+        if (!current || current.draft_sha256 !== archiveOrder.draft_sha256) return { ...result, code: 'ARCHIVE_ORDER_UNKNOWN' };
+        if (current.emitted_pack_id === manifest.pack_id && existing) {
+          const work = await dbGet(db, `SELECT w.work_id FROM news_works w JOIN news_articles a ON a.article_id=w.article_id
+            WHERE w.article_id=? AND w.position_no=1 AND a.tier IN ('fresh','archive')`, [articleId]);
+          return { ...result, status: 'duplicate', work_id: work ? work.work_id : null };
+        }
+        if (existing || current.emitted_pack_id) return { ...result, code: 'ALREADY_TAKEN' };
+        if (current.expires_at <= iso()) return { ...result, code: 'ARCHIVE_ORDER_EXPIRED' };
+        const row = await dbGet(db, 'SELECT main_state, lease_until, paywalled FROM news_harvest_items WHERE url_key=?', [current.url_key]);
+        if (!row) return { ...result, code: 'ARCHIVE_ORDER_EXPIRED' };
+        if (row.paywalled) return { ...result, code: 'PAYWALL' };
+        if (row.main_state !== 'none' || (row.lease_until && row.lease_until > iso())) return { ...result, code: 'ALREADY_TAKEN' };
+      } else if (await hasArchiveOrders()) {
+        const reserved = await dbGet(db, `SELECT 1 FROM news_archive_orders WHERE article_id=? AND expires_at>? AND emitted_pack_id IS NULL`, [articleId, iso()]);
+        if (reserved) return { ...result, code: 'ARCHIVE_ORDER_REQUIRED' };
+      }
       if (existing && article.revision === existing.revision) return { ...result, status: 'duplicate' };
       if (existing && article.revision < existing.revision) return { ...result, status: 'rejected', code: 'REVISION_STALE' };
       const body = { ...article }; delete body.check;
       if (images.length) body.images = images;
       const s = article.source, l = article.learning, t = iso();
       const provenance = { prepared: article.prepared, quality: article.quality || null, producer: manifest.producer, pack_id: manifest.pack_id, uploaded_by: String(actor.id), paywalled: !!s.paywalled, url: s.url,
-        ...(selected || {}) };
+        ...(selected || {}), ...(archiveOrder ? { archive_order_id: archiveOrder.order_id, parent_edition_id: archiveOrder.edition_id } : {}) };
       const values = [s.outlet_id, canonical, article.revision, s.section, s.section_original_he, s.content_type, new Date(publishedMs).toISOString(),
         new Date(Date.parse(s.retrieved_at)).toISOString(), l.title_he, l.title_ru, l.summary_ru, C.normalizeHebrewText(l.title_he + ' ' + l.title_ru).toLowerCase(),
         s.original_title_he, s.author || null, l.story_key || null, l.sensitive.heavy ? 1 : 0, JSON.stringify(l.versions.map(x => x.level)),
@@ -241,7 +290,13 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
         works.push(workId);
       }
       const status = existing ? 'revised' : tier === 'fresh' ? 'published' : 'archived';
-      await event(actor, status, { packId: manifest.pack_id, articleId, detail: { revision: article.revision, tier, overlap: result.overlap, flagged } });
+      if (archiveOrder) {
+        await dbRun(db, 'UPDATE news_archive_orders SET emitted_pack_id=? WHERE order_id=?', [manifest.pack_id, archiveOrder.order_id]);
+        // Existing main-state dedup, without linking to or re-accounting the old edition.
+        await dbRun(db, "UPDATE news_harvest_items SET main_state='published' WHERE url_key=? AND main_state='none'", [archiveOrder.url_key]);
+      }
+      await event(actor, status, { packId: manifest.pack_id, articleId, detail: { revision: article.revision, tier, overlap: result.overlap, flagged,
+        ...(archiveOrder ? { archive_order_id: archiveOrder.order_id, parent_edition_id: archiveOrder.edition_id } : {}) } });
       return { ...result, status, work_id: works[0] || null, flagged };
     });
   }
@@ -324,7 +379,8 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       }
       const totals = Object.fromEntries(TOTAL_KEYS.map(k => [k, 0]));
       for (const i of items) { totals[i.status] = (totals[i.status] || 0) + 1; if (i.flagged) totals.flagged++; }
-      const receipt = { pack_id: manifest.pack_id, totals, items, warnings };
+      const receipt = { pack_id: manifest.pack_id, totals, items, warnings,
+        ...(manifest.archive_order_id ? { archive_order_id: manifest.archive_order_id } : {}) };
       if (manifest.overview) receipt.overview = await ingestOverview(manifest, byName);
       // Editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.3): the harvester counts what was published.
       if (manifest.edition_id && editionListener) {

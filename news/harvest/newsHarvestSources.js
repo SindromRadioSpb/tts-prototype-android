@@ -55,5 +55,24 @@ const SOURCES = [
     skipImage: /\/2025\/04\/%D7%9E%D7%91%D7%96%D7%A7|מבזק\.png|\/_next\/image/, image: u => u },
 ];
 
+// Closed-candidate orders may retrieve only photo URLs already recorded by the harvester,
+// never a URL supplied by the caller, a general article origin, or a redirected request.
+const ARCHIVE_IMAGE_HOSTS = {
+  ynet: /^(?:ynet-pic[0-9]+\.yit\.co\.il|images1\.ynet\.co\.il)$/,
+  walla: /^(?:images\.wcdn\.co\.il|img\.wcdn\.co\.il)$/,
+  maariv: /^images\.maariv\.co\.il$/,
+  n12: /^(?:img\.mako\.co\.il|images\.mako\.co\.il|images\.n12\.co\.il)$/,
+  haaretz: /^(?:img\.haarets\.co\.il|images\.haaretz\.co\.il)$/,
+  c14: /^(?:cdn\.c14\.co\.il|static\.c14\.co\.il)$/,
+};
+function canFetchArchiveImage(outletId, src) {
+  const hosts = Object.hasOwn(ARCHIVE_IMAGE_HOSTS, outletId) && ARCHIVE_IMAGE_HOSTS[outletId];
+  try {
+    const u = new URL(src);
+    if (!hosts || u.protocol !== 'https:' || u.username || u.password || u.port || !hosts.test(u.hostname)) return false;
+    return outletId !== 'maariv' || u.pathname.startsWith('/image/upload/');
+  } catch (_) { return false; }
+}
+
 const bySource = new Map(SOURCES.map(s => [s.outlet_id, s]));
-module.exports = { SOURCES, sourceFor: id => bySource.get(id) || null };
+module.exports = { SOURCES, sourceFor: id => bySource.get(id) || null, canFetchArchiveImage };
