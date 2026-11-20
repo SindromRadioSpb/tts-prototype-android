@@ -593,6 +593,26 @@ html[data-look="gouache"]:not([data-world]) {
     -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3);
   }
 
+  /* Studio's panel of sections: frosted paper over the painting; each card in the pigment of the place it opens */
+  & #classicSecondaryNav {
+    background: color-mix(in srgb, var(--lp-sheet) 84%, transparent) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(1.3); backdrop-filter: blur(12px) saturate(1.3);
+  }
+  & #btnLibrary { --lp-gp: var(--lp-gp-studio); }
+  & #btnDashboard { --lp-gp: var(--lp-gp-dictionary); }
+  & #btnSrsTrainer { --lp-gp: var(--lp-gp-review); }
+  & #btnReadingRoom { --lp-gp: var(--lp-gp-room); }
+  & #btnPronunciationLab { --lp-gp: var(--lp-gp-mediatheque); }
+  & .classic-nav-card { background: color-mix(in srgb, var(--lp-sheet-2) 70%, transparent) !important; border-color: color-mix(in srgb, var(--lp-gp, var(--lp-line)) 30%, transparent) !important; }
+  & .classic-nav-card :is(.classic-nav-icon, svg) { color: var(--lp-gp, var(--lp-ink)) !important; }
+  & .classic-nav-card.classic-review-card { background: color-mix(in srgb, var(--lp-gp-review) 12%, var(--lp-sheet)) !important; border-color: color-mix(in srgb, var(--lp-gp-review) 45%, transparent) !important; }
+  & .classic-nav-card:hover { background: color-mix(in srgb, var(--lp-gp, var(--lp-pig)) 10%, var(--lp-sheet)) !important; }
+  & :is(.classic-nav-tool, .lang-select#appLangSelect) {
+    background: color-mix(in srgb, var(--lp-sheet) 80%, transparent) !important; color: var(--lp-pig-deep) !important;
+    border: 1px solid color-mix(in srgb, var(--lp-pig) 38%, transparent) !important;
+  }
+  & .classic-nav-tool :is(svg, .classic-nav-icon) { color: var(--lp-pig-deep) !important; }
+
   /* ── section heads close with a calligraphic flourish ─────────────────────────── */
   & :is(.nw-group > h2, .ml-section-head h2, .learning-home-section-title)::after {
     content: ""; display: block; width: 116px; height: 12px; margin-top: 5px; background: var(--lp-pig); opacity: .85;
@@ -619,7 +639,9 @@ html[data-look="gouache"]:not([data-world]) {
       1px 1px 0 var(--lp-edge-1), 2px 2px 0 var(--lp-edge-2), 3px 3px 0 var(--lp-edge-3), 4px 4px 0 var(--lp-edge-2),
       5px 5px 0 var(--lp-edge-1), 6px 6px 0 var(--lp-edge-3),
       0 2px 0 var(--L, rgba(80, 52, 14, .08)) var(--D, rgba(0, 0, 0, .3)), 10px 30px 46px -26px var(--L, rgba(54, 34, 8, .55)) var(--D, rgba(0, 0, 0, .9));
-    padding: 30px 26px 34px !important;
+    /* no top padding: in a scrolling container a sticky head stops at the padding edge and rows
+       show above it; the air above the head is the table's own margin instead */
+    padding: 0 26px 34px !important;
     margin-bottom: 40px;
   }
   /* gilt frame: tooled corners and a double rule, drawn over the page edge */
@@ -637,7 +659,7 @@ html[data-look="gouache"]:not([data-world]) {
       var(--lp-pig);
     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
   }
-  & :is(#roomReaderTable, #tableContainer) > #proTable { border: 0 !important; background: transparent !important; border-radius: 0; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable { border: 0 !important; background: transparent !important; border-radius: 0; margin-top: 30px; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td) { border-color: var(--lp-rule) !important; border-left-color: transparent !important; border-top-color: transparent !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):not(:last-child) { border-right-color: var(--lp-rule-v) !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):last-child { border-right-color: transparent !important; }
@@ -648,13 +670,19 @@ html[data-look="gouache"]:not([data-world]) {
     background-color: var(--lp-vellum-head) !important;
     background-image: linear-gradient(var(--L, rgba(255, 250, 235, .4)) var(--D, rgba(255, 255, 255, .03)), transparent), var(--lp-vellum-tex) !important;
     background-size: auto, 512px 512px !important;
-    color: var(--lp-gold-ink) !important; font-variant-caps: all-small-caps; letter-spacing: .1em; font-weight: 700 !important; font-size: 15px;
+    font-family: var(--lp-font-editorial) !important; color: var(--lp-gold-ink) !important; font-variant-caps: all-small-caps; letter-spacing: .1em; font-weight: 700 !important; font-size: 15px;
     border-bottom-color: transparent !important;
     text-shadow: 0 1px 0 var(--L, rgba(255, 255, 255, .7)) var(--D, rgba(0, 0, 0, .5));
   }
   & :is(#roomReaderTable, #tableContainer) > #proTable thead th::before {
-    height: 4px !important; bottom: -2px !important; background: transparent !important;
-    border-top: 1px solid var(--lp-gold); border-bottom: 1px solid var(--lp-gold); opacity: .8 !important;
+    /* opaque: a sticky cell does not paint its collapsed border, so the strip under the head must be
+       covered or the passing rows show through it */
+    height: 5px !important; bottom: -4px !important; opacity: 1 !important;
+    background: linear-gradient(var(--lp-gold) 0 1px, var(--lp-vellum-head) 1px 3px, var(--lp-gold) 3px 4px, var(--lp-vellum-head) 4px) !important;
+  }
+  /* and the strip on top of the head, for the same reason */
+  & :is(#roomReaderTable, #tableContainer) > #proTable thead th::after {
+    content: ""; position: absolute; left: -1px; right: -1px; top: -2px; height: 3px; background: var(--lp-vellum-head); pointer-events: none;
   }
   /* folio numbers: italic old-style figures in gold */
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell[data-row-n]::before {
@@ -695,13 +723,14 @@ html[data-look="gouache"]:not([data-world]) {
   & #roomReader .reader-tip-txt { color: var(--lp-ink-2); }
   & #roomReader .reader-bar { box-shadow: 0 10px 18px -16px rgba(10, 16, 44, .6); border-bottom-color: transparent; }
   /* Studio: its table scrolls inside the container; the frame stays a page, not a window */
-  & #tableContainer:has(> #proTable) { padding: 26px 20px 30px !important; }
+  & #tableContainer:has(> #proTable) { padding: 0 20px 30px !important; }
+  & #tableContainer > #proTable { margin-top: 26px; }
   /* Studio scrolls its table inside the container, so the ribbon hangs from the top edge into the page */
   & #tableContainer:has(> #proTable)::before { top: 0; bottom: auto; height: 54px; background: linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)), var(--lp-pig); }
 
   @media (max-width: 699px) {
     & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
-      padding: 18px 10px 24px !important; margin: 8px 6px 46px;
+      padding: 0 10px 24px !important; margin: 8px 6px 46px;
       border-radius: 3px 8px 8px 3px;
       box-shadow: 1px 1px 0 var(--lp-edge-1), 2px 2px 0 var(--lp-edge-2), 3px 3px 0 var(--lp-edge-3), 4px 4px 0 var(--lp-edge-1),
         8px 22px 30px -20px var(--L, rgba(54, 34, 8, .5)) var(--D, rgba(0, 0, 0, .9));
@@ -709,6 +738,18 @@ html[data-look="gouache"]:not([data-world]) {
     & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after { inset: 0; border-width: 26px; border-image-width: 26px; }
     & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { inset-inline-end: 40px; width: 15px; height: 56px; bottom: -34px; }
     & :is(#roomReaderTable, #tableContainer) > #proTable thead th { font-size: 14px; letter-spacing: .07em; }
+    & :is(#roomReaderTable, #tableContainer) > #proTable { margin-top: 18px; }
+  }
+  /* desktop, open text: the navigation strip stays on top with paper under it, the reading bar
+     sticks just below it and the table head below the bar — nothing scrolls through a gap */
+  @media (min-width: 600px) {
+    &:has(> body.room-reading.lp-has-app-nav) .lp-app-nav {
+      background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px; padding-bottom: 8px;
+      box-shadow: 0 10px 16px -14px rgba(10, 16, 44, .55);
+    }
+    & body.room-reading.lp-has-app-nav #roomReader .reader-bar { top: var(--lp-nav-h, 64px); }
+    & body.room-reading.lp-has-app-nav #roomReader #proTable thead th { top: calc(var(--room-thead-top, 0px) + var(--lp-nav-h, 64px)); }
+    & body.room-reading.lp-has-app-nav #roomReader .room-media-scroll #proTable thead th { top: 0; }
   }
   @media (forced-colors: active) {
     & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after, & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { display: none; }
