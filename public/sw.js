@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.902";
+const CACHE_VERSION = "v3.11.903";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -353,7 +353,7 @@ const PRECACHE_URLS = [
   "/css/world-skin.css?v=799",
   "/js/app-nav.js?v=899",
   // «Гуашь» look (3.11.898): the stylesheet and the one-breath canvas; paintings are fetched on demand
-  "/css/lp-gouache.css?v=902",
+  "/css/lp-gouache.css?v=903",
   "/js/lp-gouache.js?v=898",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",

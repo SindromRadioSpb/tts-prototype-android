@@ -660,6 +660,17 @@ html[data-look="gouache"]:not([data-world]) {
     clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
   }
   & :is(#roomReaderTable, #tableContainer) > #proTable { border: 0 !important; background: transparent !important; border-radius: 0; margin-top: 30px; }
+  /* a page that scrolls inside itself (Studio, the Room's video+table): the container's frame
+     would be pinned to the first screen, so the frame is drawn around the whole table instead —
+     its closing rule sits under the last row; it passes under the sticky head (z 3) */
+  & :is(#tableContainer, #roomReaderTable.room-media-scroll):has(> #proTable)::after { content: none; }
+  & :is(#tableContainer, #roomReaderTable.room-media-scroll) > #proTable { position: relative; }
+  & :is(#tableContainer, #roomReaderTable.room-media-scroll) > #proTable::after {
+    content: ""; position: absolute; z-index: 2; pointer-events: none;
+    top: var(--lp-fr-top, -28px); bottom: var(--lp-fr-bottom, -32px); left: var(--lp-fr-x, -24px); right: var(--lp-fr-x, -24px);
+    border: 38px solid transparent; border-image: url("/art/gouache/gilt-frame.webp") 120 / 38px stretch;
+    opacity: var(--L, .95) var(--D, .85);
+  }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td) { border-color: var(--lp-rule) !important; border-left-color: transparent !important; border-top-color: transparent !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):not(:last-child) { border-right-color: var(--lp-rule-v) !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):last-child { border-right-color: transparent !important; }
@@ -725,8 +736,12 @@ html[data-look="gouache"]:not([data-world]) {
   /* Studio: its table scrolls inside the container; the frame stays a page, not a window */
   & #tableContainer:has(> #proTable) { padding: 0 20px 30px !important; }
   & #tableContainer > #proTable { margin-top: 26px; }
+  & #tableContainer { --lp-fr-top: -24px; --lp-fr-bottom: -28px; --lp-fr-x: -18px; }
+  /* in the Room the provenance note and the end-of-text card follow the table: the frame closes
+     just under the last row and they sit below it like a colophon */
+  & #roomReaderTable.room-media-scroll { --lp-fr-bottom: -8px; }
   /* Studio scrolls its table inside the container, so the ribbon hangs from the top edge into the page */
-  & #tableContainer:has(> #proTable)::before { top: 0; bottom: auto; height: 54px; background: linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)), var(--lp-pig); }
+  & :is(#tableContainer, #roomReaderTable.room-media-scroll):has(> #proTable)::before { top: 0; bottom: auto; height: 54px; background: linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)), var(--lp-pig); }
 
   @media (max-width: 699px) {
     & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
@@ -739,6 +754,9 @@ html[data-look="gouache"]:not([data-world]) {
     & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { inset-inline-end: 40px; width: 15px; height: 56px; bottom: -34px; }
     & :is(#roomReaderTable, #tableContainer) > #proTable thead th { font-size: 14px; letter-spacing: .07em; }
     & :is(#roomReaderTable, #tableContainer) > #proTable { margin-top: 18px; }
+    & :is(#tableContainer, #roomReaderTable) { --lp-fr-top: -18px; --lp-fr-bottom: -22px; --lp-fr-x: -10px; }
+    & #roomReaderTable.room-media-scroll { --lp-fr-bottom: -6px; }
+    & :is(#tableContainer, #roomReaderTable.room-media-scroll) > #proTable::after { border-width: 26px; border-image-width: 26px; }
   }
   /* desktop, open text: the navigation strip stays on top with paper under it, the reading bar
      sticks just below it and the table head below the bar — nothing scrolls through a gap */
