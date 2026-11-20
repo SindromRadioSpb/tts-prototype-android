@@ -523,3 +523,247 @@ html[data-look="gouache"]:not([data-world]) {
     & *, & *::before, & *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   3.11.901 «Книга мастера» — the study table becomes a page of a bound volume; the painting is
+   seen whole on a phone; every glyph takes the pigment of its place.
+   ══════════════════════════════════════════════════════════════════════════════ */
+html[data-look="gouache"]:not([data-world]) {
+
+  /* ── the paint box: each place keeps its own pigment wherever its glyph appears ── */
+  & body {
+    --lp-gp-room: var(--L, #2f8a47) var(--D, #86d896);
+    --lp-gp-mediatheque: var(--L, #c2367f) var(--D, #ff95cb);
+    --lp-gp-news: var(--L, #cf6a12) var(--D, #ffb067);
+    --lp-gp-studio: var(--L, #b9820a) var(--D, #f8cf63);
+    --lp-gp-review: var(--L, #4d55c4) var(--D, #a9b0ff);
+    --lp-gp-dictionary: var(--L, #0f8798) var(--D, #6cdbe6);
+    /* the book */
+    --lp-vellum: var(--L, #f6efdd) var(--D, #151b3b);
+    --lp-vellum-head: var(--L, #efe4c8) var(--D, #1b2249);
+    --lp-iron: var(--L, #22170d) var(--D, #f3ead5);
+    --lp-iron-2: var(--L, #35291b) var(--D, #e7dcc3);
+    --lp-sepia: var(--L, #6a5136) var(--D, #cdbf9e);
+    --lp-gold: var(--L, #94691e) var(--D, #dcb766);
+    --lp-gold-ink: var(--L, #7a5514) var(--D, #e8c97f);
+    --lp-rule: var(--L, rgba(112, 78, 34, .22)) var(--D, rgba(220, 183, 102, .17));
+    --lp-rule-v: var(--L, rgba(112, 78, 34, .11)) var(--D, rgba(220, 183, 102, .09));
+    --lp-edge-1: var(--L, #e4d8bb) var(--D, #0b1028);
+    --lp-edge-2: var(--L, #faf5e8) var(--D, #232b56);
+    --lp-edge-3: var(--L, #d6c7a3) var(--D, #070b1e);
+    --lp-vellum-tex: var(--L, url("/art/gouache/vellum.webp")) var(--D, url("/art/gouache/vellum-night.webp"));
+  }
+  & .lp-app-nav-item[data-nav-id="room"] { --lp-gp: var(--lp-gp-room); }
+  & .lp-app-nav-item[data-nav-id="mediatheque"] { --lp-gp: var(--lp-gp-mediatheque); }
+  & .lp-app-nav-item[data-nav-id="news"] { --lp-gp: var(--lp-gp-news); }
+  & .lp-app-nav-item[data-nav-id="studio"] { --lp-gp: var(--lp-gp-studio); }
+  & .lp-app-nav-item[data-nav-id="review"] { --lp-gp: var(--lp-gp-review); }
+  & .lp-app-nav-item[data-nav-id="dictionary"] { --lp-gp: var(--lp-gp-dictionary); }
+  & .lp-app-nav-item::before { background: var(--lp-gp, currentColor); opacity: .82; transition: opacity .15s var(--lp-ease), transform .15s var(--lp-ease); }
+  & .lp-app-nav-item:hover::before, & .lp-app-nav-item[aria-current="page"]::before { opacity: 1; background: var(--lp-gp, currentColor); }
+  & .lp-app-nav-item[aria-current="page"]::after { background: color-mix(in srgb, var(--lp-gp, var(--lp-pig)) 70%, transparent); }
+  @media (max-width: 599px) {
+    & .lp-app-nav-item[aria-current="page"]::after { background: color-mix(in srgb, var(--lp-gp, var(--lp-pig)) 20%, transparent); }
+    & .lp-app-nav-item[aria-current="page"] .lp-app-nav-label { color: color-mix(in srgb, var(--lp-gp) 55%, var(--lp-ink)); }
+  }
+
+  /* ── controls laid on the painting: frosted paper tinted by the place ──────────── */
+  & :is(.nw-preferences, .ml-preferences) :is(button, select),
+  & :is(.room-theme-btn, .room-lang),
+  & .v3-mode-toggle {
+    background: color-mix(in srgb, var(--lp-sheet) 80%, transparent) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3);
+    border: 1px solid color-mix(in srgb, var(--lp-pig) 42%, transparent) !important;
+    color: var(--lp-pig-deep) !important; font-weight: 700;
+    box-shadow: inset 0 1px 0 var(--L, rgba(255, 255, 255, .7)) var(--D, rgba(255, 255, 255, .08)), 0 8px 16px -12px rgba(8, 14, 40, .75) !important;
+  }
+  & :is(.room-theme-btn, .nw-preferences button, .ml-preferences button) { border-radius: 50% 46% 52% 48% / 48% 52% 46% 50% !important; }
+  & :is(.room-theme-btn, .nw-preferences button, .ml-preferences button):hover { background: color-mix(in srgb, var(--lp-pig-soft) 90%, transparent) !important; }
+  & .room-header-mark { color: var(--lp-pig-deep); position: relative; isolation: isolate; }
+  & .room-header-mark::before {
+    content: ""; position: absolute; z-index: -1; inset: -7px -9px; background: var(--lp-pig-soft);
+    -webkit-mask: var(--lp-m-dab) center / 100% 100% no-repeat; mask: var(--lp-m-dab) center / 100% 100% no-repeat;
+  }
+  & :is(.nw-brand-mark, .ml-brand-mark, .dict-brand-mark) {
+    background: var(--lp-pig-deep) !important; color: var(--lp-sheet) !important;
+    box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .25);
+  }
+  & :is(.nw-brand, .ml-brand, .dict-brand) {
+    background: color-mix(in srgb, var(--lp-sheet) 82%, transparent);
+    -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3);
+  }
+
+  /* ── section heads close with a calligraphic flourish ─────────────────────────── */
+  & :is(.nw-group > h2, .ml-section-head h2, .learning-home-section-title)::after {
+    content: ""; display: block; width: 116px; height: 12px; margin-top: 5px; background: var(--lp-pig); opacity: .85;
+    -webkit-mask: url("/art/gouache/flourish.webp") left center / 100% 100% no-repeat; mask: url("/art/gouache/flourish.webp") left center / 100% 100% no-repeat;
+  }
+
+  /* ════ the book: Studio's table and the Room's open text are pages of one volume ════ */
+  & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
+    --table-bg-outer: transparent; --table-bg-row: transparent; --table-bg-row-zebra: transparent;
+    --table-bg-header: var(--lp-vellum-head);
+    --table-border: var(--lp-rule); --table-border-header: var(--lp-gold);
+    --table-text: var(--lp-iron); --table-text-niqqud: var(--lp-iron); --table-text-translit: var(--lp-sepia); --table-text-ru: var(--lp-iron-2);
+    --row-hl-hover: color-mix(in srgb, var(--lp-gold) 9%, transparent);
+    position: relative; isolation: isolate;
+    background-color: var(--lp-vellum) !important;
+    background-image:
+      radial-gradient(120% 70% at 0 0, var(--L, rgba(150, 104, 40, .1)) var(--D, rgba(0, 0, 0, .22)), transparent 42%),
+      radial-gradient(120% 70% at 100% 100%, var(--L, rgba(150, 104, 40, .12)) var(--D, rgba(0, 0, 0, .26)), transparent 46%),
+      linear-gradient(90deg, var(--L, rgba(120, 84, 30, .07)) var(--D, rgba(0, 0, 0, .25)), transparent 22px),
+      var(--lp-vellum-tex);
+    background-size: auto, auto, auto, 512px 512px;
+    border-radius: 4px 12px 12px 4px;
+    box-shadow:
+      1px 1px 0 var(--lp-edge-1), 2px 2px 0 var(--lp-edge-2), 3px 3px 0 var(--lp-edge-3), 4px 4px 0 var(--lp-edge-2),
+      5px 5px 0 var(--lp-edge-1), 6px 6px 0 var(--lp-edge-3),
+      0 2px 0 var(--L, rgba(80, 52, 14, .08)) var(--D, rgba(0, 0, 0, .3)), 10px 30px 46px -26px var(--L, rgba(54, 34, 8, .55)) var(--D, rgba(0, 0, 0, .9));
+    padding: 30px 26px 34px !important;
+    margin-bottom: 40px;
+  }
+  /* gilt frame: tooled corners and a double rule, drawn over the page edge */
+  & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after {
+    content: ""; position: absolute; z-index: 4; inset: 2px; pointer-events: none;
+    border: 38px solid transparent; border-image: url("/art/gouache/gilt-frame.webp") 120 / 38px stretch;
+    opacity: var(--L, .95) var(--D, .85);
+  }
+  /* a silk ribbon marks the page and hangs out under the book */
+  & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before {
+    content: ""; position: absolute; z-index: 5; bottom: -38px; inset-inline-end: 64px; width: 18px; height: 66px; pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, .28), transparent 16px),
+      linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)),
+      var(--lp-pig);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable { border: 0 !important; background: transparent !important; border-radius: 0; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td) { border-color: var(--lp-rule) !important; border-left-color: transparent !important; border-top-color: transparent !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):not(:last-child) { border-right-color: var(--lp-rule-v) !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):last-child { border-right-color: transparent !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable tbody tr:last-child td { border-bottom-color: transparent !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable tbody tr:nth-child(even) td { background: transparent; }
+  /* the head of the page: gold tooled into darker vellum, a double rule beneath */
+  & :is(#roomReaderTable, #tableContainer) > #proTable thead th {
+    background-color: var(--lp-vellum-head) !important;
+    background-image: linear-gradient(var(--L, rgba(255, 250, 235, .4)) var(--D, rgba(255, 255, 255, .03)), transparent), var(--lp-vellum-tex) !important;
+    background-size: auto, 512px 512px !important;
+    color: var(--lp-gold-ink) !important; font-variant-caps: all-small-caps; letter-spacing: .1em; font-weight: 700 !important; font-size: 15px;
+    border-bottom-color: transparent !important;
+    text-shadow: 0 1px 0 var(--L, rgba(255, 255, 255, .7)) var(--D, rgba(0, 0, 0, .5));
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable thead th::before {
+    height: 4px !important; bottom: -2px !important; background: transparent !important;
+    border-top: 1px solid var(--lp-gold); border-bottom: 1px solid var(--lp-gold); opacity: .8 !important;
+  }
+  /* folio numbers: italic old-style figures in gold */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell[data-row-n]::before {
+    font-family: var(--lp-font-editorial); font-style: italic; font-weight: 400; font-variant-numeric: oldstyle-nums; letter-spacing: .04em;
+    color: var(--lp-gold-ink); font-size: 14px;
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable :is(tr.smk-row-active, tr.row-playing) .col-action-cell[data-row-n]::before { color: var(--lp-pig-deep); font-weight: 700; }
+  /* the row's voice: a round seal of pale gold */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .row-tts-btn {
+    border-radius: 50%; color: var(--lp-iron);
+    background: radial-gradient(circle at 35% 30%, var(--L, #fffaf0) var(--D, #2a3363), var(--L, #efe2c2) var(--D, #1b2249)) !important;
+    border: 1px solid color-mix(in srgb, var(--lp-gold) 55%, transparent) !important;
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--lp-gold) 18%, transparent), 0 3px 6px -4px rgba(60, 40, 10, .5) !important;
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .row-tts-btn.row-tts-playing { background: var(--lp-pig-soft) !important; border-color: var(--lp-pig) !important; color: var(--lp-pig-deep); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn) { color: var(--lp-sepia); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .row-bookmark-btn[aria-pressed="true"] { color: var(--lp-pig-deep); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .row-audio-ind { opacity: .55; }
+  /* a played line is washed with the place's pigment, as with a soft brush */
+  & :is(#roomReaderTable, #tableContainer) > #proTable tbody tr:is(.row-playing, .smk-row-active):not(.row-error) td {
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--lp-pig) 17%, transparent) 6%, color-mix(in srgb, var(--lp-pig) 14%, transparent) 94%, transparent) !important;
+  }
+  /* the text closes with a tailpiece */
+  & .reader-end { background: transparent; border: 0; }
+  & .reader-end::before {
+    content: ""; display: block; width: 112px; height: 52px; background: var(--lp-gold);
+    -webkit-mask: url("/art/gouache/tailpiece.webp") center / contain no-repeat; mask: url("/art/gouache/tailpiece.webp") center / contain no-repeat;
+  }
+  & .reader-prov-note { color: var(--lp-ink-3); font-style: italic; }
+  /* the reading hint: a slip of paper tucked into the book, not a form field */
+  & #roomReader .reader-tip {
+    position: relative; border: 0; border-radius: var(--lp-cut); background: var(--lp-sheet);
+    box-shadow: var(--lp-shadow-1); padding-inline-start: 24px; margin-inline: 4px;
+  }
+  & #roomReader .reader-tip::before {
+    content: ""; position: absolute; inset-block: 10px; inset-inline-start: 9px; width: 5px; border-radius: 4px 3px 5px 3px; background: var(--lp-pig);
+  }
+  & #roomReader .reader-tip-txt { color: var(--lp-ink-2); }
+  & #roomReader .reader-bar { box-shadow: 0 10px 18px -16px rgba(10, 16, 44, .6); border-bottom-color: transparent; }
+  /* Studio: its table scrolls inside the container; the frame stays a page, not a window */
+  & #tableContainer:has(> #proTable) { padding: 26px 20px 30px !important; }
+  /* Studio scrolls its table inside the container, so the ribbon hangs from the top edge into the page */
+  & #tableContainer:has(> #proTable)::before { top: 0; bottom: auto; height: 54px; background: linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)), var(--lp-pig); }
+
+  @media (max-width: 699px) {
+    & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
+      padding: 18px 10px 24px !important; margin: 8px 6px 46px;
+      border-radius: 3px 8px 8px 3px;
+      box-shadow: 1px 1px 0 var(--lp-edge-1), 2px 2px 0 var(--lp-edge-2), 3px 3px 0 var(--lp-edge-3), 4px 4px 0 var(--lp-edge-1),
+        8px 22px 30px -20px var(--L, rgba(54, 34, 8, .5)) var(--D, rgba(0, 0, 0, .9));
+    }
+    & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after { inset: 0; border-width: 26px; border-image-width: 26px; }
+    & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { inset-inline-end: 40px; width: 15px; height: 56px; bottom: -34px; }
+    & :is(#roomReaderTable, #tableContainer) > #proTable thead th { font-size: 14px; letter-spacing: .07em; }
+  }
+  @media (forced-colors: active) {
+    & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after, & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { display: none; }
+  }
+
+  /* ════ phone: the painting is seen whole; the name of the place sits on its lower edge ════ */
+  @media (max-width: 699px) {
+    &[data-lp-section="news"] { --lp-mast: 300px; }
+    &[data-lp-section="mediatheque"] { --lp-mast: 300px; }
+    &[data-lp-section="dictionary"] { --lp-mast: 250px; }
+    &[data-lp-section="studio"] { --lp-mast: 300px; }
+    /* the caption is only a title now: a small hand-cut label */
+    & :is(.nw-heading, .ml-heading-copy, .classic-shell-copy) { background: transparent; box-shadow: none; padding: 0 !important; border-radius: 0; }
+    & :is(.nw-heading h1, .ml-heading-copy h1, .classic-screen-title) {
+      display: inline-block; width: auto; margin: 0; padding: 7px 16px 6px; font-size: 1.42rem !important; line-height: 1.15;
+      background: var(--lp-sheet); color: var(--lp-ink); border-radius: var(--lp-cut); box-shadow: var(--lp-shadow-2);
+    }
+    & :is(.nw-heading h1, .ml-heading-copy h1)::after { width: 100%; height: 7px; margin-top: 3px; }
+    & .classic-screen-title { font-weight: 800; letter-spacing: -.02em; text-align: start; }
+    & .classic-screen-title::after {
+      content: ""; display: block; width: 100%; height: 7px; margin-top: 3px; background: var(--lp-pig);
+      -webkit-mask: var(--lp-m-stroke) center / 100% 100% no-repeat; mask: var(--lp-m-stroke) center / 100% 100% no-repeat;
+    }
+    & .classic-shell-copy h1::after { display: none; }
+    /* the lead moves off the picture onto the paper, quieter */
+    & :is(.nw-lead, .ml-heading-copy p) { margin: 14px 2px 0 !important; font-size: .86rem !important; line-height: 1.5; color: var(--lp-ink-2); max-width: 46ch; }
+    & .classic-screen-subtitle { display: none; }
+    /* News */
+    & .nw-header { padding-block: 10px 0 !important; }
+    & .nw-heading { margin-top: calc(var(--lp-mast) - 108px) !important; margin-block-end: 20px; }
+    /* Mediatheque */
+    & .ml-header { padding-block: 10px 0 !important; row-gap: 6px; }
+    & .ml-crossnav { display: none; }
+    & .ml-root { padding-top: 0 !important; }
+    & .ml-heading { margin-top: calc(var(--lp-mast) - 82px) !important; }
+    /* Studio: eyebrow chips and the title together at the foot of the picture */
+    & .classic-shell-head { margin-top: calc(var(--lp-mast) - 132px) !important; }
+    & .classic-header-top { margin-bottom: 10px; gap: 6px; }
+    & .classic-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+      background: color-mix(in srgb, var(--lp-sheet) 80%, transparent); color: var(--lp-pig-deep);
+      -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3);
+      border: 1px solid color-mix(in srgb, var(--lp-pig) 42%, transparent);
+    }
+    /* Room: the forest shows first; the controls float at its top, the title on its lower edge */
+    & .room-header { padding-top: calc(176px + env(safe-area-inset-top, 0px)) !important; padding-bottom: 18px; }
+    & .room-head-controls { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); inset-inline-end: 12px; gap: 6px; }
+    & .room-brand-block { padding: 7px 14px 6px !important; flex: 0 0 auto; width: fit-content; max-width: 100%; }
+    & .room-brand-block .room-subtitle { display: none; }
+    & .room-title { font-size: 1.3rem !important; }
+    & .room-brand-block .room-title::after { height: 7px; margin-top: 3px; }
+    & body.room-reading .room-head-controls { position: static; }
+    & body.room-reading .room-header { padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important; }
+    /* Dictionary: the same small label, the picture above it clear */
+    & .dict-header { row-gap: 120px !important; }
+    & .dict-title { font-size: 1.42rem !important; padding: 7px 16px 6px !important; }
+  }
+}

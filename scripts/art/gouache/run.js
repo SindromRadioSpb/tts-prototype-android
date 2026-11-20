@@ -26,7 +26,7 @@ const W = 2880, H = 1080;
   await page.setContent("<!doctype html><canvas id=c></canvas>");
   await page.addScriptTag({ path: path.join(__dirname, "painter.js") });
   await page.addScriptTag({ path: path.join(__dirname, "scenes.js") });
-  if (fs.existsSync(path.join(__dirname, "spots.js"))) await page.addScriptTag({ path: path.join(__dirname, "spots.js") });
+  for (const f of ["spots.js", "book.js"]) if (fs.existsSync(path.join(__dirname, f))) await page.addScriptTag({ path: path.join(__dirname, f) });
   const names = await page.evaluate(() => Object.keys(window.SCENES));
   for (const name of names) {
     const base = name.split(":")[0];
