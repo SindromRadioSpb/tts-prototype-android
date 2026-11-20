@@ -1,0 +1,168 @@
+/*
+ * Studio row bookmarks (3.11.904, owner request: «распространить возможность делать закладки с Зала
+ * на Студию»). The same bookmark the Reading Room sets: one row of a saved text, keyed by
+ * (text_id, sentence_id) in the local DB `bookmarks` table, so a bookmark set here shows on the
+ * Room's «Закладки» shelf and on the row when the text is opened there, and vice versa.
+ *
+ * renderTable is frozen by the smoke:reader-parity byte gate, so — like studio-agent.js — the
+ * control is injected post-render by wrapping window.renderTable. Rows that are not part of a
+ * saved text (no _v3_textId/_v3_sentenceId) get no button: there is nothing to bookmark yet.
+ * Room view of index.html (body.room-mode) is skipped: the Room injects its own.
+ */
+(function () {
+  'use strict';
+  if (window.StudioBookmarks) return;
+
+  var tt = function (key, fallback) {
+    try { return (window.t && window.t(key)) || fallback || key; } catch (_) { return fallback || key; }
+  };
+  var setsByText = new Map();     // text_id -> Promise<Set<sentence_id>>
+  var metaByText = new Map();     // text_id -> Promise<{ title, text_key }>
+
+  function host() { return window.StudioAgentHost || null; }
+  async function db() {
+    var h = host();
+    if (!h || typeof h.ldb !== 'function') return null;
+    try { return await h.ldb(); } catch (_) { return null; }
+  }
+  function loadSet(textId) {
+    if (!setsByText.has(textId)) {
+      setsByText.set(textId, (async function () {
+        var set = new Set();
+        var ldb = await db();
+        if (!ldb || typeof ldb.listBookmarks !== 'function') return set;
+        try { (await ldb.listBookmarks(textId)).forEach(function (b) { if (b.sentence_id) set.add(String(b.sentence_id)); }); } catch (_) {}
+        return set;
+      })());
+    }
+    return setsByText.get(textId);
+  }
+  function loadMeta(textId) {
+    if (!metaByText.has(textId)) {
+      metaByText.set(textId, (async function () {
+        var ldb = await db();
+        var t = null;
+        try { t = ldb && (ldb.getTextByIdLite ? await ldb.getTextByIdLite(textId) : await ldb.getTextById(textId)); } catch (_) {}
+        return { title: (t && t.title) || '', text_key: (t && t.text_key) || null };
+      })());
+    }
+    return metaByText.get(textId);
+  }
+
+  function paint(btn, on) {
+    btn.classList.toggle('bookmarked', on);
+    btn.textContent = on ? '★' : '☆';
+    btn.setAttribute('aria-pressed', String(on));
+    btn.title = tt(on ? 'room.bookmark.remove' : 'room.bookmark.add', on ? 'Убрать закладку' : 'Закладка');
+  }
+
+  async function toggle(btn) {
+    if (btn.disabled) return;
+    var h = host();
+    var idx = Number(btn.getAttribute('data-row-idx'));
+    var row = h && h.getRow ? h.getRow(idx) : null;
+    if (!row || !row._v3_textId || !row._v3_sentenceId) return;
+    var textId = String(row._v3_textId), sid = String(row._v3_sentenceId);
+    var ldb = await db();
+    if (!ldb || typeof ldb.addBookmark !== 'function') return;
+    var on = btn.classList.contains('bookmarked');
+    btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
+    paint(btn, !on);                       // answer the tap at once; roll back on failure
+    try {
+      var set = await loadSet(textId);
+      if (on) {
+        await ldb.removeBookmark(textId, sid);
+        set.delete(sid);
+      } else {
+        var meta = await loadMeta(textId);
+        var he = row.he || row.he_niqqud || '', ru = row.ru || '';
+        await ldb.addBookmark({
+          text_id: textId, text_key: meta.text_key, sentence_id: sid,
+          order_index: row._v3_orderIndex != null ? row._v3_orderIndex : idx,
+          title: meta.title, snippet: (he + (ru ? ' · ' + ru : '')).trim().slice(0, 200),
+        });
+        set.add(sid);
+        try { if (typeof window.v3ShowToast === 'function') window.v3ShowToast(tt('room.bookmark.added', 'Закладка добавлена')); } catch (_) {}
+      }
+    } catch (e) {
+      paint(btn, on);
+      try { console.warn('[studio-bookmarks] write failed', e); } catch (_) {}
+    } finally {
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+    }
+  }
+
+  async function inject() {
+    if (document.body && document.body.classList.contains('room-mode')) return;
+    var h = host();
+    if (!h || !h.getRow) return;
+    var cells = document.querySelectorAll('#tableContainer td.col-action-cell');
+    var pending = [];
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      if (cell.querySelector('.row-bookmark-btn')) continue;
+      var tts = cell.querySelector('.row-tts-btn[data-row-idx]');
+      if (!tts) continue;
+      var idx = Number(tts.getAttribute('data-row-idx'));
+      var row = Number.isFinite(idx) ? h.getRow(idx) : null;
+      if (!row || !row._v3_sentenceId || !row._v3_textId) continue;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'row-bookmark-btn';
+      btn.setAttribute('data-row-idx', String(idx));
+      btn.setAttribute('aria-label', tt('room.bookmark.add', 'Закладка'));
+      paint(btn, false);
+      var wrap = document.createElement('div');
+      wrap.className = 'col-action-row col-action-row-bm';
+      wrap.appendChild(btn);
+      var edits = cell.querySelector('.row-edit-actions');
+      if (edits) cell.insertBefore(wrap, edits); else cell.appendChild(wrap);
+      pending.push({ btn: btn, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
+    }
+    if (!pending.length) return;
+    var textIds = Array.from(new Set(pending.map(function (p) { return p.textId; })));
+    for (var k = 0; k < textIds.length; k++) setsByText.delete(textIds[k]);   // a re-render re-reads: the Room may have changed them
+    for (var j = 0; j < pending.length; j++) {
+      var p = pending[j];
+      try { if ((await loadSet(p.textId)).has(p.sid) && p.btn.isConnected) paint(p.btn, true); } catch (_) {}
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('#tableContainer .row-bookmark-btn') : null;
+    if (!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    toggle(b);
+  }, true);
+
+  function wrapRenderTable() {
+    var orig = window.renderTable;
+    if (typeof orig !== 'function' || orig.__sbWrapped) return false;
+    var wrapped = function () {
+      var out = orig.apply(this, arguments);
+      try { inject(); } catch (_) {}
+      return out;
+    };
+    wrapped.__sbWrapped = true;
+    // keep the agent wrapper's flag visible so it does not wrap twice
+    if (orig.__saWrapped) wrapped.__saWrapped = true;
+    window.renderTable = wrapped;
+    try { inject(); } catch (_) {}
+    return true;
+  }
+  if (!wrapRenderTable()) document.addEventListener('DOMContentLoaded', wrapRenderTable);
+
+  // minimal look outside the gouache book (the gouache layer draws the ribbon glyph itself)
+  try {
+    var st = document.createElement('style');
+    st.textContent = '#tableContainer .row-bookmark-btn{appearance:none;background:transparent;border:0;cursor:pointer;color:var(--theme-text-secondary,#64748b);font-size:17px;line-height:1;padding:2px 4px;min-width:32px;min-height:32px}' +
+      '#tableContainer .row-bookmark-btn.bookmarked{color:var(--accent,#1d4ed8)}' +
+      '#proTable.tbl-edit-mode .col-action-row-bm{display:none}';
+    document.head.appendChild(st);
+  } catch (_) {}
+
+  window.StudioBookmarks = { inject: inject };
+})();

@@ -644,33 +644,34 @@ html[data-look="gouache"]:not([data-world]) {
     padding: 0 26px 34px !important;
     margin-bottom: 40px;
   }
-  /* gilt frame: tooled corners and a double rule, drawn over the page edge */
-  & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after {
-    content: ""; position: absolute; z-index: 4; inset: 2px; pointer-events: none;
-    border: 38px solid transparent; border-image: url("/art/gouache/gilt-frame.webp") 120 / 38px stretch;
+  /* gilt frame, drawn without any layer as tall as the text (3.11.904: one frame pseudo-element the
+     height of a 500-row text was a composited layer of 378x85000 px and took the iPhone down).
+     The double rule is the table's own outline; the four tooled corners are two 38px bands.
+     --lp-fx: frame edge to table edge; --lp-fb: corner size. The rule sits where the corner's
+     painted lines are: 20/120 of the corner in from the frame edge, 13/120 wide. */
+  & :is(#roomReaderTable, #tableContainer) > #proTable {
+    --lp-fx: 24px; --lp-fb: 38px; --lp-fw: max(3px, calc(var(--lp-fb) * 13 / 120));
+    position: relative; border: 0 !important; background: transparent !important; border-radius: 0;
+    margin-top: calc(var(--lp-fx) + 2px);
+    outline: var(--lp-fw) double color-mix(in srgb, var(--lp-gold) 88%, transparent) !important;
+    outline-offset: calc(var(--lp-fx) - var(--lp-fb) * 20 / 120 - var(--lp-fw)) !important;
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable::before,
+  & :is(#roomReaderTable, #tableContainer) > #proTable::after {
+    content: ""; position: absolute; z-index: 4; pointer-events: none; height: var(--lp-fb);
+    left: calc(0px - var(--lp-fx)); right: calc(0px - var(--lp-fx));
     opacity: var(--L, .95) var(--D, .85);
   }
-  /* a silk ribbon marks the page and hangs out under the book */
-  & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before {
-    content: ""; position: absolute; z-index: 5; bottom: -38px; inset-inline-end: 64px; width: 18px; height: 66px; pointer-events: none;
-    background:
-      linear-gradient(180deg, rgba(0, 0, 0, .28), transparent 16px),
-      linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)),
-      var(--lp-pig);
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  & :is(#roomReaderTable, #tableContainer) > #proTable::before {
+    top: calc(0px - var(--lp-fx));
+    background: url("/art/gouache/gilt-tl.webp") left top / var(--lp-fb) var(--lp-fb) no-repeat, url("/art/gouache/gilt-tr.webp") right top / var(--lp-fb) var(--lp-fb) no-repeat;
   }
-  & :is(#roomReaderTable, #tableContainer) > #proTable { border: 0 !important; background: transparent !important; border-radius: 0; margin-top: 30px; }
-  /* a page that scrolls inside itself (Studio, the Room's video+table): the container's frame
-     would be pinned to the first screen, so the frame is drawn around the whole table instead —
-     its closing rule sits under the last row; it passes under the sticky head (z 3) */
-  & :is(#tableContainer, #roomReaderTable.room-media-scroll):has(> #proTable)::after { content: none; }
-  & :is(#tableContainer, #roomReaderTable.room-media-scroll) > #proTable { position: relative; }
-  & :is(#tableContainer, #roomReaderTable.room-media-scroll) > #proTable::after {
-    content: ""; position: absolute; z-index: 2; pointer-events: none;
-    top: var(--lp-fr-top, -28px); bottom: var(--lp-fr-bottom, -32px); left: var(--lp-fr-x, -24px); right: var(--lp-fr-x, -24px);
-    border: 38px solid transparent; border-image: url("/art/gouache/gilt-frame.webp") 120 / 38px stretch;
-    opacity: var(--L, .95) var(--D, .85);
+  & :is(#roomReaderTable, #tableContainer) > #proTable::after {
+    bottom: calc(0px - var(--lp-fx));
+    background: url("/art/gouache/gilt-bl.webp") left bottom / var(--lp-fb) var(--lp-fb) no-repeat, url("/art/gouache/gilt-br.webp") right bottom / var(--lp-fb) var(--lp-fb) no-repeat;
   }
+  /* what follows the table (provenance note, end-of-text card) stands below the frame, a colophon */
+  & #roomReaderTable > #proTable ~ :is(.reader-prov-note, .reader-end) { margin-top: calc(var(--lp-fx, 24px) + 14px); }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td) { border-color: var(--lp-rule) !important; border-left-color: transparent !important; border-top-color: transparent !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):not(:last-child) { border-right-color: var(--lp-rule-v) !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):last-child { border-right-color: transparent !important; }
@@ -709,8 +710,54 @@ html[data-look="gouache"]:not([data-world]) {
     box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--lp-gold) 18%, transparent), 0 3px 6px -4px rgba(60, 40, 10, .5) !important;
   }
   & :is(#roomReaderTable, #tableContainer) > #proTable .row-tts-btn.row-tts-playing { background: var(--lp-pig-soft) !important; border-color: var(--lp-pig) !important; color: var(--lp-pig-deep); }
-  & :is(#roomReaderTable, #tableContainer) > #proTable :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn) { color: var(--lp-sepia); }
-  & :is(#roomReaderTable, #tableContainer) > #proTable .row-bookmark-btn[aria-pressed="true"] { color: var(--lp-pig-deep); }
+  /* ── the first column, compact (3.11.904, owner): a folio, a 32px seal and a line of small tools.
+     The old stack (44px seal + 44px star + 44px cap) made a one-line row as tall as its buttons and
+     hid them when the column was narrowed; the touch area stays ≥44px wide through ::after. ── */
+  & :is(#roomReaderTable, #tableContainer) > #proTable td.col-action-cell { padding: 6px 1px !important; overflow: visible; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell[data-row-n]::before { white-space: nowrap; line-height: 15px; font-size: 13px; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .col-action-row { width: auto; gap: 0; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .col-action-row-top { display: flex; position: relative; width: max-content; margin: 3px auto 2px; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .col-action-row:not(.col-action-row-top) { display: inline-flex; vertical-align: middle; margin: 0; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-audio-ind { position: absolute; z-index: 1; top: -1px; inset-inline-end: -4px; width: 7px; height: 7px; margin: 0; border-width: 1.5px; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-tts-btn {
+    position: relative; width: 32px !important; height: 32px !important; min-width: 32px !important; min-height: 32px !important; padding: 0; font-size: 11px;
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-tts-btn::after { content: ""; position: absolute; inset: -6px; }
+  /* small tools: drawn glyphs in the book's sepia, no boxes; the drawn icon replaces the emoji/star text */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn, .row-agent-btn) {
+    position: relative; display: inline-grid; place-items: center; width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important;
+    margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important; background: transparent !important; box-shadow: none !important;
+    color: var(--lp-sepia) !important; font-size: 0 !important; line-height: 0; vertical-align: middle; transform: none !important;
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn, .row-agent-btn)::after { content: ""; position: absolute; inset: -6px -2px; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn, .row-agent-btn):hover { background: color-mix(in srgb, var(--lp-gold) 16%, transparent) !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-explain-btn svg { width: 18px; height: 18px; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-note-btn, .row-agent-btn)::before {
+    content: ""; width: 17px; height: 17px; background: currentColor;
+    -webkit-mask: var(--lp-tool) center / contain no-repeat; mask: var(--lp-tool) center / contain no-repeat;
+  }
+  /* the bookmark is a small silk ribbon: outlined when free, filled with the place's pigment when set */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn {
+    --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3.5h10v17l-5-4-5 4z' fill='none' stroke='%23000' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn:is([aria-pressed="true"], .bookmarked) {
+    color: var(--lp-pig-deep) !important;
+    --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3.5h10v17l-5-4-5 4z' fill='%23000' stroke='%23000' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  /* the note: a nib */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn {
+    --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z'/%3E%3Cpath d='M13.5 7.2l3.3 3.3M4 20h7'/%3E%3C/svg%3E");
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn.row-note-active { color: var(--lp-pig-deep) !important; background: color-mix(in srgb, var(--lp-pig) 14%, transparent) !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn :is(.row-note-btn-count) { position: absolute; top: -2px; inset-inline-end: -3px; font-size: 9px; line-height: 1; }
+  /* a note anchored to a moment of the audio: a pigment dot on the nib */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn.row-note-anchored::after {
+    content: ""; inset: 3px 3px auto auto; width: 6px; height: 6px; padding: 0; border-radius: 50%; background: var(--lp-pig); filter: none;
+  }
+  /* the mentor (Studio's 🤖): the same mortarboard the Room draws */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-agent-btn {
+    --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.4 10.9a1 1 0 0 0 0-1.8l-8.6-3.9a2 2 0 0 0-1.7 0L2.6 9.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.7 0z'/%3E%3Cpath d='M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5'/%3E%3C/svg%3E");
+  }
   & :is(#roomReaderTable, #tableContainer) > #proTable .row-audio-ind { opacity: .55; }
   /* a played line is washed with the place's pigment, as with a soft brush */
   & :is(#roomReaderTable, #tableContainer) > #proTable tbody tr:is(.row-playing, .smk-row-active):not(.row-error) td {
@@ -733,30 +780,20 @@ html[data-look="gouache"]:not([data-world]) {
   }
   & #roomReader .reader-tip-txt { color: var(--lp-ink-2); }
   & #roomReader .reader-bar { box-shadow: 0 10px 18px -16px rgba(10, 16, 44, .6); border-bottom-color: transparent; }
-  /* Studio: its table scrolls inside the container; the frame stays a page, not a window */
+  /* Studio: its table scrolls inside the container */
   & #tableContainer:has(> #proTable) { padding: 0 20px 30px !important; }
-  & #tableContainer > #proTable { margin-top: 26px; }
-  & #tableContainer { --lp-fr-top: -24px; --lp-fr-bottom: -28px; --lp-fr-x: -18px; }
-  /* in the Room the provenance note and the end-of-text card follow the table: the frame closes
-     just under the last row and they sit below it like a colophon */
-  & #roomReaderTable.room-media-scroll { --lp-fr-bottom: -8px; }
-  /* Studio scrolls its table inside the container, so the ribbon hangs from the top edge into the page */
-  & :is(#tableContainer, #roomReaderTable.room-media-scroll):has(> #proTable)::before { top: 0; bottom: auto; height: 54px; background: linear-gradient(90deg, rgba(0, 0, 0, .22), transparent 30%, rgba(255, 255, 255, .34) 48%, transparent 64%, rgba(0, 0, 0, .26)), var(--lp-pig); }
+  & #tableContainer > #proTable { --lp-fx: 18px; }
 
+  /* phone: the page runs to the screen edges; the frame is a hairline double rule */
   @media (max-width: 699px) {
     & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
-      padding: 0 10px 24px !important; margin: 8px 6px 46px;
-      border-radius: 3px 8px 8px 3px;
-      box-shadow: 1px 1px 0 var(--lp-edge-1), 2px 2px 0 var(--lp-edge-2), 3px 3px 0 var(--lp-edge-3), 4px 4px 0 var(--lp-edge-1),
-        8px 22px 30px -20px var(--L, rgba(54, 34, 8, .5)) var(--D, rgba(0, 0, 0, .9));
+      padding: 0 7px 22px !important; margin: 6px 0 40px;
+      border-radius: 0;
+      box-shadow: 0 1px 0 var(--lp-edge-1), 0 2px 0 var(--lp-edge-2), 0 3px 0 var(--lp-edge-3),
+        0 18px 26px -18px var(--L, rgba(54, 34, 8, .5)) var(--D, rgba(0, 0, 0, .9));
     }
-    & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after { inset: 0; border-width: 26px; border-image-width: 26px; }
-    & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { inset-inline-end: 40px; width: 15px; height: 56px; bottom: -34px; }
-    & :is(#roomReaderTable, #tableContainer) > #proTable thead th { font-size: 14px; letter-spacing: .07em; }
-    & :is(#roomReaderTable, #tableContainer) > #proTable { margin-top: 18px; }
-    & :is(#tableContainer, #roomReaderTable) { --lp-fr-top: -18px; --lp-fr-bottom: -22px; --lp-fr-x: -10px; }
-    & #roomReaderTable.room-media-scroll { --lp-fr-bottom: -6px; }
-    & :is(#tableContainer, #roomReaderTable.room-media-scroll) > #proTable::after { border-width: 26px; border-image-width: 26px; }
+    & :is(#roomReaderTable, #tableContainer) > #proTable { --lp-fx: 6px; --lp-fb: 22px; }
+    & :is(#roomReaderTable, #tableContainer) > #proTable thead th { font-size: 13px; letter-spacing: .07em; }
   }
   /* desktop, open text: the navigation strip stays on top with paper under it, the reading bar
      sticks just below it and the table head below the bar — nothing scrolls through a gap */
@@ -824,5 +861,140 @@ html[data-look="gouache"]:not([data-world]) {
     /* Dictionary: the same small label, the picture above it clear */
     & .dict-header { row-gap: 120px !important; }
     & .dict-title { font-size: 1.42rem !important; padding: 7px 16px 6px !important; }
+  }
+}
+
+/* ════ 3.11.904 — the quiet controls (owner, 2026-11-20): the corner buttons were right — frosted paper,
+   the place's pigment in the rim and the ink — while the plain white/grey buttons, fields, chips and the
+   corpus menu under them were still stock UI. One treatment for them in every place, tinted by
+   --lp-pig of the section; the one primary action of a screen keeps the tekhelet. ════ */
+html[data-look="gouache"]:not([data-world]) {
+  & body {
+    --lp-q-bg: color-mix(in srgb, var(--lp-sheet) 88%, transparent);
+    --lp-q-bg-hover: color-mix(in srgb, var(--lp-pig-soft) 70%, var(--lp-sheet));
+    --lp-q-rim: color-mix(in srgb, var(--lp-pig) 36%, transparent);
+    --lp-q-ink: var(--lp-pig-deep);
+    --lp-q-r: 12px 10px 13px 11px;
+    --lp-q-shadow: inset 0 -2px 0 color-mix(in srgb, var(--lp-pig) 10%, transparent);
+  }
+
+  /* the Mediatheque's own buttons (its stylesheet paints every <button> white with a grey rim): those in
+     cards, the search bar and the toolbars; tabs and view switches keep their underline design */
+  & :is(.ml-actions, .ml-item-footer, .ml-searchbar, .ml-toolbar, .ml-result-controls, .ml-view-controls, .ml-pager, .ml-collections, .ml-banner, .ml-selection) button:not(.ml-primary):not(.ml-quiet):not(.ml-textlink):not([role="tab"]):not(:disabled) {
+    background: var(--lp-q-bg); border-color: var(--lp-q-rim); color: var(--lp-q-ink); border-radius: var(--lp-q-r); box-shadow: var(--lp-q-shadow); font-weight: 600;
+  }
+  & :is(.ml-actions, .ml-item-footer, .ml-searchbar, .ml-toolbar, .ml-result-controls, .ml-view-controls, .ml-pager, .ml-collections, .ml-banner, .ml-selection) button:not(.ml-primary):not(.ml-quiet):not(.ml-textlink):not([role="tab"]):not(:disabled):hover { background: var(--lp-q-bg-hover); }
+
+  /* named quiet buttons across the places */
+  & :is(.btn-secondary, .btn-mini-secondary:not(.active), .btn-word, #btnAiTranslate, #btnMainTts,
+        .corpus-passport-button, .learning-home-journey-view, .room-section-toggle, .reading-list-open, .reading-list-manage,
+        .hub-discovery-search button, .corpus-back, .corpus-switch-pill, .room-row-more, .corpus-work-listbtn,
+        .dict-btn:not(.primary), .nw-button:not(.nw-primary), #roomDeviceEdition button):not(:disabled):not(.disabled) {
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; font-weight: 600;
+  }
+  & :is(.btn-secondary, .btn-mini-secondary:not(.active), .btn-word, #btnAiTranslate, #btnMainTts,
+        .corpus-passport-button, .learning-home-journey-view, .room-section-toggle, .reading-list-open, .reading-list-manage,
+        .hub-discovery-search button, .corpus-back, .corpus-switch-pill, .room-row-more, .corpus-work-listbtn,
+        .dict-btn:not(.primary), .nw-button:not(.nw-primary), #roomDeviceEdition button):not(:disabled):not(.disabled):hover { background: var(--lp-q-bg-hover) !important; }
+  & :is(.corpus-work-listbtn)[aria-pressed="true"] { background: var(--lp-pig-soft) !important; border-color: var(--lp-pig) !important; }
+  & :is(.btn-secondary, .btn-mini-secondary, .btn-word) :is(svg, .lp-icon) { color: var(--lp-q-ink); }
+
+  /* fields: paper with a pigment rim, the pigment again when focused */
+  & :is(#roomHubSearch, .hub-discovery-search input, #ml-search, .ml-search input, .ml-topic-search input, #dict-q, #dict-sort,
+        select.corpus-work-genre, .corpus-search input, #inputText, #gcpTtsApiKeyInput, .nw-search input) {
+    background-color: var(--lp-sheet) !important; border: 1px solid var(--lp-q-rim) !important; border-radius: var(--lp-q-r) !important; color: var(--lp-ink) !important;
+    box-shadow: inset 0 1px 2px color-mix(in srgb, var(--lp-pig) 8%, transparent) !important;
+  }
+  & :is(#roomHubSearch, .hub-discovery-search input, #ml-search, .ml-search input, .ml-topic-search input, #dict-q, #dict-sort,
+        select.corpus-work-genre, .corpus-search input, #inputText, #gcpTtsApiKeyInput, .nw-search input):focus {
+    border-color: var(--lp-pig) !important; outline: none !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--lp-pig) 22%, transparent) !important;
+  }
+  & :is(#roomHubSearch, .hub-discovery-search input, #ml-search, #dict-q, #inputText)::placeholder { color: color-mix(in srgb, var(--lp-pig-deep) 55%, var(--lp-ink-3)); }
+
+  /* information chips: a wash of the pigment, not the stock blue */
+  & :is(.classic-state-chip, .classic-trust-chip).is-info, & .provenance-badge {
+    background: color-mix(in srgb, var(--lp-pig) 13%, var(--lp-sheet)) !important; color: var(--lp-q-ink) !important;
+    min-height: 0 !important; padding: 4px 10px !important; font-size: 12.5px; line-height: 1.3;
+  }
+  & .learning-media { border-color: var(--lp-q-rim) !important; color: var(--lp-q-ink) !important; background: transparent !important; }
+
+  /* Studio's «Разделы и настройки»: a frosted sheet like the corner buttons, not a white card */
+  & .classic-secondary-nav-summary { background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important; border-radius: var(--lp-r-m) !important; min-height: 48px !important; padding-block: 10px !important; }
+
+  /* ── Reading Room: the way back and the corpus switch on one strip of paper ── */
+  & .corpus-crumb {
+    background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px !important; border-bottom: 0 !important;
+    box-shadow: 0 8px 14px -14px rgba(10, 16, 44, .55); flex-wrap: nowrap !important; align-items: center !important; gap: 8px !important;
+  }
+  & .corpus-crumb .corpus-crumb-trail { flex-wrap: nowrap !important; min-width: 0; flex: 1 1 auto; }
+  & .corpus-crumb .corpus-crumb-part:not(.leaf) { color: var(--lp-q-ink) !important; white-space: nowrap; }
+  & .corpus-crumb .corpus-crumb-sep { color: var(--lp-pig); flex: none; }
+  & .corpus-back { display: inline-grid !important; place-items: center; width: 40px; height: 40px; min-width: 40px !important; min-height: 40px !important; padding: 0 !important; border-radius: 50% 46% 52% 48% / 48% 52% 46% 50% !important; }
+  & .corpus-switchbar { position: sticky; }
+  & .corpus-switchbar .corpus-switch { position: static; min-width: 0; flex: 0 1 auto; display: inline-flex; }
+  & .corpus-switch-pill { max-width: 100%; min-height: 38px !important; padding: 4px 12px !important; border-radius: 999px !important; }
+  & .corpus-switch-pill .room-icon-slot, & .corpus-switch-item .room-icon-slot { color: var(--lp-pig); }
+  /* the corpus menu: a paper slip under the strip, inside the screen, the current corpus marked with the pigment */
+  & .corpus-switch-menu {
+    inset-inline: 10px !important; top: calc(100% + 2px) !important; min-width: 0 !important; max-width: 520px;
+    background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px !important;
+    border: 1px solid var(--lp-q-rim) !important; border-radius: 14px 12px 15px 13px !important; padding: 6px !important; gap: 0 !important;
+    box-shadow: 0 18px 34px -16px rgba(10, 16, 44, .5), 0 2px 0 color-mix(in srgb, var(--lp-pig) 12%, transparent) !important;
+  }
+  & .corpus-switch-item { color: var(--lp-ink) !important; min-height: 42px; border-radius: 10px !important; padding: 8px 12px !important; font-weight: 600; }
+  & .corpus-switch-item + .corpus-switch-item { border-top: 1px solid color-mix(in srgb, var(--lp-pig) 12%, transparent); }
+  & .corpus-switch-item:is(:hover, :focus-visible) { background: var(--lp-q-bg-hover) !important; color: var(--lp-q-ink) !important; }
+  & .corpus-switch-item.on { background: color-mix(in srgb, var(--lp-pig) 14%, transparent) !important; color: var(--lp-q-ink) !important; }
+  & .corpus-switch-item .corpus-switch-current { color: var(--lp-pig-deep) !important; }
+
+  /* ── compact work cards (owner: big cards, the text scattered, more empty space than reading) ──
+     one line for the title and «Читать», one for the author and size, one for the note, and the two
+     small actions on the last line */
+  & .corpus-work-row.room-material-row {
+    display: grid !important; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; column-gap: 6px; row-gap: 4px; padding: 10px 12px !important;
+  }
+  & .corpus-work-row.room-material-row > .corpus-work-col { grid-column: 1 / -1; display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; align-items: baseline; column-gap: 10px; row-gap: 1px; }
+  & .corpus-work-row.room-material-row > .corpus-work-col > .room-text-title-link { flex: 1 1 100%; display: flex !important; align-items: baseline; gap: 10px; min-height: 0 !important; padding-block: 2px !important; margin: 0 !important; }
+  & .corpus-work-row.room-material-row > .corpus-work-col > :is(.corpus-work-author, .corpus-work-meta, .corpus-card-reason, .learning-compass) { display: inline-flex !important; width: auto !important; flex: 0 1 auto; }
+  & .corpus-work-row.room-material-row .corpus-work-meta::before { content: "·"; margin-inline-end: 8px; color: var(--lp-ink-3); }
+  & .corpus-work-row.room-material-row > .corpus-work-col > .room-text-title-link .corpus-work-title { flex: 1 1 auto; min-width: 0; }
+  & .corpus-work-row.room-material-row .room-text-primary { flex: none; margin-inline-start: auto; }
+  & .corpus-work-row.room-material-row :is(.corpus-work-author, .corpus-work-meta, .corpus-card-reason) { margin: 0 !important; min-height: 0 !important; padding-block: 0 !important; font-size: 13px; }
+  & .corpus-work-row.room-material-row .corpus-card-reason { color: var(--lp-ink-3); }
+  & .corpus-work-row.room-material-row .learning-compass { margin: 0 !important; display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
+  & .corpus-work-row.room-material-row > .corpus-passport-button { grid-column: 1; justify-self: start; min-height: 32px !important; padding: 3px 12px !important; font-size: 13px !important; }
+  & .corpus-work-row.room-material-row > .corpus-work-listbtn { grid-column: 2; width: 34px; height: 34px; min-width: 34px !important; min-height: 34px !important; padding: 0 !important; border-radius: 50% !important; display: inline-grid; place-items: center; }
+  & .corpus-work-row.room-material-row > .corpus-work-cta { grid-column: 3; }
+  /* «Читать сейчас | Исследовать каталог»: one segmented strip, not two tall boxes */
+  & .corpus-mode-switch { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0 !important; padding: 3px !important; background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; border-radius: 14px 12px 15px 13px !important; }
+  & .corpus-mode-switch button { min-height: 38px !important; height: auto !important; padding: 6px 10px !important; font-size: 14.5px !important; line-height: 1.2 !important; font-weight: 700; border: 0 !important; background: transparent !important; color: var(--lp-q-ink) !important; border-radius: 11px 9px 12px 10px !important; box-shadow: none !important; }
+  & .corpus-mode-switch button[aria-pressed="true"] { background: var(--lp-primary) !important; color: var(--lp-primary-ink) !important; box-shadow: inset 0 -2px 0 rgba(8, 14, 44, .24) !important; }
+  /* public-corpus cards (C14, Films…): the number, the title, the chips and ••• closer together */
+  & .group-work-card.room-material-row { padding: 10px 12px !important; gap: 8px !important; align-items: center; }
+  & .group-work-card .group-work-position { min-width: 28px; height: 28px; font-size: 13px; border-radius: 50%; background: color-mix(in srgb, var(--lp-pig) 13%, var(--lp-sheet)) !important; color: var(--lp-q-ink) !important; }
+  & .group-work-card .group-work-identity { gap: 3px !important; }
+  & .group-work-card .learning-compass { margin: 0 !important; }
+  & .group-work-card .room-row-more { width: 38px; height: 38px; min-width: 38px !important; min-height: 38px !important; padding: 0 !important; border-radius: 50% !important; display: inline-grid; place-items: center; }
+  /* the library list: a lower card, a smaller seal */
+  & .learning-corpus-entry { padding-block: 9px !important; min-height: 0 !important; }
+  & .learning-corpus-entry :is(.room-icon-slot, .learning-corpus-icon):first-child { color: var(--lp-pig); }
+
+  /* the edition note above an open text: a quiet line inside the page margins */
+  & #roomDeviceEdition { margin: 4px 14px 0 !important; padding: 0 !important; background: transparent !important; border: 0 !important; font-size: 12.5px; color: var(--lp-ink-3); }
+  & #roomDeviceEdition p { margin: 0 0 4px; }
+
+  /* Mediatheque cards: the three actions in one compact line */
+  & .ml-item .ml-item-footer { gap: 6px !important; flex-wrap: wrap; align-items: center; }
+  & .ml-item .ml-item-footer button { min-height: 36px !important; padding: 5px 11px !important; font-size: 13.5px; }
+
+  /* Dictionary: the explanatory card and the filter line, tighter */
+  & .dict-btn:not(.primary) { min-height: 36px !important; }
+
+  /* ── phone: the work lists use the width; cards lose their outer air ── */
+  @media (max-width: 699px) {
+    & .corpus-crumb { padding: 8px 10px !important; }
+    & :is(.corpus-work-section, .room-preview-list, .learning-home-ready-list) { margin-inline: 0 !important; }
+    & .corpus-work-row.room-material-row .corpus-work-title { font-size: 16px !important; line-height: 1.35 !important; }
   }
 }
