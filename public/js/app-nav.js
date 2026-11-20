@@ -15,7 +15,7 @@
 
   // «Гуашь» (css/lp-gouache.css): the look is static CSS keyed on <html data-look="gouache">.
   // localStorage lp_look_v1 = "classic" switches it off on this device (support / weak phones).
-  var GOUACHE_URL = "/js/lp-gouache.js?v=898"; // lockstep with the sw.js precache key
+  var GOUACHE_URL = "/js/lp-gouache.js?v=907"; // lockstep with the sw.js precache key
   try {
     if (localStorage.getItem("lp_look_v1") === "classic") document.documentElement.removeAttribute("data-look");
   } catch (_) {}

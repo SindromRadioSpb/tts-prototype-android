@@ -94,12 +94,26 @@
     }
   }
 
+  // 3.11.907: a 2500-row Studio table is rebuilt whole by renderTable; adding a button to every row in
+  // the same task doubled the layout on a phone. Now: the table is shown first, the buttons go in at
+  // the browser's next idle moment in ONE batch (one relayout), already painted from the cached set —
+  // the bookmarks table is read once per text, not on every render.
+  var SLICE = 400;
+  var injectTimer = 0;
+  function scheduleInject() {
+    if (injectTimer) return;
+    var run = function () { injectTimer = 0; inject(); };
+    injectTimer = (typeof window.requestIdleCallback === 'function')
+      ? window.requestIdleCallback(run, { timeout: 1200 })
+      : setTimeout(run, 120);
+  }
+
   async function inject() {
     if (document.body && document.body.classList.contains('room-mode')) return;
     var h = host();
     if (!h || !h.getRow) return;
     var cells = document.querySelectorAll('#tableContainer td.col-action-cell');
-    var pending = [];
+    var todo = [];
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       if (cell.querySelector('.row-bookmark-btn')) continue;
@@ -108,27 +122,39 @@
       var idx = Number(tts.getAttribute('data-row-idx'));
       var row = Number.isFinite(idx) ? h.getRow(idx) : null;
       if (!row || !row._v3_sentenceId || !row._v3_textId) continue;
+      todo.push({ cell: cell, idx: idx, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
+    }
+    if (!todo.length) return;
+    var sets = {};
+    var ids = Array.from(new Set(todo.map(function (p) { return p.textId; })));
+    for (var k = 0; k < ids.length; k++) { try { sets[ids[k]] = await loadSet(ids[k]); } catch (_) { sets[ids[k]] = new Set(); } }
+    // in slices, with an idle moment between them: the page answers taps (▶, video) while a long
+    // table is still getting its ribbons; a newer render simply leaves the old cells disconnected
+    var idle = function () {
+      return new Promise(function (r) {
+        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(function () { r(); }, { timeout: 600 });
+        else setTimeout(r, 16);
+      });
+    };
+    for (var j = 0; j < todo.length; j++) {
+      if (j && j % SLICE === 0) { await idle(); if (!todo[j].cell.isConnected) return; }
+      var p = todo[j];
+      if (!p.cell.isConnected || p.cell.querySelector('.row-bookmark-btn')) continue;
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'row-bookmark-btn';
-      btn.setAttribute('data-row-idx', String(idx));
+      btn.setAttribute('data-row-idx', String(p.idx));
       btn.setAttribute('aria-label', tt('room.bookmark.add', 'Закладка'));
-      paint(btn, false);
+      paint(btn, sets[p.textId].has(p.sid));
       var wrap = document.createElement('div');
       wrap.className = 'col-action-row col-action-row-bm';
       wrap.appendChild(btn);
-      var edits = cell.querySelector('.row-edit-actions');
-      if (edits) cell.insertBefore(wrap, edits); else cell.appendChild(wrap);
-      pending.push({ btn: btn, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
-    }
-    if (!pending.length) return;
-    var textIds = Array.from(new Set(pending.map(function (p) { return p.textId; })));
-    for (var k = 0; k < textIds.length; k++) setsByText.delete(textIds[k]);   // a re-render re-reads: the Room may have changed them
-    for (var j = 0; j < pending.length; j++) {
-      var p = pending[j];
-      try { if ((await loadSet(p.textId)).has(p.sid) && p.btn.isConnected) paint(p.btn, true); } catch (_) {}
+      var edits = p.cell.querySelector('.row-edit-actions');
+      if (edits) p.cell.insertBefore(wrap, edits); else p.cell.appendChild(wrap);
     }
   }
+  // the Room may have changed a text's bookmarks while this tab was away: re-read on return
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') setsByText.clear(); });
 
   document.addEventListener('click', function (e) {
     var b = e.target && e.target.closest ? e.target.closest('#tableContainer .row-bookmark-btn') : null;
@@ -143,14 +169,14 @@
     if (typeof orig !== 'function' || orig.__sbWrapped) return false;
     var wrapped = function () {
       var out = orig.apply(this, arguments);
-      try { inject(); } catch (_) {}
+      try { scheduleInject(); } catch (_) {}
       return out;
     };
     wrapped.__sbWrapped = true;
     // keep the agent wrapper's flag visible so it does not wrap twice
     if (orig.__saWrapped) wrapped.__saWrapped = true;
     window.renderTable = wrapped;
-    try { inject(); } catch (_) {}
+    try { scheduleInject(); } catch (_) {}
     return true;
   }
   if (!wrapRenderTable()) document.addEventListener('DOMContentLoaded', wrapRenderTable);

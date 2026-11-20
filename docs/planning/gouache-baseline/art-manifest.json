@@ -1,0 +1,165 @@
+{
+  "note": "Baseline of public/art/gouache — rewrite only when a painting is changed on purpose.",
+  "files": {
+    "dab.webp": {
+      "bytes": 3622,
+      "sha256": "553b62094cf5b80c00adb0bca3f52a7f799d6e38e9a6520bd313a29e55abf2fb"
+    },
+    "dict-day-m.webp": {
+      "bytes": 54490,
+      "sha256": "88df9fa233b966672744de67fd46a1b4cd76ae1c3e2a6ccd2bcb3723c2ab8ec2"
+    },
+    "dict-day.webp": {
+      "bytes": 98584,
+      "sha256": "27e21e1207e2cfff605e5a3a2deafccc826ac75c5fb58d6ca1a9ef413480f40c"
+    },
+    "dict-night-m.webp": {
+      "bytes": 51528,
+      "sha256": "a161134d493d46e7d7e6efc3fb50850957a23d55c083f35d4a77d08ee2fa3dfc"
+    },
+    "dict-night.webp": {
+      "bytes": 102858,
+      "sha256": "4e180192857cfb697931090b951f065e80d3bdf4e6202b3d4e902dacb5b1003f"
+    },
+    "edge.webp": {
+      "bytes": 19438,
+      "sha256": "b5b1d52ab62fffed24bdd2334600e79d96cfca1a9d55bc424031e1f6ce7be7e3"
+    },
+    "flourish.webp": {
+      "bytes": 1744,
+      "sha256": "53ca28667c160d9f8dcce96f88be101eaf6b6a8f1f667df9ff755dfba22273f5"
+    },
+    "gilt-bl.webp": {
+      "bytes": 4518,
+      "sha256": "9118c14229011cc7a64a38c15292fc6d11698a056dcb5a8f7358df13aec24e25"
+    },
+    "gilt-br.webp": {
+      "bytes": 4412,
+      "sha256": "e77ec346e761374ba9728dc185da06b9ec1f662925c5c842542917583df20f15"
+    },
+    "gilt-frame.webp": {
+      "bytes": 22738,
+      "sha256": "e530dea9bdd2d4027884a85210b27000f230e0bc600d3a5b3d069fa9d1615b53"
+    },
+    "gilt-tl.webp": {
+      "bytes": 4256,
+      "sha256": "ceb8f8503570a6b809acdc9f96ee4b133aec6cdcd326c7c08bddafb80fa793df"
+    },
+    "gilt-tr.webp": {
+      "bytes": 4428,
+      "sha256": "b26e491da3373d6f0b7a220df854863a396fbdccbfb7dd7db2cee37b82168417"
+    },
+    "media-day-m.webp": {
+      "bytes": 37448,
+      "sha256": "88bb37dcb5627445c752ba48b6c1b389adf5eb4f08caa73cb464748e0833e799"
+    },
+    "media-day.webp": {
+      "bytes": 80868,
+      "sha256": "22abeef829509409985e92e9d7b4f24081c3794994af99d0c4d2f7cdd043d659"
+    },
+    "media-night-m.webp": {
+      "bytes": 44524,
+      "sha256": "a92ecb269ad847f66c13f795f1ad5d2d71af46f36ac06046d7825c28295a012b"
+    },
+    "media-night.webp": {
+      "bytes": 88616,
+      "sha256": "8e78d577274344951eada64f1d4418d59d5320484cd5d02cddc4d0da5b5553ab"
+    },
+    "nav-dictionary.webp": {
+      "bytes": 2770,
+      "sha256": "994dbdc8a3a03408228487c8876f6dcb028bd69c560e9fbcfa19093df73b9703"
+    },
+    "nav-mediatheque.webp": {
+      "bytes": 2216,
+      "sha256": "361afd15d8481f215c20ecfaff025c74c536e3318ffcbed5dba23a32a262a7e3"
+    },
+    "nav-news.webp": {
+      "bytes": 2842,
+      "sha256": "ac61d9a626197f3733d884d165c628791bf4ef02100a3d460555e7e030fe016b"
+    },
+    "nav-review.webp": {
+      "bytes": 2076,
+      "sha256": "7961615fa3141cee399c60cf33756427f2ed780bf68b5209a6fc8e86b7df3d2f"
+    },
+    "nav-room.webp": {
+      "bytes": 2542,
+      "sha256": "bdf5ec2b3a0be53530aa541b66f7587d003399f3a9cf43099bb5c562b88dfa52"
+    },
+    "nav-studio.webp": {
+      "bytes": 2102,
+      "sha256": "2645cb3306f8cdfcbcbc3f0fe8cf33cf512f11f424b6c16aa30cc7ff1aa461aa"
+    },
+    "news-day-m.webp": {
+      "bytes": 28728,
+      "sha256": "5fe4879f88b19fd46a0cc238b56517c83df1d3d0d8b7063be001d5aaded1833d"
+    },
+    "news-day.webp": {
+      "bytes": 65206,
+      "sha256": "528e09b719b553a37c51a8adc6ee33807ce2089ef215e420bbe00dbf1287add3"
+    },
+    "news-night-m.webp": {
+      "bytes": 35064,
+      "sha256": "28488b3beafb7f1508689f56580aa4ecb044fb03c035909846fff0f5e83efe1c"
+    },
+    "news-night.webp": {
+      "bytes": 79908,
+      "sha256": "38b374f5736e51c31ed3d10c5c8a89cae9adcced46fdde8a1ab7dcba1d3d2125"
+    },
+    "paper.webp": {
+      "bytes": 10674,
+      "sha256": "38122dc0cd731b2b829f5a859a88392bae1845c556c5d2371e118067ba6d0a69"
+    },
+    "room-day-m.webp": {
+      "bytes": 43032,
+      "sha256": "3f8600371a694f3761eaf530a224ee4346a24f579b6e6201bf82653db5758d0f"
+    },
+    "room-day.webp": {
+      "bytes": 97686,
+      "sha256": "c5e4e09aafd907c8655329e7f7be92cee2b6a083d2e06b5fbec6edddaed0cad2"
+    },
+    "room-night-m.webp": {
+      "bytes": 35340,
+      "sha256": "c07db09ae014d1509affce8106b2c18618ace6dba8a18ce60084136203d6b0b7"
+    },
+    "room-night.webp": {
+      "bytes": 82908,
+      "sha256": "05da05a7df185efe5bedc9d52404f1a9015a934623d5821afd785d24504bc2dd"
+    },
+    "stroke.webp": {
+      "bytes": 4314,
+      "sha256": "042866ace74df149638f9fcefa85ed389626acdcc084e603ce017a5fc829dd2e"
+    },
+    "studio-day-m.webp": {
+      "bytes": 97542,
+      "sha256": "48d20b49c5b02d4d8d7938f4913e8ac02d6f2ee2fdb4b24cb52303585d0e41be"
+    },
+    "studio-day.webp": {
+      "bytes": 194060,
+      "sha256": "c6976bf69cb0bbe91a32eb7888453ea7fd3c6ae6c39d2e791fa47dac62e872b3"
+    },
+    "studio-night-m.webp": {
+      "bytes": 81432,
+      "sha256": "5da4bc24c958748397bfc02083ec59fe5e68a20d49a0d69672462b6af171c577"
+    },
+    "studio-night.webp": {
+      "bytes": 163152,
+      "sha256": "cb37e21abcef447d8471ded626df8cb8ffa8159c57e77ae9dccc9ac725c42399"
+    },
+    "tailpiece.webp": {
+      "bytes": 1120,
+      "sha256": "16e0147e94f1c02a3893e855219c41a3c67459deacb103e4eb52f987a43c68bd"
+    },
+    "vellum-night.webp": {
+      "bytes": 72530,
+      "sha256": "2dd2946ecd86a395126a4c47055c3d5cb2a6edb4da6d2e7f68eb29fc1e666a18"
+    },
+    "vellum.webp": {
+      "bytes": 76782,
+      "sha256": "36ac57c7cb1bf3f00b947fcdfd23d4bba5c8f90332edb59a78f7bf02534dc3eb"
+    },
+    "vignette.webp": {
+      "bytes": 17490,
+      "sha256": "8582362cc3fd846e81c645dc22b70e663d96ac396fb65230534875ddd9a201a1"
+    }
+  }
+}

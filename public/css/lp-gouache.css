@@ -18,6 +18,9 @@
  * Art: /art/gouache/*.webp, painted by scripts/art/gouache/ (procedural brushwork, no vectors).
  */
 
+/* 3.11.907 perf rule: never end a selector with :is(…) — such a rule cannot be bucketed by class and is
+   tested against every element (a 2500-row table is ~100k); write the list out. Where the list mixed
+   weights, :not(.__lp) / :not(lpx) pad the lighter ones to the list's weight. */
 html[data-look="gouache"]:not([data-world]) {
   /* ── section pigments and scenes ─────────────────────────────────────────── */
   --pL: #e8a81c; --pD: #f6c64a; --pdL: #8a5d00; --pdD: #f6d27a; --psL: #fbf0cf; --psD: #332a12;
@@ -263,7 +266,7 @@ html[data-look="gouache"]:not([data-world]) {
     content: ""; display: block; width: min(168px, 62%); height: 9px; margin-top: 5px; background: var(--lp-pig);
     -webkit-mask: var(--lp-m-stroke) center / 100% 100% no-repeat; mask: var(--lp-m-stroke) center / 100% 100% no-repeat;
   }
-  &[dir="rtl"] :is(.nw-heading h1, .ml-heading-copy h1, .room-title, .classic-shell-copy h1, .dict-title)::after { transform: scaleX(-1); }
+  &[dir="rtl"] .nw-heading h1::after, &[dir="rtl"] .ml-heading-copy h1::after, &[dir="rtl"] .room-title:not(lpx)::after, &[dir="rtl"] .classic-shell-copy h1::after, &[dir="rtl"] .dict-title:not(lpx)::after { transform: scaleX(-1); }
 
   /* empty and waiting states look through a painted window at the section's scene */
   & .dict-empty::before, & .ml-empty::before, & .nw-state::before, & .room-empty::before {
@@ -354,13 +357,13 @@ html[data-look="gouache"]:not([data-world]) {
     --row-rail-selected: var(--lp-primary); --row-rail-playing: var(--lp-primary); --row-rail-error: var(--lp-bad);
   }
   /* the main action of a screen: one colour everywhere, with the thickness of laid paint */
-  & :is(.btn-primary, .ml-primary, .learning-home-primary, .dict-btn.primary, .nw-button.nw-primary, .room-btn-primary):not(:disabled) {
+  & .btn-primary:not(.__lp):not(:disabled), & .ml-primary:not(.__lp):not(:disabled), & .learning-home-primary:not(.__lp):not(:disabled), & .dict-btn.primary:not(:disabled), & .nw-button.nw-primary:not(:disabled), & .room-btn-primary:not(.__lp):not(:disabled) {
     background: var(--lp-primary); border-color: var(--lp-primary); color: var(--lp-primary-ink);
     box-shadow: inset 0 -2px 0 rgba(8, 14, 44, .24), inset 0 1px 0 rgba(255, 255, 255, .2), 0 8px 16px -10px var(--lp-primary);
     transition: transform .12s var(--lp-ease), box-shadow .12s var(--lp-ease), background-color .12s var(--lp-ease);
   }
-  & :is(.btn-primary, .ml-primary, .learning-home-primary, .dict-btn.primary, .nw-button.nw-primary, .room-btn-primary):not(:disabled):hover { background: var(--lp-primary-hover); border-color: var(--lp-primary-hover); }
-  & :is(.btn-primary, .ml-primary, .learning-home-primary, .dict-btn.primary, .nw-button.nw-primary, .room-btn-primary):not(:disabled):active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(8, 14, 44, .3); }
+  & .btn-primary:not(.__lp):not(:disabled):hover, & .ml-primary:not(.__lp):not(:disabled):hover, & .learning-home-primary:not(.__lp):not(:disabled):hover, & .dict-btn.primary:not(:disabled):hover, & .nw-button.nw-primary:not(:disabled):hover, & .room-btn-primary:not(.__lp):not(:disabled):hover { background: var(--lp-primary-hover); border-color: var(--lp-primary-hover); }
+  & .btn-primary:not(.__lp):not(:disabled):active, & .ml-primary:not(.__lp):not(:disabled):active, & .learning-home-primary:not(.__lp):not(:disabled):active, & .dict-btn.primary:not(:disabled):active, & .nw-button.nw-primary:not(:disabled):active, & .room-btn-primary:not(.__lp):not(:disabled):active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(8, 14, 44, .3); }
   /* segmented choices */
   & .dict-scope { background: var(--lp-sheet); border-color: var(--lp-line); border-radius: var(--lp-r-m); overflow: hidden; }
   & .dict-seg.on, & .room-tab[aria-selected="true"], & .room-tab.active { background: var(--lp-primary); color: var(--lp-primary-ink); box-shadow: inset 0 -2px 0 rgba(8, 14, 44, .22); }
@@ -452,11 +455,11 @@ html[data-look="gouache"]:not([data-world]) {
   & .main-card.classic-main-card { background: transparent !important; box-shadow: none !important; border: 0 !important; }
   & .classic-next-step { background: var(--lp-sheet) !important; }
   & .classic-next-step, & .classic-next-step-copy { color: var(--lp-ink); }
-  & :is(.btn-mini-secondary, .btn-secondary, .btn-word) { background: var(--lp-sheet-2); color: var(--lp-ink); border-color: var(--lp-line-2); }
-  & :is(.btn-mini-secondary, .btn-secondary, .btn-word):hover:not(:disabled) { background: var(--lp-hover); }
+  & .btn-mini-secondary, & .btn-secondary, & .btn-word { background: var(--lp-sheet-2); color: var(--lp-ink); border-color: var(--lp-line-2); }
+  & .btn-mini-secondary:hover:not(:disabled), & .btn-secondary:hover:not(:disabled), & .btn-word:hover:not(:disabled) { background: var(--lp-hover); }
   & .btn-mini-secondary.active { background: var(--lp-primary); color: var(--lp-primary-ink); border-color: var(--lp-primary); }
-  & :is(.btn-mini-secondary, .btn-secondary, .btn-word):is(:disabled, .disabled) { background: var(--lp-sunk); color: var(--lp-ink-3); border-color: var(--lp-line); }
-  & :is(.classic-state-chip, .classic-trust-chip).is-info, & .provenance-badge { background: var(--lp-primary-soft); color: var(--lp-ink); border-color: transparent; }
+  & .btn-mini-secondary:disabled, & .btn-mini-secondary.disabled, & .btn-secondary:disabled, & .btn-secondary.disabled, & .btn-word:disabled, & .btn-word.disabled { background: var(--lp-sunk); color: var(--lp-ink-3); border-color: var(--lp-line); }
+  & .classic-state-chip.is-info, & .classic-trust-chip.is-info, & .provenance-badge { background: var(--lp-primary-soft); color: var(--lp-ink); border-color: transparent; }
   & #gcpTtsKeyGroup { background: var(--lp-sunk) !important; border-color: var(--lp-line) !important; color: var(--lp-ink-2); }
   & #gcpTtsKeyGroup strong { color: var(--lp-ink); }
   & #gcpTtsApiKeyInput { background: var(--lp-sheet-2); color: var(--lp-ink); border-color: var(--lp-line-2); }
@@ -474,7 +477,7 @@ html[data-look="gouache"]:not([data-world]) {
 
   /* ── arrival: the caption settles, then the brush lays its stroke (once per page load) ── */
   @media (prefers-reduced-motion: no-preference) {
-    & :is(.nw-heading, .ml-heading-copy, .room-brand-block, .classic-shell-copy, .dict-title) { animation: lp-settle .46s var(--lp-ease) both; }
+    & .nw-heading, & .ml-heading-copy, & .room-brand-block, & .classic-shell-copy, & .dict-title { animation: lp-settle .46s var(--lp-ease) both; }
     & :is(.nw-heading h1, .ml-heading-copy h1, .room-brand-block .room-title, .classic-shell-copy h1, .dict-title)::after { animation: lp-stroke .6s .22s var(--lp-ease) both; }
     &[dir="rtl"] :is(.nw-heading h1, .ml-heading-copy h1, .room-brand-block .room-title, .classic-shell-copy h1, .dict-title)::after { animation-name: lp-stroke-rtl; }
     & .lp-app-nav-item[aria-current="page"]::after { animation: lp-stroke .5s .1s var(--lp-ease) both; }
@@ -486,7 +489,7 @@ html[data-look="gouache"]:not([data-world]) {
   /* ── touch: a pressed thing gives way under the finger ───────────────────── */
   & a, & button, & summary, & [role="button"] { -webkit-tap-highlight-color: transparent; }
   @media (hover: none) {
-    & :is(.nw-tile, .nw-card, .ml-item, .learning-corpus-entry, .dict-row, .classic-nav-card, .nw-ov-teaser):active { transform: scale(.985); transition: transform .08s; }
+    & .nw-tile:active, & .nw-card:active, & .ml-item:active, & .learning-corpus-entry:active, & .dict-row:active, & .classic-nav-card:active, & .nw-ov-teaser:active { transform: scale(.985); transition: transform .08s; }
     & .lp-app-nav-item:active::before { transform: scale(.88); transition: transform .08s; }
     & .nw-tile:hover, & .nw-card:hover, & .learning-corpus-entry:hover { transform: none; box-shadow: var(--lp-shadow-1); }
   }
@@ -577,18 +580,18 @@ html[data-look="gouache"]:not([data-world]) {
     color: var(--lp-pig-deep) !important; font-weight: 700;
     box-shadow: inset 0 1px 0 var(--L, rgba(255, 255, 255, .7)) var(--D, rgba(255, 255, 255, .08)), 0 8px 16px -12px rgba(8, 14, 40, .75) !important;
   }
-  & :is(.room-theme-btn, .nw-preferences button, .ml-preferences button) { border-radius: 50% 46% 52% 48% / 48% 52% 46% 50% !important; }
-  & :is(.room-theme-btn, .nw-preferences button, .ml-preferences button):hover { background: color-mix(in srgb, var(--lp-pig-soft) 90%, transparent) !important; }
+  & .room-theme-btn:not(lpx), & .nw-preferences button, & .ml-preferences button { border-radius: 50% 46% 52% 48% / 48% 52% 46% 50% !important; }
+  & .room-theme-btn:not(lpx):hover, & .nw-preferences button:hover, & .ml-preferences button:hover { background: color-mix(in srgb, var(--lp-pig-soft) 90%, transparent) !important; }
   & .room-header-mark { color: var(--lp-pig-deep); position: relative; isolation: isolate; }
   & .room-header-mark::before {
     content: ""; position: absolute; z-index: -1; inset: -7px -9px; background: var(--lp-pig-soft);
     -webkit-mask: var(--lp-m-dab) center / 100% 100% no-repeat; mask: var(--lp-m-dab) center / 100% 100% no-repeat;
   }
-  & :is(.nw-brand-mark, .ml-brand-mark, .dict-brand-mark) {
+  & .nw-brand-mark, & .ml-brand-mark, & .dict-brand-mark {
     background: var(--lp-pig-deep) !important; color: var(--lp-sheet) !important;
     box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .25);
   }
-  & :is(.nw-brand, .ml-brand, .dict-brand) {
+  & .nw-brand, & .ml-brand, & .dict-brand {
     background: color-mix(in srgb, var(--lp-sheet) 82%, transparent);
     -webkit-backdrop-filter: blur(10px) saturate(1.3); backdrop-filter: blur(10px) saturate(1.3);
   }
@@ -604,23 +607,23 @@ html[data-look="gouache"]:not([data-world]) {
   & #btnReadingRoom { --lp-gp: var(--lp-gp-room); }
   & #btnPronunciationLab { --lp-gp: var(--lp-gp-mediatheque); }
   & .classic-nav-card { background: color-mix(in srgb, var(--lp-sheet-2) 70%, transparent) !important; border-color: color-mix(in srgb, var(--lp-gp, var(--lp-line)) 30%, transparent) !important; }
-  & .classic-nav-card :is(.classic-nav-icon, svg) { color: var(--lp-gp, var(--lp-ink)) !important; }
+  & .classic-nav-card .classic-nav-icon, & .classic-nav-card svg:not(.__lp) { color: var(--lp-gp, var(--lp-ink)) !important; }
   & .classic-nav-card.classic-review-card { background: color-mix(in srgb, var(--lp-gp-review) 12%, var(--lp-sheet)) !important; border-color: color-mix(in srgb, var(--lp-gp-review) 45%, transparent) !important; }
   & .classic-nav-card:hover { background: color-mix(in srgb, var(--lp-gp, var(--lp-pig)) 10%, var(--lp-sheet)) !important; }
-  & :is(.classic-nav-tool, .lang-select#appLangSelect) {
+  & .classic-nav-tool:not(#__lp), & .lang-select#appLangSelect {
     background: color-mix(in srgb, var(--lp-sheet) 80%, transparent) !important; color: var(--lp-pig-deep) !important;
     border: 1px solid color-mix(in srgb, var(--lp-pig) 38%, transparent) !important;
   }
-  & .classic-nav-tool :is(svg, .classic-nav-icon) { color: var(--lp-pig-deep) !important; }
+  & .classic-nav-tool svg:not(.__lp), & .classic-nav-tool .classic-nav-icon { color: var(--lp-pig-deep) !important; }
 
   /* ── section heads close with a calligraphic flourish ─────────────────────────── */
-  & :is(.nw-group > h2, .ml-section-head h2, .learning-home-section-title)::after {
+  & .nw-group > h2::after, & .ml-section-head h2::after, & .learning-home-section-title:not(lpx)::after {
     content: ""; display: block; width: 116px; height: 12px; margin-top: 5px; background: var(--lp-pig); opacity: .85;
     -webkit-mask: url("/art/gouache/flourish.webp") left center / 100% 100% no-repeat; mask: url("/art/gouache/flourish.webp") left center / 100% 100% no-repeat;
   }
 
   /* ════ the book: Studio's table and the Room's open text are pages of one volume ════ */
-  & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
+  & #roomReaderTable:has(> #proTable), & #tableContainer:has(> #proTable) {
     --table-bg-outer: transparent; --table-bg-row: transparent; --table-bg-row-zebra: transparent;
     --table-bg-header: var(--lp-vellum-head);
     --table-border: var(--lp-rule); --table-border-header: var(--lp-gold);
@@ -671,10 +674,10 @@ html[data-look="gouache"]:not([data-world]) {
     background: url("/art/gouache/gilt-bl.webp") left bottom / var(--lp-fb) var(--lp-fb) no-repeat, url("/art/gouache/gilt-br.webp") right bottom / var(--lp-fb) var(--lp-fb) no-repeat;
   }
   /* what follows the table (provenance note, end-of-text card) stands below the frame, a colophon */
-  & #roomReaderTable > #proTable ~ :is(.reader-prov-note, .reader-end) { margin-top: calc(var(--lp-fx, 24px) + 14px); }
-  & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td) { border-color: var(--lp-rule) !important; border-left-color: transparent !important; border-top-color: transparent !important; }
-  & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):not(:last-child) { border-right-color: var(--lp-rule-v) !important; }
-  & :is(#roomReaderTable, #tableContainer) > #proTable :is(th, td):last-child { border-right-color: transparent !important; }
+  & #roomReaderTable > #proTable ~ .reader-prov-note, & #roomReaderTable > #proTable ~ .reader-end { margin-top: calc(var(--lp-fx, 24px) + 14px); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable th, & :is(#roomReaderTable, #tableContainer) > #proTable td { border-color: var(--lp-rule) !important; border-left-color: transparent !important; border-top-color: transparent !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable th:not(:last-child), & :is(#roomReaderTable, #tableContainer) > #proTable td:not(:last-child) { border-right-color: var(--lp-rule-v) !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable th:last-child, & :is(#roomReaderTable, #tableContainer) > #proTable td:last-child { border-right-color: transparent !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable tbody tr:last-child td { border-bottom-color: transparent !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable tbody tr:nth-child(even) td { background: transparent; }
   /* the head of the page: gold tooled into darker vellum, a double rule beneath */
@@ -724,15 +727,24 @@ html[data-look="gouache"]:not([data-world]) {
   }
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-tts-btn::after { content: ""; position: absolute; inset: -6px; }
   /* small tools: drawn glyphs in the book's sepia, no boxes; the drawn icon replaces the emoji/star text */
-  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn, .row-agent-btn) {
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-explain-btn, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-agent-btn {
     position: relative; display: inline-grid; place-items: center; width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important;
     margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important; background: transparent !important; box-shadow: none !important;
     color: var(--lp-sepia) !important; font-size: 0 !important; line-height: 0; vertical-align: middle; transform: none !important;
   }
-  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn, .row-agent-btn)::after { content: ""; position: absolute; inset: -6px -2px; }
-  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-explain-btn, .row-note-btn, .row-agent-btn):hover { background: color-mix(in srgb, var(--lp-gold) 16%, transparent) !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn:hover, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-explain-btn:hover, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn:hover, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-agent-btn:hover { background: color-mix(in srgb, var(--lp-gold) 16%, transparent) !important; }
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-explain-btn svg { width: 18px; height: 18px; }
-  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn, .row-note-btn, .row-agent-btn)::before {
+  /* 3.11.907: the idle glyph is the button's own background picture — no pseudo-element, no mask on
+     thousands of rows (a 2500-row Studio table built ~1 s slower on a phone with them); only a set
+     bookmark / an active note paints its glyph through a mask, in the pigment */
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn, & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-agent-btn {
+    background-image: var(--lp-tool-img) !important; background-position: center !important; background-size: 17px 17px !important; background-repeat: no-repeat !important;
+  }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn { --lp-tool-img: var(--L, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3.5h10v17l-5-4-5 4z' fill='none' stroke='%236a5136' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E")) var(--D, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3.5h10v17l-5-4-5 4z' fill='none' stroke='%23cdbf9e' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E")); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn { --lp-tool-img: var(--L, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236a5136' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z'/%3E%3Cpath d='M13.5 7.2l3.3 3.3M4 20h7'/%3E%3C/svg%3E")) var(--D, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cdbf9e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z'/%3E%3Cpath d='M13.5 7.2l3.3 3.3M4 20h7'/%3E%3C/svg%3E")); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-agent-btn { --lp-tool-img: var(--L, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236a5136' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.4 10.9a1 1 0 0 0 0-1.8l-8.6-3.9a2 2 0 0 0-1.7 0L2.6 9.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.7 0z'/%3E%3Cpath d='M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5'/%3E%3C/svg%3E")) var(--D, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cdbf9e' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21.4 10.9a1 1 0 0 0 0-1.8l-8.6-3.9a2 2 0 0 0-1.7 0L2.6 9.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.7 0z'/%3E%3Cpath d='M22 10v6M6 12.5V16a6 3 0 0 0 12 0v-3.5'/%3E%3C/svg%3E")); }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn:is([aria-pressed="true"], .bookmarked), .row-note-btn.row-note-active) { background-image: none !important; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell :is(.row-bookmark-btn:is([aria-pressed="true"], .bookmarked), .row-note-btn.row-note-active)::before {
     content: ""; width: 17px; height: 17px; background: currentColor;
     -webkit-mask: var(--lp-tool) center / contain no-repeat; mask: var(--lp-tool) center / contain no-repeat;
   }
@@ -740,7 +752,7 @@ html[data-look="gouache"]:not([data-world]) {
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn {
     --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3.5h10v17l-5-4-5 4z' fill='none' stroke='%23000' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
-  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn:is([aria-pressed="true"], .bookmarked) {
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn[aria-pressed="true"], & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-bookmark-btn.bookmarked {
     color: var(--lp-pig-deep) !important;
     --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 3.5h10v17l-5-4-5 4z' fill='%23000' stroke='%23000' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
@@ -749,10 +761,10 @@ html[data-look="gouache"]:not([data-world]) {
     --lp-tool: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z'/%3E%3Cpath d='M13.5 7.2l3.3 3.3M4 20h7'/%3E%3C/svg%3E");
   }
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn.row-note-active { color: var(--lp-pig-deep) !important; background: color-mix(in srgb, var(--lp-pig) 14%, transparent) !important; }
-  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn :is(.row-note-btn-count) { position: absolute; top: -2px; inset-inline-end: -3px; font-size: 9px; line-height: 1; }
+  & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn .row-note-btn-count { position: absolute; top: -2px; inset-inline-end: -3px; font-size: 9px; line-height: 1; }
   /* a note anchored to a moment of the audio: a pigment dot on the nib */
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-note-btn.row-note-anchored::after {
-    content: ""; inset: 3px 3px auto auto; width: 6px; height: 6px; padding: 0; border-radius: 50%; background: var(--lp-pig); filter: none;
+    content: ""; position: absolute; inset: 3px 3px auto auto; width: 6px; height: 6px; padding: 0; border-radius: 50%; background: var(--lp-pig); filter: none;
   }
   /* the mentor (Studio's 🤖): the same mortarboard the Room draws */
   & :is(#roomReaderTable, #tableContainer) > #proTable .col-action-cell .row-agent-btn {
@@ -786,7 +798,7 @@ html[data-look="gouache"]:not([data-world]) {
 
   /* phone: the page runs to the screen edges; the frame is a hairline double rule */
   @media (max-width: 699px) {
-    & :is(#roomReaderTable, #tableContainer):has(> #proTable) {
+    & #roomReaderTable:has(> #proTable), & #tableContainer:has(> #proTable) {
       padding: 0 7px 22px !important; margin: 6px 0 40px;
       border-radius: 0;
       box-shadow: 0 1px 0 var(--lp-edge-1), 0 2px 0 var(--lp-edge-2), 0 3px 0 var(--lp-edge-3),
@@ -807,7 +819,7 @@ html[data-look="gouache"]:not([data-world]) {
     & body.room-reading.lp-has-app-nav #roomReader .room-media-scroll #proTable thead th { top: 0; }
   }
   @media (forced-colors: active) {
-    & :is(#roomReaderTable, #tableContainer):has(> #proTable)::after, & :is(#roomReaderTable, #tableContainer):has(> #proTable)::before { display: none; }
+    & #roomReaderTable:has(> #proTable)::after, & #tableContainer:has(> #proTable)::after, & #roomReaderTable:has(> #proTable)::before, & #tableContainer:has(> #proTable)::before { display: none; }
   }
 
   /* ════ phone: the painting is seen whole; the name of the place sits on its lower edge ════ */
@@ -817,12 +829,12 @@ html[data-look="gouache"]:not([data-world]) {
     &[data-lp-section="dictionary"] { --lp-mast: 250px; }
     &[data-lp-section="studio"] { --lp-mast: 300px; }
     /* the caption is only a title now: a small hand-cut label */
-    & :is(.nw-heading, .ml-heading-copy, .classic-shell-copy) { background: transparent; box-shadow: none; padding: 0 !important; border-radius: 0; }
-    & :is(.nw-heading h1, .ml-heading-copy h1, .classic-screen-title) {
+    & .nw-heading, & .ml-heading-copy, & .classic-shell-copy { background: transparent; box-shadow: none; padding: 0 !important; border-radius: 0; }
+    & .nw-heading h1, & .ml-heading-copy h1, & .classic-screen-title:not(lpx) {
       display: inline-block; width: auto; margin: 0; padding: 7px 16px 6px; font-size: 1.42rem !important; line-height: 1.15;
       background: var(--lp-sheet); color: var(--lp-ink); border-radius: var(--lp-cut); box-shadow: var(--lp-shadow-2);
     }
-    & :is(.nw-heading h1, .ml-heading-copy h1)::after { width: 100%; height: 7px; margin-top: 3px; }
+    & .nw-heading h1::after, & .ml-heading-copy h1::after { width: 100%; height: 7px; margin-top: 3px; }
     & .classic-screen-title { font-weight: 800; letter-spacing: -.02em; text-align: start; }
     & .classic-screen-title::after {
       content: ""; display: block; width: 100%; height: 7px; margin-top: 3px; background: var(--lp-pig);
@@ -830,7 +842,7 @@ html[data-look="gouache"]:not([data-world]) {
     }
     & .classic-shell-copy h1::after { display: none; }
     /* the lead moves off the picture onto the paper, quieter */
-    & :is(.nw-lead, .ml-heading-copy p) { margin: 14px 2px 0 !important; font-size: .86rem !important; line-height: 1.5; color: var(--lp-ink-2); max-width: 46ch; }
+    & .nw-lead:not(lpx), & .ml-heading-copy p { margin: 14px 2px 0 !important; font-size: .86rem !important; line-height: 1.5; color: var(--lp-ink-2); max-width: 46ch; }
     & .classic-screen-subtitle { display: none; }
     /* News */
     & .nw-header { padding-block: 10px 0 !important; }
@@ -897,8 +909,8 @@ html[data-look="gouache"]:not([data-world]) {
         .corpus-passport-button, .learning-home-journey-view, .room-section-toggle, .reading-list-open, .reading-list-manage,
         .hub-discovery-search button, .corpus-back, .corpus-switch-pill, .room-row-more, .corpus-work-listbtn,
         .dict-btn:not(.primary), .nw-button:not(.nw-primary), #roomDeviceEdition button):not(:disabled):not(.disabled):hover { background: var(--lp-q-bg-hover) !important; }
-  & :is(.corpus-work-listbtn)[aria-pressed="true"] { background: var(--lp-pig-soft) !important; border-color: var(--lp-pig) !important; }
-  & :is(.btn-secondary, .btn-mini-secondary, .btn-word) :is(svg, .lp-icon) { color: var(--lp-q-ink); }
+  & .corpus-work-listbtn[aria-pressed="true"] { background: var(--lp-pig-soft) !important; border-color: var(--lp-pig) !important; }
+  & :is(.btn-secondary, .btn-mini-secondary, .btn-word) svg:not(.__lp), & :is(.btn-secondary, .btn-mini-secondary, .btn-word) .lp-icon { color: var(--lp-q-ink); }
 
   /* fields: paper with a pigment rim, the pigment again when focused */
   & :is(#roomHubSearch, .hub-discovery-search input, #ml-search, .ml-search input, .ml-topic-search input, #dict-q, #dict-sort,
@@ -913,7 +925,7 @@ html[data-look="gouache"]:not([data-world]) {
   & :is(#roomHubSearch, .hub-discovery-search input, #ml-search, #dict-q, #inputText)::placeholder { color: color-mix(in srgb, var(--lp-pig-deep) 55%, var(--lp-ink-3)); }
 
   /* information chips: a wash of the pigment, not the stock blue */
-  & :is(.classic-state-chip, .classic-trust-chip).is-info, & .provenance-badge {
+  & .classic-state-chip.is-info, & .classic-trust-chip.is-info, & .provenance-badge {
     background: color-mix(in srgb, var(--lp-pig) 13%, var(--lp-sheet)) !important; color: var(--lp-q-ink) !important;
     min-height: 0 !important; padding: 4px 10px !important; font-size: 12.5px; line-height: 1.3;
   }
@@ -944,7 +956,7 @@ html[data-look="gouache"]:not([data-world]) {
   }
   & .corpus-switch-item { color: var(--lp-ink) !important; min-height: 42px; border-radius: 10px !important; padding: 8px 12px !important; font-weight: 600; }
   & .corpus-switch-item + .corpus-switch-item { border-top: 1px solid color-mix(in srgb, var(--lp-pig) 12%, transparent); }
-  & .corpus-switch-item:is(:hover, :focus-visible) { background: var(--lp-q-bg-hover) !important; color: var(--lp-q-ink) !important; }
+  & .corpus-switch-item:hover, & .corpus-switch-item:focus-visible { background: var(--lp-q-bg-hover) !important; color: var(--lp-q-ink) !important; }
   & .corpus-switch-item.on { background: color-mix(in srgb, var(--lp-pig) 14%, transparent) !important; color: var(--lp-q-ink) !important; }
   & .corpus-switch-item .corpus-switch-current { color: var(--lp-pig-deep) !important; }
 
@@ -956,15 +968,26 @@ html[data-look="gouache"]:not([data-world]) {
   }
   & .corpus-work-row.room-material-row > .corpus-work-col { grid-column: 1 / -1; display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; align-items: baseline; column-gap: 10px; row-gap: 1px; }
   & .corpus-work-row.room-material-row > .corpus-work-col > .room-text-title-link { flex: 1 1 100%; display: flex !important; align-items: baseline; gap: 10px; min-height: 0 !important; padding-block: 2px !important; margin: 0 !important; }
-  & .corpus-work-row.room-material-row > .corpus-work-col > :is(.corpus-work-author, .corpus-work-meta, .corpus-card-reason, .learning-compass) { display: inline-flex !important; width: auto !important; flex: 0 1 auto; }
+  & .corpus-work-row.room-material-row > .corpus-work-col > .corpus-work-author, & .corpus-work-row.room-material-row > .corpus-work-col > .corpus-work-meta, & .corpus-work-row.room-material-row > .corpus-work-col > .corpus-card-reason, & .corpus-work-row.room-material-row > .corpus-work-col > .learning-compass { display: inline-flex !important; width: auto !important; flex: 0 1 auto; }
   & .corpus-work-row.room-material-row .corpus-work-meta::before { content: "·"; margin-inline-end: 8px; color: var(--lp-ink-3); }
   & .corpus-work-row.room-material-row > .corpus-work-col > .room-text-title-link .corpus-work-title { flex: 1 1 auto; min-width: 0; }
   & .corpus-work-row.room-material-row .room-text-primary { flex: none; margin-inline-start: auto; }
-  & .corpus-work-row.room-material-row :is(.corpus-work-author, .corpus-work-meta, .corpus-card-reason) { margin: 0 !important; min-height: 0 !important; padding-block: 0 !important; font-size: 13px; }
+  & .corpus-work-row.room-material-row .corpus-work-author, & .corpus-work-row.room-material-row .corpus-work-meta, & .corpus-work-row.room-material-row .corpus-card-reason { margin: 0 !important; min-height: 0 !important; padding-block: 0 !important; font-size: 13px; }
   & .corpus-work-row.room-material-row .corpus-card-reason { color: var(--lp-ink-3); }
   & .corpus-work-row.room-material-row .learning-compass { margin: 0 !important; display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
-  & .corpus-work-row.room-material-row > .corpus-passport-button { grid-column: 1; justify-self: start; min-height: 32px !important; padding: 3px 12px !important; font-size: 13px !important; }
-  & .corpus-work-row.room-material-row > .corpus-work-listbtn { grid-column: 2; width: 34px; height: 34px; min-width: 34px !important; min-height: 34px !important; padding: 0 !important; border-radius: 50% !important; display: inline-grid; place-items: center; }
+  /* 3.11.907 (owner: «даю разрешение заменить "О материале" значком»): the passport and the list button
+     are two small round tools at the end of the last line, so a card is three lines, not four */
+  & .corpus-work-row.room-material-row { position: relative; }
+  & .corpus-work-row.room-material-row > .corpus-passport-button {
+    position: absolute !important; inset-block-end: 8px; inset-inline-end: 50px; width: 34px; height: 34px; min-width: 34px !important; min-height: 34px !important;
+    padding: 0 !important; border-radius: 50% !important; display: inline-grid !important; place-items: center; font-size: 0 !important; line-height: 0;
+  }
+  & .corpus-work-row.room-material-row > .corpus-passport-button::before {
+    content: ""; width: 17px; height: 17px; background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h8l4 4v14H6z'/%3E%3Cpath d='M14 3v4h4M9 12h6M9 16h6M9 8h2'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h8l4 4v14H6z'/%3E%3Cpath d='M14 3v4h4M9 12h6M9 16h6M9 8h2'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  & .corpus-work-row.room-material-row:has(> .corpus-passport-button) > .corpus-work-col > :last-child { padding-inline-end: 86px; }
+  & .corpus-work-row.room-material-row > .corpus-work-listbtn { position: absolute !important; inset-block-end: 8px; inset-inline-end: 10px; width: 34px; height: 34px; min-width: 34px !important; min-height: 34px !important; padding: 0 !important; border-radius: 50% !important; display: inline-grid; place-items: center; }
   & .corpus-work-row.room-material-row > .corpus-work-cta { grid-column: 3; }
   /* «Читать сейчас | Исследовать каталог»: one segmented strip, not two tall boxes */
   & .corpus-mode-switch { display: grid !important; grid-template-columns: 1fr 1fr; gap: 0 !important; padding: 3px !important; background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; border-radius: 14px 12px 15px 13px !important; }
@@ -978,7 +1001,7 @@ html[data-look="gouache"]:not([data-world]) {
   & .group-work-card .room-row-more { width: 38px; height: 38px; min-width: 38px !important; min-height: 38px !important; padding: 0 !important; border-radius: 50% !important; display: inline-grid; place-items: center; }
   /* the library list: a lower card, a smaller seal */
   & .learning-corpus-entry { padding-block: 9px !important; min-height: 0 !important; }
-  & .learning-corpus-entry :is(.room-icon-slot, .learning-corpus-icon):first-child { color: var(--lp-pig); }
+  & .learning-corpus-entry .room-icon-slot:first-child, & .learning-corpus-entry .learning-corpus-icon:first-child { color: var(--lp-pig); }
 
   /* the edition note above an open text: a quiet line inside the page margins */
   & #roomDeviceEdition { margin: 4px 14px 0 !important; padding: 0 !important; background: transparent !important; border: 0 !important; font-size: 12.5px; color: var(--lp-ink-3); }
@@ -995,7 +1018,7 @@ html[data-look="gouache"]:not([data-world]) {
      «Поиск»/«Сортировка», «Фильтры» were still stock) ══ */
   /* the corpus head: the count, «Что доступно здесь» and the copyright contact in the pigment */
   & .corpus-shell-count { color: var(--lp-q-ink) !important; }
-  & :is(.corpus-capability-disclosure summary, .room-copyright-contact) { color: var(--lp-q-ink) !important; text-decoration-color: var(--lp-q-rim); }
+  & .corpus-capability-disclosure summary, & .room-copyright-contact:not(lpx) { color: var(--lp-q-ink) !important; text-decoration-color: var(--lp-q-rim); }
   & .corpus-capability-disclosure summary { min-height: 24px !important; }
   /* «Можно начать сразу»: a slip of the place's paper, the button quiet and only as wide as its words */
   & .public-corpus-guest {
@@ -1020,12 +1043,12 @@ html[data-look="gouache"]:not([data-world]) {
     background: color-mix(in srgb, var(--lp-sheet) 72%, transparent) !important; border: 1px solid var(--lp-q-rim) !important;
     border-radius: 14px 12px 15px 13px !important; padding: 10px 12px 4px !important; margin: 8px 0 6px !important;
   }
-  & .catalog-discovery :is(input, select), & select.mytexts-select {
+  & .catalog-discovery input, & .catalog-discovery select, & select.mytexts-select {
     background-color: var(--lp-sheet) !important; border: 1px solid var(--lp-q-rim) !important; border-radius: var(--lp-q-r) !important;
     color: var(--lp-ink) !important; min-height: 40px !important; padding-block: 7px !important;
     box-shadow: inset 0 1px 2px color-mix(in srgb, var(--lp-pig) 8%, transparent) !important;
   }
-  & .catalog-discovery :is(input, select):focus, & select.mytexts-select:focus {
+  & .catalog-discovery input:focus, & .catalog-discovery select:focus, & select.mytexts-select:focus {
     border-color: var(--lp-pig) !important; outline: none !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--lp-pig) 22%, transparent) !important;
   }
   & .catalog-discovery input::placeholder { color: color-mix(in srgb, var(--lp-pig-deep) 55%, var(--lp-ink-3)) !important; }
@@ -1053,13 +1076,13 @@ html[data-look="gouache"]:not([data-world]) {
   & .catalog-discovery button[aria-pressed="true"]:not(.discovery-reset) {
     background: color-mix(in srgb, var(--lp-pig) 20%, var(--lp-sheet)) !important; border-color: var(--lp-pig) !important; color: var(--lp-pig-deep) !important;
   }
-  & .catalog-discovery :is(.discovery-reset, .discovery-more-tags) { color: var(--lp-q-ink) !important; }
+  & .catalog-discovery .discovery-reset, & .catalog-discovery .discovery-more-tags { color: var(--lp-q-ink) !important; }
   & .discovery-count {
     margin-inline-start: 6px !important; min-width: 18px; padding: 0 5px; border-radius: 999px; text-align: center;
     background: color-mix(in srgb, var(--lp-pig) 12%, transparent); color: var(--lp-q-ink) !important; font-size: 11px !important; line-height: 17px;
   }
-  & .catalog-discovery :is(button, input, select, summary):focus-visible { outline-color: var(--lp-pig) !important; }
-  & :is(.learning-index-status, .room-browse-summary) { color: var(--lp-ink-3) !important; font-size: 12.5px; }
+  & .catalog-discovery button:focus-visible, & .catalog-discovery input:focus-visible, & .catalog-discovery select:focus-visible, & .catalog-discovery summary:focus-visible { outline-color: var(--lp-pig) !important; }
+  & .learning-index-status, & .room-browse-summary { color: var(--lp-ink-3) !important; font-size: 12.5px; }
 
   /* public-corpus card, the inside: the title and «Читать» on one line, the corpus name small, the
      reading guide's chips in one row */
@@ -1083,15 +1106,15 @@ html[data-look="gouache"]:not([data-world]) {
     border-radius: 13px 11px 14px 12px !important; box-shadow: 0 16px 30px -16px rgba(10, 16, 44, .5) !important;
   }
   /* the ••• menu's own commands were bare UA buttons (grey with a black rim) */
-  & .mytext-secondary-panel :is(button, a) {
+  & .mytext-secondary-panel button, & .mytext-secondary-panel a {
     display: flex !important; width: 100% !important; align-items: center; justify-content: flex-start; text-align: start;
     min-height: 38px !important; padding: 6px 12px !important; margin: 0 !important; border: 0 !important; border-radius: 9px !important;
     background: transparent !important; color: var(--lp-q-ink) !important; font: 600 14px/1.3 inherit !important; box-shadow: none !important; cursor: pointer;
   }
-  & .mytext-secondary-panel :is(button, a):is(:hover, :focus-visible) { background: var(--lp-q-bg-hover) !important; }
-  & .mytext-secondary-panel :is(button, a) + :is(button, a) { border-top: 1px solid color-mix(in srgb, var(--lp-pig) 12%, transparent) !important; }
+  & .mytext-secondary-panel button:hover, & .mytext-secondary-panel button:focus-visible, & .mytext-secondary-panel a:hover, & .mytext-secondary-panel a:focus-visible { background: var(--lp-q-bg-hover) !important; }
+  & .mytext-secondary-panel :is(button, a) + button, & .mytext-secondary-panel :is(button, a) + a { border-top: 1px solid color-mix(in srgb, var(--lp-pig) 12%, transparent) !important; }
   & .mytext-secondary-panel .room-item-provenance { margin: 2px 12px 4px !important; color: var(--lp-ink-3) !important; font-size: 12px; }
-  & :is(.learning-calibration-toggle, .learning-calibration-reset) {
+  & .learning-calibration-toggle, & .learning-calibration-reset {
     background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important; border-radius: var(--lp-q-r) !important;
     min-height: 34px !important;
   }
@@ -1107,7 +1130,7 @@ html[data-look="gouache"]:not([data-world]) {
   & .corpus-more { display: flex; gap: 8px; }
   & .corpus-more .corpus-more-btn { flex: 1 1 0; width: auto !important; }
   /* a card under the finger / with focus: the pigment's rim, not the stock blue */
-  & :is(.room-text-row, .group-work-card, .learning-corpus-entry):hover { border-color: color-mix(in srgb, var(--lp-pig) 55%, transparent) !important; background-color: color-mix(in srgb, var(--lp-pig) 4%, var(--lp-sheet)) !important; }
+  & .room-text-row:hover, & .group-work-card:hover, & .learning-corpus-entry:hover { border-color: color-mix(in srgb, var(--lp-pig) 55%, transparent) !important; background-color: color-mix(in srgb, var(--lp-pig) 4%, var(--lp-sheet)) !important; }
   & .room-text-row:focus-within { border-color: var(--lp-pig) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--lp-pig) 22%, transparent) !important; }
   /* the library's corpus list: the rim of the pigment, not the stock grey */
   & .learning-corpus-entry { border-color: var(--lp-q-rim) !important; }
@@ -1137,15 +1160,48 @@ html[data-look="gouache"]:not([data-world]) {
 
   /* the open text's bar and the word card: the place's pigment instead of the Studio tekhelet the
      word card inherits through --theme-accent */
-  & :is(.rm-sheet, .rm-statpop, .reader-status-legend) { --accent: var(--lp-pig-deep); --accent-contrast: var(--lp-sheet); }
-  & :is(.reader-back, .reader-aids-toggle, .rm-sheet-x, .rm-speak, .rm-meaning-edit, .rm-meaning-add):not(:disabled) {
+  & .rm-sheet, & .rm-statpop, & .reader-status-legend { --accent: var(--lp-pig-deep); --accent-contrast: var(--lp-sheet); }
+  & .reader-back:not(:disabled), & .reader-aids-toggle:not(:disabled), & .rm-sheet-x:not(:disabled), & .rm-speak:not(:disabled), & .rm-meaning-edit:not(:disabled), & .rm-meaning-add:not(:disabled) {
     background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
     border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; text-decoration: none !important;
   }
-  & :is(.reader-back, .reader-aids-toggle, .rm-sheet-x, .rm-speak, .rm-meaning-edit, .rm-meaning-add):not(:disabled):hover { background: var(--lp-q-bg-hover) !important; color: var(--lp-q-ink) !important; }
+  & .reader-back:not(:disabled):hover, & .reader-aids-toggle:not(:disabled):hover, & .rm-sheet-x:not(:disabled):hover, & .rm-speak:not(:disabled):hover, & .rm-meaning-edit:not(:disabled):hover, & .rm-meaning-add:not(:disabled):hover { background: var(--lp-q-bg-hover) !important; color: var(--lp-q-ink) !important; }
   & .reader-aids-toggle[aria-expanded="true"], & .reader-aids-toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--lp-pig) 20%, var(--lp-sheet)) !important; border-color: var(--lp-pig) !important; }
   & .rm-sheet-card { background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px !important; border-top-color: var(--lp-q-rim) !important; }
   & .rm-usage { background: color-mix(in srgb, var(--lp-pig) 7%, var(--lp-sheet)) !important; border-color: var(--lp-q-rim) !important; border-radius: 13px 11px 14px 12px !important; }
+
+  /* 3.11.907 (owner: «заголовки корпусов — как пользователю комфортно»): in a list every title starts
+     at the interface's own edge — left in Russian/English, right in Hebrew — while Hebrew letters keep
+     their own direction inside the line. Centring would make a list harder to scan. */
+  &:not([dir="rtl"]) .learning-corpus-title, &:not([dir="rtl"]) .learning-home-feature-title, &:not([dir="rtl"]) .learning-home-feature-author,
+  &:not([dir="rtl"]) .ml-channel-copy h3, &:not([dir="rtl"]) .ml-channel-copy span, &:not([dir="rtl"]) .ml-item h3, &:not([dir="rtl"]) .ml-item-meta span,
+  &:not([dir="rtl"]) .nw-tile-name, &:not([dir="rtl"]) .corpus-shell-title bdi, &:not([dir="rtl"]) .group-work-title { text-align: left !important; }
+
+  /* 3.11.907 — Studio with a table (owner's iPhone shot): the export buttons, the edit bar and its
+     floating ✎ were still the old blues, teal and greys */
+  & .btn-word:not(:disabled):not(.disabled), & .btn-anki:not(:disabled):not(.disabled), & .btn-anki.btn-dict-words:not(:disabled):not(.disabled) {
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; font-weight: 650;
+  }
+  & .btn-word:not(:disabled):not(.disabled):hover, & .btn-anki:not(:disabled):not(.disabled):hover { background: var(--lp-q-bg-hover) !important; }
+  & #tableEditToolbar {
+    background: color-mix(in srgb, var(--lp-sheet) 86%, transparent) !important; border: 1px solid var(--lp-q-rim) !important;
+    border-radius: 13px 11px 14px 12px !important; box-shadow: var(--lp-q-shadow);
+  }
+  & .tbl-edit-toggle-btn, & .tbl-edit-add-btn, & #saMaterialBtn {
+    background: var(--lp-q-bg) !important; border: 1px solid var(--lp-q-rim) !important; color: var(--lp-q-ink) !important;
+    border-radius: var(--lp-q-r) !important; box-shadow: var(--lp-q-shadow) !important; font-weight: 650 !important; min-height: 34px; padding: 5px 12px !important;
+  }
+  & .tbl-edit-toggle-btn:hover, & .tbl-edit-add-btn:hover, & #saMaterialBtn:hover { background: var(--lp-q-bg-hover) !important; }
+  & .tbl-edit-toggle-btn.active { background: color-mix(in srgb, var(--lp-pig) 22%, var(--lp-sheet)) !important; border-color: var(--lp-pig) !important; color: var(--lp-pig-deep) !important; }
+  & .tbl-edit-reset-all-btn { background: var(--lp-warn-soft) !important; border: 1px solid color-mix(in srgb, var(--lp-warn) 40%, transparent) !important; color: var(--lp-warn) !important; border-radius: var(--lp-q-r) !important; }
+  & .tbl-edit-status { color: var(--lp-ink-3) !important; }
+  & #tableEditFab {
+    background: var(--lp-pig-deep) !important; color: var(--lp-sheet) !important; border: 0 !important;
+    border-radius: 50% 46% 52% 48% / 48% 52% 46% 50% !important;
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .25), 0 12px 22px -10px rgba(10, 16, 44, .6) !important;
+  }
+  & .table-settings-summary { text-transform: none !important; letter-spacing: 0 !important; color: var(--lp-q-ink) !important; font-size: 15px !important; }
 
   /* «Доступно обновление»: a paper slip with the pigment, not a black stock toast with a blue button */
   & .room-update-toast {
@@ -1187,7 +1243,7 @@ html[data-look="gouache"]:not([data-world]) {
     & .corpus-list-head.room-long-list-head { padding: 8px 2px 4px !important; }
     & .room-section-toggle { min-height: 34px !important; padding: 4px 11px !important; }
     & .corpus-crumb { padding: 8px 10px !important; }
-    & :is(.corpus-work-section, .room-preview-list, .learning-home-ready-list) { margin-inline: 0 !important; }
+    & .corpus-work-section, & .room-preview-list, & .learning-home-ready-list { margin-inline: 0 !important; }
     & .corpus-work-row.room-material-row .corpus-work-title { font-size: 16px !important; line-height: 1.35 !important; }
   }
 }

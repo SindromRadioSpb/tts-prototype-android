@@ -1531,9 +1531,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/world-engine.js?v=882",
   "/js/world-render.js?v=856",
   "/css/world-skin.css?v=799",
-  "/js/app-nav.js?v=899",
-  "/css/lp-gouache.css?v=906",
-  "/js/lp-gouache.js?v=898",
+  "/js/app-nav.js?v=907",
+  "/css/lp-gouache.css?v=907",
+  "/js/lp-gouache.js?v=907",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
   "/css/app-nav.css?v=653",
@@ -6722,6 +6722,10 @@ if (hasV3Context) {
     if (!fromCache) {
       updateUsage("tts", cleanText.length);
     }
+
+    // 3.11.907: one line per answer, so a «TTS feels slower» report can be split into server time
+    // (Google + cache write) and the rest (network, the page's own work). No key, no text.
+    console.log("[/api/tts] done", { requestId, durationMs: Date.now() - startedAt, fromCache: !!fromCache, textLength: cleanText.length, hasV3Context: !!hasV3Context });
 
     return res.json({
   audioContent,

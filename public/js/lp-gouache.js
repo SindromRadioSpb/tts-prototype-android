@@ -88,5 +88,10 @@
     if (t < LIFE && !document.hidden) raf = requestAnimationFrame(frame);
     else { ctx.clearRect(0, 0, W, H); canvas.remove(); }
   }
-  raf = requestAnimationFrame(frame);
+  // 3.11.907: breathe when the page is free. In a Studio holding a long text the first seconds belong
+  // to building the table; a breath started then dropped most of its frames (owner, iPhone: «тормозит
+  // анимация света ... либо остановилась»). An idle start keeps it smooth; the canvas stays empty till then.
+  var start = function () { if (!document.hidden && canvas.isConnected) raf = requestAnimationFrame(frame); else canvas.remove(); };
+  if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(start, { timeout: 4000 });
+  else setTimeout(start, 600);
 })();
