@@ -248,3 +248,9 @@ test('slice row with a kept body offers the original; without a body or as a stu
   assert.equal(UI.renderOverviewItem(document, { ...it, body_until: null }, { rawLink: true }).querySelector('a.nw-ov-raw'), null);
   assert.equal(UI.renderOverviewItem(document, { ...it, work_id: 'na_' + 'a'.repeat(24) + '.b1' }, { rawLink: true }).querySelector('a.nw-ov-raw'), null);
 });
+test('url state keeps ★ and tag filters', () => {
+  const s = UI.parseState('view=overview&star=1&tag=' + encodeURIComponent('выборы'));
+  assert.equal(s.star, true); assert.equal(s.tag, 'выборы');
+  assert.equal(UI.stateHref(s), '/news.html?view=overview&star=1&tag=' + encodeURIComponent('выборы'));
+  assert.equal(UI.parseState('view=overview&tag=' + encodeURIComponent('#x')).tag, null);
+});

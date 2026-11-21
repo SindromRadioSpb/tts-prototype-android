@@ -333,7 +333,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     }
   }
 
+  // Articles the owner marked are kept beyond every retention (findability W4, news_pins); before migration 093 none.
+  let pinsTable = null;
+  async function unpinned() {
+    if (pinsTable == null) pinsTable = !!(await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_pins'").catch(() => null));
+    return pinsTable ? " AND url_key NOT IN (SELECT item_key FROM news_pins) AND COALESCE(canonical_key, '') NOT IN (SELECT item_key FROM news_pins)" : '';
+  }
   async function cleanup() {
+    const keep = await unpinned();
     for (const r of await dbAll(db, `SELECT order_id, file_name FROM news_archive_orders
       WHERE file_name IS NOT NULL AND expires_at <= ? ORDER BY expires_at LIMIT 100`, [iso(now())]).catch(() => [])) {
       if (r.file_name !== `news-archive-order-${r.order_id}.zip`) continue;
@@ -356,14 +363,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       if (!part.length) break;
       for (const r of part) await dbRun(db, 'UPDATE news_harvest_items SET data_gz=?, data_json=NULL WHERE url_key=? AND data_json IS NOT NULL', [packBody(r.data_json), r.url_key]);
     }
-    await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL, data_gz=NULL WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]).catch(() => {});
+    await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL, data_gz=NULL WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ?' + keep, [iso(now() - L.keepBodyDays * 86400000)]).catch(() => {});
     await trimForDisk().catch(e => log('[news-harvest] disk trim failed: ' + (e && e.message)));
-    await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
+    await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?' + keep, [iso(now() - L.keepItemsDays * 86400000)]);
     await index.prune(now()).catch(e => log('[news-index] prune failed: ' + (e && e.message)));
     // Tables that grew without end (findability spec §7.1): 45 days like the slice, study articles kept.
     const cutIso = iso(now() - L.keepItemsDays * 86400000), cutDay = israelIso(now() - L.keepItemsDays * 86400000).slice(0, 10);
     const alive = "SELECT article_id FROM news_articles WHERE tier<>'withdrawn'";
-    await dbRun(db, `DELETE FROM news_overview_items WHERE day < ? AND item_key NOT IN (${alive})`, [cutDay]).catch(() => {});
+    await dbRun(db, `DELETE FROM news_overview_items WHERE day < ? AND item_key NOT IN (${alive})${keep ? ' AND item_key NOT IN (SELECT item_key FROM news_pins)' : ''}`, [cutDay]).catch(() => {});
     await dbRun(db, `DELETE FROM news_stories WHERE last_at < ? AND story_key NOT IN (SELECT story_key FROM news_overview_items) AND story_key NOT IN (SELECT story_key FROM news_harvest_items WHERE story_key IS NOT NULL)`, [cutIso]).catch(() => {});
     await dbRun(db, `DELETE FROM news_article_changes WHERE detected_at < ? AND article_id NOT IN (${alive})`, [cutIso]).catch(() => {});
     await dbRun(db, `DELETE FROM news_article_fingerprints WHERE created_at < ? AND article_id NOT IN (${alive})`, [cutIso]).catch(() => {});
@@ -396,7 +403,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const draft = draftOf(a, { outletId: row.outlet_id, images, retrievedAt: israelIso(Date.parse(row.first_seen_at) || now()), storyKey: row.story_key });
     const shown = [];
     for (const im of draft.images) {
-      let bytes = null; try { bytes = fs.readFileSync(cachedPhotoPath(im.source_url)); } catch (_) {}
+      const bytes = await rawPhoto(m[1], im.file, im.source_url);
       if (bytes) shown.push({ ...im, url: '/api/news/images/' + m[1] + '/' + im.file + '?v=' + crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 12) });
     }
     const article = { source: draft.source, image: draft.image, images: shown, learning: draft.learning, prepared: draft.prepared, quality: draft.quality };
@@ -407,22 +414,32 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const n = RAW_IMG.exec(String(name || '')); if (!n || !/^na_[0-9a-f]{24}$/.test(String(itemKey || ''))) return null;
     const got = await rawRow(itemKey, null); const im = got && (got.a.images || [])[Number(n[1]) - 1];
     if (!im) return null;
-    try { const bytes = fs.readFileSync(cachedPhotoPath(im.src)); return { mime: 'image/jpeg', sha256: crypto.createHash('sha256').update(bytes).digest('hex'), bytes }; } catch (_) { return null; }
+    const bytes = await rawPhoto(itemKey, 'img-' + n[1] + '.jpg', im.src);
+    return bytes ? { mime: 'image/jpeg', sha256: crypto.createHash('sha256').update(bytes).digest('hex'), bytes } : null;
+  }
+  // A raw photo: the 3-day cache, then the copy the owner's mark kept (W4).
+  async function rawPhoto(itemKey, name, src) {
+    try { return fs.readFileSync(cachedPhotoPath(src)); } catch (_) {}
+    await unpinned();
+    if (!pinsTable) return null;
+    const p = await dbGet(db, 'SELECT bytes FROM news_pin_images WHERE item_key=? AND name=?', [itemKey, name]).catch(() => null);
+    return p ? Buffer.from(p.bytes) : null;
   }
 
   // Below 2 GB free: the full text of the oldest days goes first, never inside 3 days; the day search by
   // text starts from is stored for the page (findability spec §2 п.5).
   async function trimForDisk() {
+    const keep = await unpinned();
     const guard = diskGuard || (diskGuard = require('../newsDiskGuard').createDiskGuard({ dir: dataDir }));
     let trimmed = false;
     // One day per cleanup: cleared bodies only become reusable pages inside the file (no VACUUM), so free
     // disk does not rise right away — looping «while low» would empty all 45 days in one pass (review W3 I1).
     for (let i = 0; i < 1; i++) {
       if (!(await guard.check()).low) break;
-      const oldest = await dbGet(db, 'SELECT MIN(first_seen_at) t FROM news_harvest_items WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ?', [iso(now() - L.plainBodyDays * 86400000)]);
+      const oldest = await dbGet(db, 'SELECT MIN(first_seen_at) t FROM news_harvest_items WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ?' + keep, [iso(now() - L.plainBodyDays * 86400000)]);
       if (!oldest || !oldest.t) break;
       const day = israelIso(Date.parse(oldest.t)).slice(0, 10), end = new Date(Date.parse(israelIso(Date.parse(oldest.t)).slice(0, 10) + 'T00:00:00' + israelIso(Date.parse(oldest.t)).slice(-6)) + 86400000).toISOString();
-      const keys = (await dbAll(db, 'SELECT url_key FROM news_harvest_items WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ? AND first_seen_at < ?', [end, iso(now() - L.plainBodyDays * 86400000)])).map(r => r.url_key);
+      const keys = (await dbAll(db, 'SELECT url_key FROM news_harvest_items WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ? AND first_seen_at < ?' + keep, [end, iso(now() - L.plainBodyDays * 86400000)])).map(r => r.url_key);
       if (!keys.length) break;
       for (let j = 0; j < keys.length; j += 200) {
         const part = keys.slice(j, j + 200);
@@ -919,7 +936,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup, rawWork, rawImage };
+    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup, rawWork, rawImage, cachedPhotoBytes: src => { try { return cachedPhoto(src); } catch (_) { return null; } } };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

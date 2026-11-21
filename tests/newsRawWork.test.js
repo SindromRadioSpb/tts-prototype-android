@@ -94,3 +94,11 @@ test('routes: an expired raw original answers 404, not 500 (review W3 I3)', asyn
   const r = await fetch('http://127.0.0.1:' + server.address().port + '/api/public-corpora/news-ynet/works/' + KEY + '.rw');
   assert.equal(r.status, 404);
 });
+test('raw: a pinned article shows its kept photo after the cache is gone (W4)', async t => {
+  const { db, h } = await setup(t, { cached: false });
+  await run(db, "INSERT INTO news_pins(item_key, source, pinned_at) VALUES (?, 'item', 't')", [KEY]);
+  await run(db, 'INSERT INTO news_pin_images(item_key, name, mime, sha256, bytes) VALUES (?,?,?,?,?)', [KEY, 'img-1.jpg', 'image/jpeg', 'a'.repeat(64), Buffer.from('PINNED')]);
+  const w = await h.rawWork('ynet', KEY + '.rw');
+  assert.equal(w.item.snapshot.library.texts[0].source_meta.news.images.length, 1);
+  assert.equal(Buffer.from((await h.rawImage(KEY, 'img-1.jpg')).bytes).toString(), 'PINNED');
+});

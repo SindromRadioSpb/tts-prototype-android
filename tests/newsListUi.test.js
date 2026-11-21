@@ -125,3 +125,49 @@ test('render: a shortened text-search window is said under the search box', asyn
   await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
   assert.match(root.querySelector('.nw-search-note').textContent, /11 ноября/);
 });
+
+// ---- W4: tags, ★, reads on the rows ---------------------------------------------------------------------
+function marksCtx(over = {}) {
+  const sent = [], state = { na_s1: [] };
+  return { sent, api: { signedIn: true, ok: true, marksOf: r => (r.marks || state[r.item_key] || []), isRead: r => !!r.read,
+    toggle: async (r, tag) => { sent.push([r.item_key, tag]); const cur = state[r.item_key] || []; state[r.item_key] = cur.includes(tag) ? cur.filter(x => x !== tag) : cur.concat(tag); return state[r.item_key]; },
+    tags: async () => [{ tag: 'выборы', n: 2 }, { tag: '★', n: 1 }], read: async () => {}, keysWith: () => [], ...over } };
+}
+test('star toggles and is sent to the server for a signed-in user', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r'), m = marksCtx();
+  const { ctx } = ctxFor(document, [page([sliceRow(1)])], { marks: m.api });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  const star = root.querySelector('.nw-star');
+  assert.equal(star.getAttribute('aria-pressed'), 'false');
+  star.click(); await new Promise(r => setTimeout(r, 0));
+  assert.deepEqual(m.sent, [['na_s1', '★']]);
+  const after = root.querySelector('.nw-star');
+  assert.equal(after.getAttribute('aria-pressed'), 'true'); assert.equal(after.textContent, '★');
+});
+test('a read row says so', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r');
+  const { ctx } = ctxFor(document, [page([{ ...sliceRow(1), read: true }])], { marks: marksCtx().api });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  assert.match(root.querySelector('.nw-read-mark').textContent, /прочитано/);
+});
+test('blocked storage shows the honest note', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r');
+  const { ctx } = ctxFor(document, [page([sliceRow(1)])], { marks: marksCtx({ signedIn: false, ok: false }).api });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  assert.match(root.querySelector('.nw-marks-note').textContent, /не сохраняются/);
+});
+test('tag filter in the sheet lists the user\'s tags with counts; listUrl sends star/tag for a signed-in user, keys for a visitor', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r');
+  const { ctx } = ctxFor(document, [page([sliceRow(1)])], { marks: marksCtx().api });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  await new Promise(r => setTimeout(r, 0));
+  const opts = [...root.querySelectorAll('.nw-sheet select[name="tag"] option')].map(o => o.textContent);
+  assert.deepEqual(opts, ['Все отметки', 'выборы · 2']);
+  assert.match(LU.listUrl({ view: 'overview', star: true, tag: 'выборы' }), /star=1&tag=/);
+  assert.match(LU.listUrl({ view: 'overview', star: true }, null, ['na_1', 'na_2']), /keys=na_1%2Cna_2/);
+  assert.doesNotMatch(LU.listUrl({ view: 'overview', star: true }, null, ['na_1']), /star=/);
+});

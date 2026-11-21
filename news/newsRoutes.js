@@ -7,11 +7,12 @@ const express = require('express');
 const Outlets = require('../public/js/news-outlets');
 const { NewsError, LIMITS } = require('../db/newsRepo');
 const C = require('./newsPackCore');
+const { validTag, validKey } = require('../db/newsMarks');
 
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -69,6 +70,39 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         limit: q.limit, no_heavy: q.no_heavy === '1' })) });
     } catch (e) { send(res, e); }
   });
+  // Any signed-in reader (W4: tags, ★, reads) → { id, kind:'owner'|'user', csrf } or null.
+  async function userOf(req) {
+    const auth = await Promise.resolve(resolveUser(req)).catch(() => null);
+    if (!auth || !auth.user || auth.user.id == null) return null;
+    return { id: String(auth.user.id), kind: String(auth.user.role || '').toLowerCase() === 'owner' ? 'owner' : 'user', csrf: auth.session && auth.session.csrf || '' };
+  }
+  if (marks) {
+    const markRoute = method => app[method]('/api/news/marks', write, json, noStore, async (req, res) => {
+      try {
+        const user = await userOf(req);
+        if (!user) return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
+        if (!safeEqual(req.get('x-lp-csrf') || '', user.csrf)) return res.status(403).json({ ok: false, error: 'BAD_CSRF' });
+        const key = String((req.body || {}).item_key || ''), tag = validTag(String((req.body || {}).tag || ''));
+        if (!validKey(key) || !tag) return res.status(400).json({ ok: false, error: 'NEWS_PARAM_INVALID' });
+        await (method === 'put' ? marks.mark(user, key, tag) : marks.unmark(user, key, tag));
+        res.json({ ok: true, item_key: key, marks: (await marks.marksFor(user.id, [key])).get(key) || [] });
+      } catch (e) { if (e && e.code === 'NEWS_MARKS_LIMIT') return res.status(409).json({ ok: false, error: e.code }); send(res, e); }
+    });
+    markRoute('put'); markRoute('delete');
+    // Without the harvester (tests, a reduced mount) «прочитано» still has its route; with it the shared one below handles both.
+    if (!harvester) app.post('/api/news/read', write, json, noStore, async (req, res) => {
+      const user = await userOf(req).catch(() => null);
+      if (user && req.body && req.body.item_key) await marks.read(user.id, String(req.body.item_key)).catch(() => false);
+      res.status(204).end();
+    });
+    app.get('/api/news/tags', read, noStore, async (req, res) => {
+      try {
+        const user = await userOf(req);
+        if (!user) return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
+        res.json({ ok: true, tags: await marks.tags(user.id) });
+      } catch (e) { send(res, e); }
+    });
+  }
   // One feed for the day overview and every outlet (docs/superpowers/specs/2026-11-21-news-findability-design.md §7.2).
   const LIST_DAY = /^\d{4}-\d{2}-\d{2}$/, LIST_ENUMS = { kind: ['learn', 'slice', 'all'], sort: ['fresh', 'time', 'match'],
     group: ['politics', 'security', 'society', 'economy', 'world', 'culture', 'opinion'], edition: ['morning', 'midday', 'evening', 'late', 'extra'] };
@@ -82,13 +116,31 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     if (q.story) { if (String(q.story).length > 120) bad('story'); p.story = String(q.story); }
     if (q.q) { if (String(q.q).length > 200) bad('q'); p.q = String(q.q); }
     if (q.cursor) { if (String(q.cursor).length > 200) bad('cursor'); p.cursor = String(q.cursor); }
+    // W4: a visitor without an account filters by the keys kept in the browser (≤150).
+    // An empty keys= is a filter too: a visitor with no matching marks sees nothing, not everything (review W4 I1).
+    if (q.keys !== undefined) { const raw = String(q.keys).split(',').filter(Boolean); if (raw.length > 150) bad('keys'); p.keys = raw.filter(k => /^na_[0-9a-f]{24}$/.test(k)); }
+    if (q.star === '1') p.star = true;
+    if (q.tag) { const tag = validTag(String(q.tag)); if (!tag) bad('tag'); p.tag = tag; }
     return p;
   }
   if (list) app.get('/api/news/list', read, async (req, res) => {
     try {
       const p = listParams(req.query);
+      // W4: a signed-in reader gets their tags, ★ and reads on the rows and can filter by them.
+      const user = marks && (p.tag || p.star || req.headers.cookie) ? await userOf(req) : null;
+      if ((p.tag || p.star) && !user) throw new NewsError('NEWS_PARAM_INVALID', 400, 'tag');
+      if (user && (p.tag || p.star)) {
+        const own = await marks.keysWith(user.id, p.star ? '★' : p.tag);
+        const tagged = p.star && p.tag ? new Set(await marks.keysWith(user.id, p.tag)) : null;
+        p.keys = (p.keys ? p.keys.filter(k => own.includes(k)) : own).filter(k => !tagged || tagged.has(k));
+      }
+      delete p.tag; delete p.star;
       const out = await list.list(p);
-      res.set('Cache-Control', out.building ? 'no-store' : 'public, max-age=30');
+      if (user) {
+        const keys = out.items.map(i => i.item_key), m = await marks.marksFor(user.id, keys), r = await marks.readSet(user.id, keys);
+        for (const i of out.items) { i.marks = m.get(i.item_key) || []; if (r.has(i.item_key)) i.read = true; }
+      }
+      res.set('Cache-Control', out.building || user ? 'private, no-store' : 'public, max-age=30');
       res.json({ ok: true, ...out });
     } catch (e) { send(res, e); }
   });
@@ -105,7 +157,9 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
   app.get('/api/news/images/:articleId/:name', read, async (req, res) => {
     try {
       // A study article's stored photo, or the cached photo of a raw original (findability W3).
-      const img = (await repo.getImage(req.params.articleId, req.params.name)) || (harvester && harvester.rawImage ? await harvester.rawImage(req.params.articleId, req.params.name) : null);
+      const img = (await repo.getImage(req.params.articleId, req.params.name)) || (harvester && harvester.rawImage ? await harvester.rawImage(req.params.articleId, req.params.name) : null)
+        // The owner's mark keeps a study article's photos after news_images is cleared (review W4 I2).
+        || (marks && marks.pinImage ? await marks.pinImage(req.params.articleId, req.params.name) : null);
       if (!img) { res.set('Cache-Control', 'no-store'); return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' }); }
       const pinned = String(req.query.v || '') === img.sha256.slice(0, 12);
       res.set({ 'Content-Type': img.mime, 'X-Content-Type-Options': 'nosniff', 'Cross-Origin-Resource-Policy': 'same-origin', ETag: '"' + img.sha256 + '"',
@@ -315,7 +369,9 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         try {
           const auth = await Promise.resolve(resolveUser(req)).catch(() => null);
           const owner = auth && auth.user && String(auth.user.role || '').toLowerCase() === 'owner';
-          if (owner && req.body) await harvester.recordRead(String(req.body.work_id || ''), String(req.body.event || '')).catch(() => false);
+          if (owner && req.body && req.body.work_id) await harvester.recordRead(String(req.body.work_id || ''), String(req.body.event || '')).catch(() => false);
+          // W4: «прочитано» for every signed-in reader, by article key.
+          if (marks && auth && auth.user && req.body && req.body.item_key) await marks.read(String(auth.user.id), String(req.body.item_key)).catch(() => false);
         } catch (_) {}
         res.status(204).end();
       });

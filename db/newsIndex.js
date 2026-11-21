@@ -124,7 +124,8 @@ function createNewsIndex({ db, now = () => Date.now(), bodyText = defaultBodyTex
   // Slice rows older than 45 days leave the index; study rows stay as long as their article. → rows removed.
   async function prune(nowMs = now()) {
     const cut = israelDay(new Date(nowMs - KEEP_DAYS * 86400000).toISOString());
-    const old = await dbAll(db, `SELECT item_key FROM news_index WHERE kind='slice' AND day < ?`, [cut]);
+    const pins = await dbGet(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='news_pins'").catch(() => null);
+    const old = await dbAll(db, `SELECT item_key FROM news_index WHERE kind='slice' AND day < ?${pins ? ' AND item_key NOT IN (SELECT item_key FROM news_pins)' : ''}`, [cut]);
     let n = 0;
     for (const r of old) n += await dropKey(r.item_key);
     return n;

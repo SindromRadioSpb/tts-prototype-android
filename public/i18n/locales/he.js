@@ -5793,3 +5793,4 @@ Object.assign(window.I18N_LOCALES.he.news.list, {"building":"רשימת החדש
 Object.assign(window.I18N_LOCALES.he.news.list, {"textFrom":"חיפוש בטקסט המלא — מ־{day}: חסר מקום בשרת, טקסטים ישנים יותר נמחקו; כותרות נמצאות בחיפוש של 45 יום."});
 Object.assign(window.I18N_LOCALES.he.news.list, {"readRaw":"המקור ללא תרגום"});
 Object.assign(window.I18N_LOCALES.he.news.plate, {"raw":"המקור כפי שפורסם, ללא תרגום"});
+Object.assign(window.I18N_LOCALES.he.news.list, {"marksLocal":"הכוכבים והתגיות שלך נשמרים רק בדפדפן הזה. התחברו כדי לשמור אותם בחשבון.","marksOff":"הסימונים לא נשמרים במכשיר הזה: אחסון הדפדפן אינו זמין. התחברו כדי לשמור כוכבים ותגיות בחשבון.","starOnly":"★ מועדפים בלבד","tag":"תגית","allTags":"כל הסימונים","unstar":"הסרה מהמועדפים","star":"הוספה למועדפים","untag":"הסרת התגית {tag}","addTag":"# תגית","tagPlaceholder":"למשל, בחירות","addTagGo":"הוספה","read":"נקרא"});

@@ -24,7 +24,8 @@
   function dayLabel(day, loc) {
     try { return new Date(day + "T12:00:00Z").toLocaleDateString(loc === "he" ? "he-IL" : loc === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", weekday: "short" }); } catch (_) { return day; }
   }
-  function listUrl(s, cursor) {
+  // keys: a visitor's marked articles from the browser (W4) — then no star/tag goes to the server.
+  function listUrl(s, cursor, keys) {
     var q = new URLSearchParams();
     if (s.outlet) q.set("outlet", s.outlet);
     if (s.from || s.to) { if (s.from) q.set("from", s.from); if (s.to) q.set("to", s.to); }
@@ -36,12 +37,14 @@
     if (s.story) q.set("story", s.story);
     if (s.q) q.set("q", s.q);
     if (s.sort && s.sort !== "fresh") q.set("sort", s.sort);
+    if (keys) q.set("keys", keys.slice(0, 150).join(","));
+    else { if (s.star) q.set("star", "1"); if (s.tag) q.set("tag", s.tag); }
     if (cursor) q.set("cursor", cursor);
     var str = q.toString();
     return "/api/news/list" + (str ? "?" + str : "");
   }
   function activeFilters(s) {
-    return (s.view === "overview" && s.outlet ? 1 : 0) + (s.group ? 1 : 0) + (s.section ? 1 : 0) + (s.ed ? 1 : 0) + (s.sort && s.sort !== "fresh" ? 1 : 0) + (s.from || s.to ? 1 : 0) + (s.story ? 1 : 0);
+    return (s.view === "overview" && s.outlet ? 1 : 0) + (s.group ? 1 : 0) + (s.section ? 1 : 0) + (s.ed ? 1 : 0) + (s.sort && s.sort !== "fresh" ? 1 : 0) + (s.from || s.to ? 1 : 0) + (s.story ? 1 : 0) + (s.star ? 1 : 0) + (s.tag ? 1 : 0);
   }
 
   // ctx: { t, locale, heading, getJson(url, {signal}), go(state, replace), replaceUrl(state), isCurrent(), renderItem(row), renderCard(card),
@@ -57,6 +60,10 @@
     var form = h(doc, "form", { class: "nw-search nw-list-search", role: "search" });
     var qIn = h(doc, "input", { type: "search", name: "q", value: s.q || "", placeholder: t("news.list.search", "Слово в заголовке или тексте"), "aria-label": t("news.list.search", "Слово в заголовке или тексте"), enterkeyhint: "search" });
     var note = h(doc, "p", { class: "nw-search-note", hidden: true });
+    var M = ctx.marks || null;
+    var marksNote = M && !M.signedIn ? h(doc, "p", { class: "nw-marks-note", text: M.ok
+      ? t("news.list.marksLocal", "Ваши ★ и теги хранятся только в этом браузере. Войдите, чтобы они хранились в аккаунте.")
+      : t("news.list.marksOff", "Отметки не сохраняются на этом устройстве: хранилище браузера недоступно. Войдите, чтобы ★ и теги хранились в аккаунте.") }) : null;
     form.appendChild(qIn);
     form.addEventListener("submit", function (e) { e.preventDefault(); api.search(qIn.value.trim()); });
     var timer = null;
@@ -75,7 +82,7 @@
     var more = h(doc, "button", { type: "button", class: "nw-button nw-more nw-list-more", hidden: true, text: t("news.more", "Показать ещё") });
     more.addEventListener("click", function () { api.more(); });
 
-    root.replaceChildren.apply(root, [ctx.heading, ctx.statusHost || null, nav, form, note, h(doc, "div", { class: "nw-list-bar" }, [kinds, filterBtn]), sheet, storyChip, counts, learnSec, sliceSec, empty, more].filter(Boolean));
+    root.replaceChildren.apply(root, [ctx.heading, ctx.statusHost || null, nav, form, note, marksNote, h(doc, "div", { class: "nw-list-bar" }, [kinds, filterBtn]), sheet, storyChip, counts, learnSec, sliceSec, empty, more].filter(Boolean));
 
     function setState(next, replace) { s = next; ctx.replaceUrl(s, replace); }
     // The range on screen: the one chosen, or the 45 days a search looks through (the server says which).
@@ -131,6 +138,18 @@
       fields.push(select("sort", t("news.list.sortLabel", "Порядок"), SORTS.map(function (o) { return [o, t("news.list.sortBy." + o, o === "fresh" ? "по актуальности" : o === "time" ? "по времени публикации" : "по совпадению")]; }), s.sort));
       var from = h(doc, "input", { type: "date", name: "from", value: s.from || "" }), to = h(doc, "input", { type: "date", name: "to", value: s.to || "" });
       fields.push(h(doc, "div", { class: "nw-sheet-range" }, [h(doc, "label", { class: "nw-sheet-field" }, [h(doc, "span", { text: t("news.from", "С") }), from]), h(doc, "label", { class: "nw-sheet-field" }, [h(doc, "span", { text: t("news.to", "По") }), to])]));
+      var starBox = null, tagSel = null;
+      if (M) {
+        starBox = h(doc, "input", { type: "checkbox", name: "star" }); starBox.checked = !!s.star;
+        fields.push(h(doc, "label", { class: "nw-toggle" }, [starBox, " " + t("news.list.starOnly", "★ Только избранное")]));
+        tagSel = h(doc, "select", { name: "tag", "aria-label": t("news.list.tag", "Тег") }, [h(doc, "option", { value: "", text: t("news.list.allTags", "Все отметки") })]);
+        fields.push(h(doc, "label", { class: "nw-sheet-field" }, [h(doc, "span", { text: t("news.list.tag", "Тег") }), tagSel]));
+        Promise.resolve(M.tags()).then(function (list) {
+          (list || []).filter(function (x) { return x.tag !== "★"; }).forEach(function (x) {
+            var o = h(doc, "option", { value: x.tag, text: x.tag + " · " + x.n }); if (s.tag === x.tag) o.selected = true; tagSel.appendChild(o);
+          });
+        }).catch(function () {});
+      }
       var heavy = null;
       if (ctx.noHeavy) {
         heavy = h(doc, "input", { type: "checkbox", name: "noHeavy" }); heavy.checked = ctx.noHeavy();
@@ -141,7 +160,7 @@
       apply.addEventListener("click", function () {
         var v = function (n) { var el = sheet.querySelector('[name="' + n + '"]'); return el && el.value ? el.value : null; };
         if (heavy && ctx.setNoHeavy) ctx.setNoHeavy(heavy.checked);
-        ctx.go(Object.assign({}, s, { outlet: s.view === "overview" ? v("outlet") : s.outlet, section: null, group: v("group"), ed: v("ed"), sort: v("sort") || "fresh", from: from.value || null, to: to.value || null }));
+        ctx.go(Object.assign({}, s, { outlet: s.view === "overview" ? v("outlet") : s.outlet, section: null, group: v("group"), ed: v("ed"), sort: v("sort") || "fresh", from: from.value || null, to: to.value || null, star: starBox ? starBox.checked : s.star, tag: tagSel ? (tagSel.value || null) : s.tag }));
       });
       reset.addEventListener("click", function () { ctx.go({ view: s.view, outlet: s.view === "outlet" ? s.outlet : null, day: s.day, kind: s.kind, sort: "fresh" }); });
       sheet.replaceChildren.apply(sheet, fields.concat([h(doc, "div", { class: "nw-sheet-actions" }, [apply, reset])]));
@@ -151,10 +170,42 @@
         storyChip.replaceChildren(x);
       } else storyChip.replaceChildren();
     }
+    // ★, tags and «прочитано» under a row (W4).
+    function marksBar(r) {
+      var bar = h(doc, "div", { class: "nw-row-marks" });
+      function paint(tags, focus) {
+        var starred = tags.indexOf("★") >= 0;
+        var star = h(doc, "button", { type: "button", class: "nw-star", "aria-pressed": starred ? "true" : "false", "aria-label": starred ? t("news.list.unstar", "Убрать из избранного") : t("news.list.star", "В избранное"), text: starred ? "★" : "☆" });
+        star.addEventListener("click", function () { M.toggle(r, "★").then(function (x) { paint(x, ".nw-star"); }).catch(function () {}); });
+        var parts = [star];
+        tags.filter(function (x) { return x !== "★"; }).forEach(function (tag) {
+          var chip = h(doc, "button", { type: "button", class: "nw-tag-chip", "aria-label": fill(t("news.list.untag", "Снять тег {tag}"), { tag: tag }), text: "#" + tag + " ×" });
+          chip.addEventListener("click", function () { M.toggle(r, tag).then(paint).catch(function () {}); });
+          parts.push(chip);
+        });
+        var add = h(doc, "button", { type: "button", class: "nw-tag-add", "aria-expanded": "false", text: t("news.list.addTag", "# тег") });
+        var form = h(doc, "form", { class: "nw-tag-form", hidden: true });
+        var input = h(doc, "input", { type: "text", maxlength: "40", "aria-label": t("news.list.tag", "Тег"), placeholder: t("news.list.tagPlaceholder", "например, выборы") });
+        form.append(input, h(doc, "button", { type: "submit", class: "nw-link-btn", text: t("news.list.addTagGo", "Добавить") }));
+        add.addEventListener("click", function () { form.hidden = !form.hidden; add.setAttribute("aria-expanded", form.hidden ? "false" : "true"); if (!form.hidden) try { input.focus(); } catch (_) {} });
+        form.addEventListener("submit", function (e) { e.preventDefault(); var v = String(input.value || "").trim().replace(/^#+/, ""); if (v && tags.indexOf(v) < 0) M.toggle(r, v).then(paint).catch(function () {}); });
+        parts.push(add);
+        if (M.isRead(r)) parts.push(h(doc, "span", { class: "nw-read-mark", text: t("news.list.read", "прочитано") }));
+        parts.push(form);
+        bar.replaceChildren.apply(bar, parts);
+        if (focus) { var f = bar.querySelector(focus); if (f && f.focus) try { f.focus(); } catch (_) {} }
+      }
+      paint(M.marksOf(r));
+      return bar;
+    }
     function rowEl(r) {
       var el = r.card && !(ctx.noHeavy && ctx.noHeavy() && r.card.heavy) ? ctx.renderCard(r.card) : r.card ? null : ctx.renderItem(r);
       if (!el) return null;
       var extra = [];
+      if (M) {
+        extra.push(marksBar(r));
+        el.addEventListener("click", function (e) { var a = e.target && e.target.closest && e.target.closest('a[href*="/library.html?news="]'); if (a) { r.read = true; Promise.resolve(M.read(r)).catch(function () {}); } });
+      }
       if (r.snippet) extra.push(h(doc, "p", { class: "nw-snippet", dir: "auto", text: r.snippet }));
       if (r.story_key && !s.story) {
         var st = h(doc, "button", { type: "button", class: "nw-link-btn nw-story-link", text: t("news.list.story", "весь сюжет") });
@@ -185,7 +236,8 @@
       var mine = ctrl = (typeof AbortController === "function" ? new AbortController() : { signal: { aborted: false }, abort: function () { this.signal.aborted = true; } });
       if (reset) cursor = null;
       more.hidden = true;
-      var p = ctx.getJson(listUrl(s, reset ? null : cursor), { signal: mine.signal }).then(function (data) {
+      var keys = M && !M.signedIn && (s.star || s.tag) ? (function () { var a = s.star ? M.keysWith("★") : null, b = s.tag ? M.keysWith(s.tag) : null; return a && b ? a.filter(function (k) { return b.indexOf(k) >= 0; }) : (a || b); })() : null;
+      var p = ctx.getJson(listUrl(s, reset ? null : cursor, keys), { signal: mine.signal }).then(function (data) {
         if (mine !== ctrl || mine.signal.aborted || !ctx.isCurrent()) return;
         if (reset) {
           lastData = data;

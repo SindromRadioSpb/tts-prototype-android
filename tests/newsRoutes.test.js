@@ -195,3 +195,80 @@ test('GET /api/news/list: from after to is refused', async t => {
   const r = await fetch('http://127.0.0.1:' + server.address().port + '/api/news/list?from=2026-11-21&to=2026-11-01');
   assert.equal(r.status, 400); assert.equal((await r.json()).detail, 'range');
 });
+
+// Findability W4: tags, ★ and reads for every signed-in user.
+async function marksApp(t) {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createNewsList } = require('../db/newsList');
+  const { createNewsMarks } = require('../db/newsMarks');
+  const db = await openDb();
+  const run = (sql, p = []) => new Promise((res, rej) => db.run(sql, p, e => e ? rej(e) : res()));
+  await run("INSERT INTO news_settings(key, value_json, updated_at) VALUES ('index_version','2','t')");
+  for (const n of [1, 2, 3]) await run(`INSERT INTO news_index(item_key, day, outlet_id, fresh_at, kind, title_he, updated_at) VALUES (?, '2026-11-21', 'ynet', ?, 'slice', ?, 't')`,
+    ['na_' + String(n).padStart(24, '0'), '2026-11-21T0' + n + ':00:00.000Z', 'כותרת ' + n]);
+  const users = { 'lp_session=a': { user: { id: 'ua', role: 'user' }, session: { csrf: 'ca' } }, 'lp_session=b': { user: { id: 'ub', role: 'user' }, session: { csrf: 'cb' } } };
+  const app = express();
+  mountNewsRoutes(app, { repo: {}, editorAuth: { resolve: async () => null }, resolveUser: async req => users[req.headers.cookie] || null,
+    list: createNewsList({ db, now: () => Date.parse('2026-11-21T12:00:00Z') }), marks: createNewsMarks({ db, now: () => Date.parse('2026-11-21T12:00:00Z') }) });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(() => db.close(r))));
+  const base = 'http://127.0.0.1:' + server.address().port;
+  const call = (method, url, { cookie, csrf, json } = {}) => fetch(base + url, { method, headers: { ...(cookie ? { cookie } : {}), ...(csrf ? { 'x-lp-csrf': csrf } : {}), ...(json ? { 'content-type': 'application/json' } : {}) },
+    body: json ? JSON.stringify(json) : undefined }).then(async r => ({ status: r.status, headers: r.headers, body: r.status === 204 ? null : await r.json().catch(() => null) }));
+  return { call, K: n => 'na_' + String(n).padStart(24, '0') };
+}
+test('marks need a session and csrf', async t => {
+  const { call, K } = await marksApp(t);
+  assert.equal((await call('PUT', '/api/news/marks', { json: { item_key: K(1), tag: '★' } })).status, 401);
+  assert.equal((await call('PUT', '/api/news/marks', { cookie: 'lp_session=a', json: { item_key: K(1), tag: '★' } })).status, 403);
+  const ok = await call('PUT', '/api/news/marks', { cookie: 'lp_session=a', csrf: 'ca', json: { item_key: K(1), tag: '★' } });
+  assert.equal(ok.status, 200); assert.deepEqual(ok.body.marks, ['★']);
+  assert.equal((await call('PUT', '/api/news/marks', { cookie: 'lp_session=a', csrf: 'ca', json: { item_key: K(1), tag: '#bad' } })).status, 400);
+  const del = await call('DELETE', '/api/news/marks', { cookie: 'lp_session=a', csrf: 'ca', json: { item_key: K(1), tag: '★' } });
+  assert.deepEqual(del.body.marks, []);
+});
+test('list with tag filter returns only marked rows of this user; read mark appears on the row', async t => {
+  const { call, K } = await marksApp(t);
+  await call('PUT', '/api/news/marks', { cookie: 'lp_session=a', csrf: 'ca', json: { item_key: K(2), tag: 'выборы' } });
+  await call('PUT', '/api/news/marks', { cookie: 'lp_session=b', csrf: 'cb', json: { item_key: K(3), tag: 'выборы' } });
+  await call('POST', '/api/news/read', { cookie: 'lp_session=a', json: { item_key: K(1) } });
+  const a = await call('GET', '/api/news/list?day=2026-11-21&tag=' + encodeURIComponent('выборы'), { cookie: 'lp_session=a' });
+  assert.deepEqual(a.body.items.map(i => i.item_key), [K(2)]);
+  assert.deepEqual(a.body.items[0].marks, ['выборы']);
+  assert.match(a.headers.get('cache-control'), /no-store/);
+  const all = await call('GET', '/api/news/list?day=2026-11-21', { cookie: 'lp_session=a' });
+  assert.equal(all.body.items.find(i => i.item_key === K(1)).read, true);
+  assert.deepEqual((await call('GET', '/api/news/tags', { cookie: 'lp_session=a' })).body.tags, [{ tag: 'выборы', n: 1 }]);
+  const anon = await call('GET', '/api/news/list?day=2026-11-21&tag=x');
+  assert.equal(anon.status, 400, 'a visitor without an account filters by keys, not by server tags');
+});
+test('anonymous keys filter', async t => {
+  const { call, K } = await marksApp(t);
+  const r = await call('GET', '/api/news/list?day=2026-11-21&keys=' + [K(1), K(3), 'junk'].join(','));
+  assert.deepEqual(r.body.items.map(i => i.item_key).sort(), [K(1), K(3)]);
+  assert.equal((await call('GET', '/api/news/list?keys=' + Array.from({ length: 151 }, (_, i) => K(i)).join(','))).status, 400);
+});
+test('an empty visitor keys filter shows nothing, not everything (review W4 I1)', async t => {
+  const { call } = await marksApp(t);
+  const r = await call('GET', '/api/news/list?day=2026-11-21&keys=');
+  assert.equal(r.status, 200); assert.equal(r.body.items.length, 0);
+});
+test('a pinned study article keeps serving its photo after news_images is cleared (review W4 I2)', async t => {
+  const pinned = { mime: 'image/jpeg', sha256: 'b'.repeat(64), bytes: Buffer.from('PINNEDSTUDY') };
+  const app = express();
+  mountNewsRoutes(app, { repo: { getImage: async () => null }, editorAuth: { resolve: async () => null }, resolveUser: async () => null,
+    marks: { pinImage: async (k, n) => k === 'na_' + 'c'.repeat(24) && n === 'img-1.jpg' ? pinned : null } });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(r)));
+  const r = await fetch('http://127.0.0.1:' + server.address().port + '/api/news/images/na_' + 'c'.repeat(24) + '/img-1.jpg');
+  assert.equal(r.status, 200); assert.equal(Buffer.from(await r.arrayBuffer()).toString(), 'PINNEDSTUDY');
+});
+test('marks over the cap answer 409', async t => {
+  const app = express();
+  mountNewsRoutes(app, { repo: {}, editorAuth: { resolve: async () => null }, resolveUser: async () => ({ user: { id: 'u', role: 'user' }, session: { csrf: 'c' } }),
+    marks: { mark: async () => { throw Object.assign(new Error('NEWS_MARKS_LIMIT'), { code: 'NEWS_MARKS_LIMIT', status: 409 }); }, marksFor: async () => new Map() } });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(r)));
+  const r = await fetch('http://127.0.0.1:' + server.address().port + '/api/news/marks', { method: 'PUT', headers: { 'content-type': 'application/json', 'x-lp-csrf': 'c' }, body: JSON.stringify({ item_key: 'na_' + 'a'.repeat(24), tag: 'x' }) });
+  assert.equal(r.status, 409);
+});

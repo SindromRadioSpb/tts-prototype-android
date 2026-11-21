@@ -146,3 +146,11 @@ body.nw-dark .nw-ov-since{color:#0e1726}
 .nw-list-empty[hidden],.nw-list-learn[hidden],.nw-list-slice[hidden],.nw-list-more[hidden]{display:none}
 .nw-search-note{margin:-2px 0 8px;font-size:.82rem;color:var(--nw-muted)}.nw-search-note[hidden]{display:none}
 .nw-ov-raw{display:inline-flex;margin-block:6px 2px;text-decoration:none}
+/* Findability W4: ★, tags, «прочитано». */
+.nw-row-marks{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:2px 0 8px}
+.nw-star,.nw-tag-add,.nw-tag-chip{min-height:32px;padding:2px 10px;border:1px solid var(--nw-line);border-radius:999px;background:var(--nw-paper);color:var(--nw-text);font:inherit;font-size:.85rem;cursor:pointer}
+.nw-star{font-size:1.05rem;line-height:1;color:var(--nw-accent)}.nw-star[aria-pressed="true"]{background:var(--nw-soft);border-color:var(--nw-accent)}
+.nw-tag-chip{background:var(--nw-soft)}
+.nw-read-mark{font-size:.8rem;color:var(--nw-muted)}
+.nw-tag-form{display:flex;gap:6px;flex-basis:100%}.nw-tag-form[hidden]{display:none}.nw-tag-form input{flex:1;min-width:0;font-size:1rem;padding:6px 8px;border:1px solid var(--nw-line);border-radius:8px;background:var(--nw-bg);color:var(--nw-text)}
+.nw-marks-note{margin:-2px 0 8px;font-size:.82rem;color:var(--nw-muted)}

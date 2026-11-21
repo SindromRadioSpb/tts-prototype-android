@@ -5799,3 +5799,4 @@ Object.assign(window.I18N_LOCALES.ru.news.list, {"building":"Список нов
 Object.assign(window.I18N_LOCALES.ru.news.list, {"textFrom":"Поиск по полному тексту — с {day}: на сервере мало места, более старые тексты удалены; заголовки ищутся за 45 дней."});
 Object.assign(window.I18N_LOCALES.ru.news.list, {"readRaw":"Оригинал без перевода"});
 Object.assign(window.I18N_LOCALES.ru.news.plate, {"raw":"оригинал без перевода, как в издании"});
+Object.assign(window.I18N_LOCALES.ru.news.list, {"marksLocal":"Ваши ★ и теги хранятся только в этом браузере. Войдите, чтобы они хранились в аккаунте.","marksOff":"Отметки не сохраняются на этом устройстве: хранилище браузера недоступно. Войдите, чтобы ★ и теги хранились в аккаунте.","starOnly":"★ Только избранное","tag":"Тег","allTags":"Все отметки","unstar":"Убрать из избранного","star":"В избранное","untag":"Снять тег {tag}","addTag":"# тег","tagPlaceholder":"например, выборы","addTagGo":"Добавить","read":"прочитано"});

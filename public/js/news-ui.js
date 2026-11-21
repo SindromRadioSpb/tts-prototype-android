@@ -288,10 +288,11 @@
     var day = function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : null; };
     var group = q.get("group"); if (GROUP_ORDER.indexOf(group) < 0) group = null;
     var story = (q.get("story") || "").slice(0, 120) || null;
+    var tag = (q.get("tag") || "").trim().slice(0, 40); if (!tag || tag.charAt(0) === "#") tag = null;
     return { view: outlet ? "outlet" : q.get("view") === "overview" ? "overview" : null, outlet: outlet, section: section,
       q: (q.get("q") || "").slice(0, 200) || null, from: day(q.get("from")), to: day(q.get("to")), day: day(q.get("day")), group: group,
       ed: EDITION_SLOTS.indexOf(q.get("ed")) >= 0 ? q.get("ed") : null, kind: KINDS.indexOf(q.get("kind")) >= 0 ? q.get("kind") : "all",
-      sort: SORTS.indexOf(q.get("sort")) >= 0 ? q.get("sort") : "fresh", story: story };
+      sort: SORTS.indexOf(q.get("sort")) >= 0 ? q.get("sort") : "fresh", story: story, star: q.get("star") === "1", tag: tag };
   }
   function stateHref(s) {
     var q = new URLSearchParams();
@@ -307,6 +308,8 @@
     if (s.story) q.set("story", s.story);
     if (s.q) q.set("q", s.q);
     if (s.sort && s.sort !== "fresh") q.set("sort", s.sort);
+    if (s.star) q.set("star", "1");
+    if (s.tag) q.set("tag", s.tag);
     return "/news.html?" + q.toString();
   }
 
@@ -404,6 +407,34 @@
         manage = j && j.kind ? { kind: j.kind, csrf: j.csrf || null } : null;
       } catch (_) { manage = null; }
     }
+    // Tags, ★ and «прочитано» (findability W4): a signed-in reader's live in the account, a visitor's in this browser.
+    var marksApi = null;
+    function marksFor() {
+      if (marksApi) return marksApi;
+      marksApi = win.fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (me) {
+        if (me && me.user) {
+          var csrf = me.csrf || "";
+          var send = function (method, url, body) { return win.fetch(url, { method: method, credentials: "same-origin", headers: { "content-type": "application/json", "x-lp-csrf": csrf }, body: JSON.stringify(body) }); };
+          return { signedIn: true, ok: true, marksOf: function (r) { return r.marks || []; }, isRead: function (r) { return !!r.read; },
+            toggle: function (r, tag) {
+              var has = (r.marks || []).indexOf(tag) >= 0;
+              return send(has ? "DELETE" : "PUT", "/api/news/marks", { item_key: r.item_key, tag: tag }).then(function (x) { if (!x.ok) throw new Error("HTTP_" + x.status); return x.json(); })
+                .then(function (j) { r.marks = j.marks || []; return r.marks; }).catch(function () { toast(t("news.manage.failed", "Не получилось. Попробуйте ещё раз.")); return r.marks || []; });
+            },
+            tags: function () { return getJson("/api/news/tags").then(function (j) { return j.tags || []; }).catch(function () { return []; }); },
+            read: function (r) { return send("POST", "/api/news/read", { item_key: r.item_key }).catch(function () {}); },
+            keysWith: function () { return []; } };
+        }
+        var L = win.NewsMarksLocal;
+        return (L ? L.open() : Promise.resolve(null)).then(function (local) {
+          local = local || { ok: false, marks: function () { return []; }, isRead: function () { return false; }, toggle: function () { return Promise.resolve([]); }, read: function () { return Promise.resolve(); }, tags: function () { return []; }, keysWith: function () { return []; } };
+          return { signedIn: false, ok: local.ok, marksOf: function (r) { return local.marks(r.item_key); }, isRead: function (r) { return local.isRead(r.item_key); },
+            toggle: function (r, tag) { return local.toggle(r.item_key, tag); }, tags: function () { return Promise.resolve(local.tags()); },
+            read: function (r) { return local.read(r.item_key); }, keysWith: function (tag) { return local.keysWith(tag); } };
+        });
+      });
+      return marksApi;
+    }
     var locale = function () { return (typeof win.appGetLocale === "function" && win.appGetLocale()) || "ru"; };
 
     function status(key, fallback, retry) {
@@ -477,7 +508,10 @@
           h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.list.overviewLead", "Все статьи изданий за день: сначала учебные материалы, затем остальные из среза. Поиск — по заголовкам и тексту.") })]);
       }
       var returnTo = stateHref(state);
+      return marksFor().then(function (marks) {
+      if (my !== token) return null;
       listApi = win.NewsListUi.render(root, state, {
+        marks: marks,
         t: t, locale: locale(), heading: head, statusHost: statusHost(my),
         outlets: (Outlets ? Outlets.OUTLETS : []).map(function (x) { return { id: x.id, name: x.name_latin }; }),
         getJson: function (url, opts) { return win.fetch(url, { cache: "no-cache", signal: opts && opts.signal }).then(function (r) { if (!r.ok) throw new Error("HTTP_" + r.status); return r.json(); }); },
@@ -489,6 +523,7 @@
         noHeavy: noHeavy, setNoHeavy: function (v) { store.set(HEAVY_KEY, v ? "1" : "0"); },
       });
       return listApi.ready;
+      });
     }
 
     function dayLabel(day, loc) {
