@@ -53,7 +53,14 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     try {
       res.set('Cache-Control', 'public, max-age=30');
       if (req.query.work) {
-        const card = await repo.getCard(String(req.query.work));
+        const workId = String(req.query.work);
+        // A raw original (findability W3): the card the Room needs to open it — outlet, snapshot, title.
+        if (/\.rw$/.test(workId) && harvester && harvester.rawWork) {
+          const w = await harvester.rawWork(null, workId).catch(() => null);
+          return w ? res.json({ ok: true, card: { work_id: workId, readable: true, raw: true, tier: 'fresh', outlet_id: w.corpus.slug.slice(5), snapshot_sha256: w.item.snapshot_sha256,
+            title_he: w.item.title, levels: ['OR'] } }) : res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
+        }
+        const card = await repo.getCard(workId);
         return card ? res.json({ ok: true, card }) : res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' });
       }
       const q = req.query;
@@ -97,7 +104,8 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
   // under COEP require-corp. ?v= is the content hash prefix, so a matching address is immutable.
   app.get('/api/news/images/:articleId/:name', read, async (req, res) => {
     try {
-      const img = await repo.getImage(req.params.articleId, req.params.name);
+      // A study article's stored photo, or the cached photo of a raw original (findability W3).
+      const img = (await repo.getImage(req.params.articleId, req.params.name)) || (harvester && harvester.rawImage ? await harvester.rawImage(req.params.articleId, req.params.name) : null);
       if (!img) { res.set('Cache-Control', 'no-store'); return res.status(404).json({ ok: false, error: 'NEWS_NOT_FOUND' }); }
       const pinned = String(req.query.v || '') === img.sha256.slice(0, 12);
       res.set({ 'Content-Type': img.mime, 'X-Content-Type-Options': 'nosniff', 'Cross-Origin-Resource-Policy': 'same-origin', ETag: '"' + img.sha256 + '"',
@@ -109,7 +117,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
   // Must be mounted before the generic /api/public-corpora/:slug/works/:workId route.
   app.get('/api/public-corpora/news-:outlet/works/:workId', read, async (req, res) => {
     try {
-      const work = await repo.getWork(req.params.outlet, req.params.workId);
+      const work = /\.rw$/.test(req.params.workId) && harvester && harvester.rawWork ? await harvester.rawWork(req.params.outlet, req.params.workId) : await repo.getWork(req.params.outlet, req.params.workId);
       const wanted = String(req.query.snapshot || '').toLowerCase();
       if (wanted && wanted !== work.item.snapshot_sha256) { res.set('Cache-Control', 'no-store'); return res.status(409).json({ ok: false, error: 'PUBLIC_WORK_CHANGED' }); }
       // The validator carries the payload shape version: a changed response shape must never revalidate as 304.

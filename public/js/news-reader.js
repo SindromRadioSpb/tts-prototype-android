@@ -195,6 +195,7 @@
       ? fill(t("news.plate.headOriginal", "Текст оригинала: статья {outlet}"), { outlet: "" })
       : fill(t("news.plate.head", "Учебный пересказ LinguistPro по материалам {outlet}"), { outlet: "" })));
     line.appendChild(tag);
+    if (meta.raw) line.appendChild(doc.createTextNode(" · " + t("news.plate.raw", "оригинал без перевода, как в издании")));
     var date = dateLabel(meta.published_at, opts.locale);
     if (date) line.appendChild(doc.createTextNode(" · " + date));
     var href = safeHttps(meta.canonical_url);

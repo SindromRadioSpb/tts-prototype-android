@@ -16,7 +16,7 @@ function workIdFor(articleId, level) { return articleId + '.' + String(level).to
 
 // article: the stored article.json (without `check`); version: one of article.learning.versions;
 // glossLayer: an already bounded word-gloss-ai-layer-v1 or null.
-function buildNewsSnapshot(article, version, { workId, glossLayer = null } = {}) {
+function buildNewsSnapshot(article, version, { workId, glossLayer = null, raw = false } = {}) {
   const s = article.source, l = article.learning;
   const rows = version.rows.map((r, i) => ({
     // No niqqud from the producer: the Hebrew column still shows the unpointed text (the Room has no
@@ -43,7 +43,7 @@ function buildNewsSnapshot(article, version, { workId, glossLayer = null } = {})
       paywalled: !!s.paywalled, image: article.image, prepared: article.prepared, quality: article.quality || null,
       level: version.level, levels: l.versions.map(v => v.level), title_ru: l.title_ru,
       // Owner decision 2026-11-14: 'OR' = the original text one-to-one; photos from the article, stored by us.
-      original: version.level === 'OR', subtitle_he: l.subtitle_he || null, subtitle_ru: l.subtitle_ru || null,
+      original: version.level === 'OR', ...(raw ? { raw: true } : {}), subtitle_he: l.subtitle_he || null, subtitle_ru: l.subtitle_ru || null,
       images: (article.images || []).filter(im => im && im.url).map(im => ({ url: im.url, role: im.role, after_p: im.after_p == null ? null : im.after_p,
         after_row: afterRow(im),
         caption_he: im.caption_he || null, caption_ru: im.caption_ru || null, credit_he: im.credit_he || null, alt_he: im.alt_he || null, alt_ru: im.alt_ru || null, source_url: im.source_url })),

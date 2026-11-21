@@ -4,7 +4,8 @@ const C = require('./newsPackCore');
 const ARCHIVE_ORDER_ID = /^nso_[0-9a-f]{32}$/;
 const ARTICLE_ID = /^na_[0-9a-f]{24}$/;
 const ORDER_TTL_MS = 6 * 3600e3;
-const ARCHIVE_WINDOW_MS = 72 * 3600e3;
+// The edition archive (candidates.json) lives 7 days; the full text 45 (findability W3).
+const ARCHIVE_WINDOW_MS = 7 * 86400e3;
 
 const fields = (object, keys) => keys.map(key => object && object[key] != null ? object[key] : null);
 function archiveDraftHash(article, images) {

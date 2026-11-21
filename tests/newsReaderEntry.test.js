@@ -179,3 +179,11 @@ test('reader review: «finish» needs at least 15 s on the article (a short arti
   now += 15000; timers[0].fn();
   assert.deepEqual(sent, ['open', 'finish']);
 });
+
+test('plate: a raw original says it has no study layer (findability W3)', () => {
+  const { document } = require('linkedom').parseHTML('<html><body></body></html>');
+  const head = NR.renderPlate(document, meta({ original: true, raw: true }), { place: 'head' });
+  assert.match(head.textContent, /без перевода/);
+  const normal = NR.renderPlate(document, meta({ original: true }), { place: 'head' });
+  assert.doesNotMatch(normal.textContent, /без перевода/);
+});

@@ -36,7 +36,7 @@ async function harness(t, { closed = true, paywalled = false, full = true, photo
   const db = new sqlite3.Database(':memory:'), exec = query => sql(db, 'exec', query);
   const run = (query, p) => sql(db, 'run', query, p), all = (query, p) => sql(db, 'all', query, p);
   t.after(() => new Promise(resolve => db.close(() => { fs.rmSync(dataDir, { recursive: true, force: true }); resolve(); })));
-  for (const name of fs.readdirSync(path.join(__dirname, '../migrations')).filter(f => /^(07[89]|08\d|090)_news.*\.sql$/.test(f)).sort())
+  for (const name of fs.readdirSync(path.join(__dirname, '../migrations')).filter(f => /^(07[89]|08\d|09[02])_news.*\.sql$/.test(f)).sort())
     await exec(fs.readFileSync(path.join(__dirname, '../migrations', name), 'utf8'));
   const itemKey = C.articleKey(outletId, sourceUrl);
   const article = { title_he: title, url: sourceUrl, canonical_url: sourceUrl, published_at: SOURCE_TIME, section_original_he: 'חדשות', section: 'local',
@@ -188,7 +188,7 @@ test('closed archive: exact actor retries, expiry, and a source without photos n
   const second = await s.prep(await s.order());
   assert.notEqual(second.m.order_id, first.m.order_id);
   assert.equal((await s.ingest(first.packed)).receipt.items[0].code, 'ARCHIVE_ORDER_UNKNOWN');
-  s.advance(3 * 86400000);
+  s.advance(46 * 86400000); // the full text is kept 45 days (findability W3)
   const expired = await s.order();
   assert.equal(expired.status, 410); assert.equal((await expired.json()).error, 'SOURCES_EXPIRED');
   assert.equal(s.fetches(), 0);
@@ -258,4 +258,16 @@ test('closed archive: waiting on a cold CDN does not lock the collector', async 
     assert.equal((await s.harvester.runOnce()).status, 'skipped');
   } finally { release(); }
   assert.equal((await order).status, 200);
+});
+
+test('closed archive: a 5-day-old article is ordered from its compressed body (findability W3)', async t => {
+  const s = await harness(t, { photo: false, images: [] });
+  s.advance(5 * 86400000);
+  await s.harvester.cleanup();
+  const [row] = await s.all('SELECT data_json, data_gz FROM news_harvest_items WHERE url_key = ?', [KEY]);
+  assert.equal(row.data_json, null); assert.ok(row.data_gz);
+  const r = await s.order();
+  assert.equal(r.status, 200, await r.clone().text());
+  const z = new AdmZip(Buffer.from(await r.arrayBuffer())), m = JSON.parse(z.readAsText('archive-order.json'));
+  assert.ok(JSON.parse(z.readAsText(m.draft)).learning.versions[0].rows.length > 0);
 });

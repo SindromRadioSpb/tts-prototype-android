@@ -249,6 +249,9 @@
     var t = opts.t || function (k, f) { return f; };
     var box = ovItem(doc, it, t, true, opts);
     if (it.work_id) box.appendChild(h(doc, "a", { class: "nw-button nw-ov-read", href: readerHref({ work_id: it.work_id }, opts.returnTo), text: t("news.overview.read", "Читать с переводом и огласовкой") }));
+    // «Читать оригинал» (findability W3): the outlet's text as is, while its body is kept on the server.
+    else if (opts.rawLink && it.full_ok && !it.paywalled && it.body_until && Date.parse(it.body_until) > (opts.now || Date.now()))
+      box.appendChild(h(doc, "a", { class: "nw-button nw-button-quiet nw-ov-raw", href: readerHref({ work_id: it.item_key + ".rw" }, opts.returnTo), text: t("news.list.readRaw", "Оригинал без перевода") }));
     return box;
   }
   // One story: its main article big (the one with a full study article first), the other outlets folded.
@@ -481,7 +484,7 @@
         go: function (next) { go(next); },
         replaceUrl: function (next) { try { win.history.replaceState({}, "", stateHref(next)); } catch (_) {} },
         isCurrent: function () { return my === token; },
-        renderItem: function (row) { return renderOverviewItem(doc, row, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale(), showTime: true, day: row.day }); },
+        renderItem: function (row) { return renderOverviewItem(doc, row, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale(), showTime: true, day: row.day, rawLink: true }); },
         renderCard: function (card) { return renderCard(doc, card, { t: t, returnTo: returnTo, locale: locale(), manage: manageOpts() }); },
         noHeavy: noHeavy, setNoHeavy: function (v) { store.set(HEAVY_KEY, v ? "1" : "0"); },
       });

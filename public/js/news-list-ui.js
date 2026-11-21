@@ -56,6 +56,7 @@
     // --- search ---
     var form = h(doc, "form", { class: "nw-search nw-list-search", role: "search" });
     var qIn = h(doc, "input", { type: "search", name: "q", value: s.q || "", placeholder: t("news.list.search", "Слово в заголовке или тексте"), "aria-label": t("news.list.search", "Слово в заголовке или тексте"), enterkeyhint: "search" });
+    var note = h(doc, "p", { class: "nw-search-note", hidden: true });
     form.appendChild(qIn);
     form.addEventListener("submit", function (e) { e.preventDefault(); api.search(qIn.value.trim()); });
     var timer = null;
@@ -74,7 +75,7 @@
     var more = h(doc, "button", { type: "button", class: "nw-button nw-more nw-list-more", hidden: true, text: t("news.more", "Показать ещё") });
     more.addEventListener("click", function () { api.more(); });
 
-    root.replaceChildren.apply(root, [ctx.heading, ctx.statusHost || null, nav, form, h(doc, "div", { class: "nw-list-bar" }, [kinds, filterBtn]), sheet, storyChip, counts, learnSec, sliceSec, empty, more].filter(Boolean));
+    root.replaceChildren.apply(root, [ctx.heading, ctx.statusHost || null, nav, form, note, h(doc, "div", { class: "nw-list-bar" }, [kinds, filterBtn]), sheet, storyChip, counts, learnSec, sliceSec, empty, more].filter(Boolean));
 
     function setState(next, replace) { s = next; ctx.replaceUrl(s, replace); }
     // The range on screen: the one chosen, or the 45 days a search looks through (the server says which).
@@ -191,6 +192,8 @@
           Array.prototype.slice.call(learnSec.children, 1).forEach(function (n) { n.remove(); });
           Array.prototype.slice.call(sliceSec.children, 1).forEach(function (n) { n.remove(); });
           if (!s.from && !s.to && data.day && data.day !== s.day) s = Object.assign({}, s, { day: data.day });
+          note.hidden = !data.body_search_from;
+          if (data.body_search_from) note.textContent = fill(t("news.list.textFrom", "Поиск по полному тексту — со {day}: на сервере мало места, более старые тексты удалены; заголовки ищутся за 45 дней."), { day: dayLabel(data.body_search_from, loc) });
           paintNav(data); paintKinds(data.counts); paintSheet(); paintCounts(data.counts);
         }
         data.items.forEach(function (r) { var el = rowEl(r); if (el) (r.kind === "learn" ? learnSec : sliceSec).appendChild(el); });

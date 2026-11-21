@@ -21,12 +21,13 @@ const iso = ms => new Date(ms).toISOString();
 const sha = buf => crypto.createHash('sha256').update(buf).digest('hex');
 const groupOf = section => GROUPS[section] || 'society';
 const parse = s => { try { return JSON.parse(s || 'null'); } catch (_) { return null; } };
+const { bodyOf, hasBody } = require('./newsBody');
 const itemKeyOf = (outletId, url) => { try { return C.articleKey(outletId, C.canonicalizeUrl(url)); } catch (_) { return null; } };
 // The page's canonical address: the same key the published article gets, so the site links them.
-function canonicalOf(row) { const a = parse(row.data_json); if (a && a.canonical_url && Outlets.outletForUrl(a.canonical_url) === row.outlet_id) return a.canonical_url; return row.url; }
+function canonicalOf(row) { const a = bodyOf(row); if (a && a.canonical_url && Outlets.outletForUrl(a.canonical_url) === row.outlet_id) return a.canonical_url; return row.url; }
 const memberOf = r => ({ id: r.url_key, row: r, outlet_id: r.outlet_id, section: r.section || 'news', title: r.title_he || r.feed_title || '',
   text: [r.subtitle_he, r.lead_he].filter(Boolean).join(' '), at: Date.parse(r.published_at || r.first_seen_at) || 0,
-  full_ok: !!r.full_ok && !!r.data_json, paywalled: r.paywalled ? 1 : 0, images: r.images, chars: r.chars });
+  full_ok: !!r.full_ok && hasBody(r), paywalled: r.paywalled ? 1 : 0, images: r.images, chars: r.chars });
 
 // One draft with its photos into the zip (used by the edition build and by dot's extra orders).
 async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle, strictPhotos = false, sleep = async () => {} }) {
@@ -84,7 +85,7 @@ async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs
   const zip = new AdmZip(), main = [], rework = [], draftOfKey = new Map();
   let n = 0, images = 0;
   async function addDraft(row, { kind, storyKey }) {
-    const a = parse(row.data_json);
+    const a = bodyOf(row);
     if (!a) { await dbRun(db, `UPDATE news_harvest_items SET main_state='dropped', main_reason='NO_BODY' WHERE url_key=?`, [row.url_key]); return; }
     n++;
     const base = row.outlet_id + '-' + String(n).padStart(4, '0'), folder = (row.main_reason ? 'rework/' : '') + base;

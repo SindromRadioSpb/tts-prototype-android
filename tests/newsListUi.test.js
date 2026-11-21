@@ -118,3 +118,10 @@ test('render: while the index is being built the page says so, not «no articles
   await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
   assert.match(root.querySelector('.nw-list-empty').textContent, /собирается|строится/);
 });
+test('render: a shortened text-search window is said under the search box', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r');
+  const { ctx } = ctxFor(document, [page([sliceRow(1)], { body_search_from: '2026-11-11' })]);
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  assert.match(root.querySelector('.nw-search-note').textContent, /11 ноября/);
+});

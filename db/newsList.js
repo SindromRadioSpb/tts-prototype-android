@@ -5,6 +5,7 @@
 const { ftsQuery, normHe, normRu, formsOf } = require('../news/newsSearchNorm');
 const { GROUPS } = require('../news/harvest/newsStories');
 const { israelDay, KEEP_DAYS } = require('./newsIndex');
+const { bodyOf: bodyOfRow } = require('../news/harvest/newsBody');
 
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
@@ -36,13 +37,28 @@ function snippetOf(row, q, extra = []) {
   return null;
 }
 
-function createNewsList({ db, now = () => Date.now(), bodyOf = null, cardsFor = null } = {}) {
+// Paragraphs of a listed article for its snippet (W3): from the slice row while the body is kept.
+function slicePara(db) {
+  return async r => {
+    if (!r.body_until) return [];
+    const h = await dbGet(db, 'SELECT data_json, data_gz FROM news_harvest_items WHERE url_key=? OR canonical_key=? LIMIT 1', [r.item_key, r.item_key]).catch(() => null);
+    const a = bodyOfRow(h);
+    return a && Array.isArray(a.paragraphs) ? a.paragraphs : [];
+  };
+}
+
+function createNewsList({ db, now = () => Date.now(), bodyOf = slicePara(db), cardsFor = null } = {}) {
   // Until the first build the index is empty: say so instead of «no articles» (review W2 I3).
   let built = false;
   async function isBuilt() {
     if (built) return true;
     const r = await dbGet(db, "SELECT 1 FROM news_settings WHERE key='index_version'").catch(() => null);
     return (built = !!r);
+  }
+  // The disk guard may have shortened how far back the full text goes (W3): the page says from which day.
+  async function horizon() {
+    const r = await dbGet(db, "SELECT value_json FROM news_settings WHERE key='search_horizon'").catch(() => null);
+    try { return r ? JSON.parse(r.value_json).from_day || null : null; } catch (_) { return null; }
   }
   async function latestDay(outlet) {
     const r = await dbGet(db, `SELECT MAX(day) d FROM news_index${outlet ? ' WHERE outlet_id=?' : ''}`, outlet ? [outlet] : []);
@@ -100,7 +116,7 @@ function createNewsList({ db, now = () => Date.now(), bodyOf = null, cardsFor = 
       for (const r of page) if (r.kind === 'learn' && cards.get(r.item_key)) r.card = cards.get(r.item_key);
     }
     if (p.q) for (const r of page) { const s = snippetOf(r, p.q, bodyOf ? await bodyOf(r) : []); if (s) r.snippet = s; }
-    return { building: !(await isBuilt()), day, prev, next, range, counts, items: page, next_cursor: rows.length > PAGE ? encodeCursor(offset + PAGE) : null, body_search_from: null };
+    return { building: !(await isBuilt()), day, prev, next, range, counts, items: page, next_cursor: rows.length > PAGE ? encodeCursor(offset + PAGE) : null, body_search_from: await horizon() };
   }
   return { list };
 }

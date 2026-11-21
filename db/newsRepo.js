@@ -505,15 +505,8 @@ function createNewsRepo({ db, now = () => Date.now(), index = { refresh: async (
       if (m && await hasOffload()) { const o = await dbGet(db, 'SELECT offloaded_day FROM news_articles WHERE article_id=? AND outlet_id=?', [m[1], String(outletId || '')]); if (o && o.offloaded_day) fail('NEWS_OFFLOADED', 410); }
       fail('NEWS_NOT_FOUND', 404);
     }
-    const outlet = Outlets.byId(row.outlet_id), slug = 'news-' + row.outlet_id;
-    return {
-      corpus: { corpus_id: slug, slug, title: outlet.name_latin, description: '' },
-      edition: { edition_id: slug, edition_number: 1, manifest_sha256: row.snapshot_sha256, item_count: 1, asset_count: 0, asset_missing: 0, package_complete: true, published_at: row.published_at },
-      item: { public_work_id: row.work_id, position_no: row.position_no, title: row.title_he, creator: outlet.name_latin, snapshot: JSON.parse(row.snapshot_json),
-        snapshot_sha256: row.snapshot_sha256, public_read_allowed: 1, public_stream_allowed: 0, package_download_allowed: 0, asset_missing: 0, package_complete: 1,
-        expected_audio_count: 0, included_audio_count: 0 },
-      assets: [], field_evidence: null,
-    };
+    return publicWork({ outlet_id: row.outlet_id, work_id: row.work_id, position_no: row.position_no, title: row.title_he, snapshot: JSON.parse(row.snapshot_json),
+      snapshot_sha256: row.snapshot_sha256, published_at: row.published_at });
   }
   // A stored article photo, only while the article itself is readable (fresh or archive).
   async function getImage(articleId, name) {
@@ -644,4 +637,16 @@ function createNewsRepo({ db, now = () => Date.now(), index = { refresh: async (
   return { setEditionListener, ingestPack: ingestPackIndexed, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, cardsFor, runLifecycle: lifecycleIndexed, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle: restoreIndexed, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
 }
 
-module.exports = { createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };
+// A news text in the public-corpus work shape the Reading Room opens (also the raw originals, W3).
+function publicWork({ outlet_id, work_id, position_no = 1, title, snapshot, snapshot_sha256, published_at }) {
+  const outlet = Outlets.byId(outlet_id), slug = 'news-' + outlet_id;
+  return {
+    corpus: { corpus_id: slug, slug, title: outlet.name_latin, description: '' },
+    edition: { edition_id: slug, edition_number: 1, manifest_sha256: snapshot_sha256, item_count: 1, asset_count: 0, asset_missing: 0, package_complete: true, published_at },
+    item: { public_work_id: work_id, position_no, title, creator: outlet.name_latin, snapshot, snapshot_sha256, public_read_allowed: 1, public_stream_allowed: 0,
+      package_download_allowed: 0, asset_missing: 0, package_complete: 1, expected_audio_count: 0, included_audio_count: 0 },
+    assets: [], field_evidence: null,
+  };
+}
+
+module.exports = { publicWork, createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };

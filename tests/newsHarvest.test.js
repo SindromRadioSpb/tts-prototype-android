@@ -122,7 +122,7 @@ test('RSS items and robots.txt', () => {
 // ---- end to end with a fake web ---------------------------------------------------------------------
 async function harvesterSetup(t, { clock, pages = {}, onFetch = null, index } = {}) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
-  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql', '083_news_editions.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
+  for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql', '083_news_editions.sql', '092_news_body_gz.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-harvest-'));
   t.after(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); });
   const photo = await sharp({ create: { width: 2400, height: 1600, channels: 3, background: '#8899aa' } }).jpeg().toBuffer();

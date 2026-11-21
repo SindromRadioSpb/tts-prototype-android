@@ -6,6 +6,7 @@
 // a slice row — Israel date of published_at (spec §8а п.2).
 const { normHe, stemsHe, normRu } = require('../news/newsSearchNorm');
 const { withTxnLock } = require('./txnLock');
+const { bodyOf } = require('../news/harvest/newsBody');
 
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
@@ -20,7 +21,13 @@ const join = (...parts) => parts.filter(Boolean).join(' ');
 const COLS = ['item_key', 'day', 'outlet_id', 'section', 'story_key', 'edition_slot', 'edition_published_at', 'published_at', 'fresh_at', 'kind', 'work_id', 'selected_by', 'paywalled', 'full_ok',
   'title_he', 'title_ru', 'subtitle_he', 'subtitle_ru', 'lead_he', 'lead_ru', 'url', 'body_until', 'updated_at'];
 
-function createNewsIndex({ db, now = () => Date.now(), bodyText = () => '' } = {}) {
+// The searchable full text of a slice article (W3): its paragraphs while the body is kept.
+const BODY_DAYS = 45;
+// Paywalled teasers and short pages are «только заголовок»: no body in search (spec §8а п.3, review W3 I2).
+const searchableBody = h => !!(h && h.full_ok && !h.paywalled && (h.data_json || h.data_gz));
+function defaultBodyText(g) { if (!searchableBody(g.h)) return ''; const a = bodyOf(g.h); return a && Array.isArray(a.paragraphs) ? a.paragraphs.join(' ') : ''; }
+
+function createNewsIndex({ db, now = () => Date.now(), bodyText = defaultBodyText } = {}) {
   // The article behind any of its keys: the slice row (by url or canonical key) and the study article.
   async function gather(k) {
     const h = await dbGet(db, `SELECT * FROM news_harvest_items WHERE url_key=? OR canonical_key=? ORDER BY (status='failed') LIMIT 1`, [k, k]);
@@ -52,7 +59,8 @@ function createNewsIndex({ db, now = () => Date.now(), bodyText = () => '' } = {
       paywalled: (h && h.paywalled) || (o && o.paywalled) ? 1 : 0, full_ok: h && h.full_ok ? 1 : 0,
       title_he: title, title_ru: (o && o.title_ru) || (a && a.title_ru) || null, subtitle_he: (h && h.subtitle_he) || (o && o.subtitle_he) || null,
       subtitle_ru: (o && o.subtitle_ru) || null, lead_he: (h && h.lead_he) || (o && o.lead_he) || null, lead_ru: (o && o.lead_ru) || null,
-      url: (h && h.url) || (o && o.url) || (a && a.canonical_url) || null, body_until: null, updated_at: new Date(now()).toISOString(),
+      url: (h && h.url) || (o && o.url) || (a && a.canonical_url) || null,
+      body_until: searchableBody(h) && ms(h.first_seen_at) ? new Date(ms(h.first_seen_at) + BODY_DAYS * 86400000).toISOString() : null, updated_at: new Date(now()).toISOString(),
     };
   }
 
@@ -89,6 +97,12 @@ function createNewsIndex({ db, now = () => Date.now(), bodyText = () => '' } = {
     try { const r = await task(); await dbExec('COMMIT'); return r; }
     catch (e) { try { await dbExec('ROLLBACK'); } catch (_) {} throw e; }
   });
+  // Keys in batches of one transaction each, then merge the search index and checkpoint the WAL.
+  async function refreshInBatches(keys, batch = 200) {
+    for (let i = 0; i < keys.length; i += batch) { const part = keys.slice(i, i + batch); await inTransaction(() => refresh(part)); }
+    await dbRun(db, "INSERT INTO news_search(news_search) VALUES('optimize')").catch(() => {});
+    await dbRun(db, 'PRAGMA wal_checkpoint(TRUNCATE)').catch(() => {});
+  }
   // Every slice row and study article, in batches of one transaction each; then the search index is
   // merged and the WAL checkpointed. → number of keys refreshed.
   async function backfill({ batch = 200 } = {}) {
@@ -126,7 +140,7 @@ function createNewsIndex({ db, now = () => Date.now(), bodyText = () => '' } = {
     return n;
   }
 
-  return { refresh, backfill, prune, ensureBuilt, israelDay };
+  return { refresh, refreshInBatches, backfill, prune, ensureBuilt, israelDay };
 }
 
 module.exports = { createNewsIndex, israelDay, KEEP_DAYS };

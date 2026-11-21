@@ -26,7 +26,7 @@ const { ARTICLE_ID, ORDER_TTL_MS, ARCHIVE_WINDOW_MS, archiveDraftHash } = requir
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
 const LIMITS = { mainStories: 22, imagesPerArticle: 8, rows: 400, page: 4 * 1024 * 1024, feed: 2 * 1024 * 1024, image: 15 * 1024 * 1024,
   imageOut: 600 * 1024, minChars: 400, minParagraphs: 2, maxAgeMs: 36 * 3600 * 1000, pagesPerPoll: 120, pollEveryMs: 55 * 60 * 1000,
-  keepRunsDays: 7, keepItemsDays: 45, keepBodyDays: 3, staleRunMs: 3600 * 1000, leadChars: 450 };
+  keepRunsDays: 7, keepItemsDays: 45, keepBodyDays: 45, plainBodyDays: 3, staleRunMs: 3600 * 1000, leadChars: 450 };
 const DIGEST = /^חדשות היום|כותרות השבת|כותרות הבוקר|סיכום חדשות|סיכום השבוע|עדכונים שוטפים|מתעדכן|LIVE|לייב|^מבזק/;
 
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
@@ -34,6 +34,9 @@ const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, 
 const dbRun = (db, sql, p = []) => new Promise((res, rej) => db.run(sql, p, function (e) { e ? rej(e) : res(this); }));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const parse = s => { try { return JSON.parse(s || 'null'); } catch (_) { return null; } };
+const { bodyOf, hasBody, packBody } = require('./newsBody');
+const { buildNewsSnapshot } = require('../newsSnapshot');
+const { publicWork, NewsError } = require('../../db/newsRepo');
 
 // ---- RSS -------------------------------------------------------------------------------------------
 function decodeXml(s) {
@@ -118,7 +121,7 @@ function leadOf(paragraphs, max = LIMITS.leadChars) {
 
 // ---- the harvester -----------------------------------------------------------------------------------
 function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSharp = () => require('sharp'), sources = SOURCES,
-  limits = {}, delayMs = 1200, now = () => Date.now(), log = () => {}, blocked = [], index = { refresh: async () => ({}), prune: async () => 0 } } = {}) {
+  limits = {}, delayMs = 1200, now = () => Date.now(), log = () => {}, blocked = [], index = { refresh: async () => ({}), prune: async () => 0 }, diskGuard = null } = {}) {
   // The news index follows every change of the slice (findability spec §7.1); a failure never stops the harvest.
   const reindex = keys => keys && keys.length ? index.refresh(keys).catch(e => log('[news-index] refresh failed: ' + (e && e.message))) : Promise.resolve();
   const L = { ...LIMITS, ...limits };
@@ -347,7 +350,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       try { fs.rmSync(path.join(dir, path.basename(r.file_name)), { force: true }); } catch (_) {}
       await dbRun(db, 'UPDATE news_editions SET file_name=NULL WHERE edition_id=?', [r.edition_id]);
     }
-    await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL WHERE data_json IS NOT NULL AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]);
+    // Full text (findability spec §2 п.5): plain 3 days, then gzip, gone after 45 days.
+    for (;;) {
+      const part = await dbAll(db, 'SELECT url_key, data_json FROM news_harvest_items WHERE data_json IS NOT NULL AND first_seen_at < ? LIMIT 200', [iso(now() - L.plainBodyDays * 86400000)]).catch(() => []);
+      if (!part.length) break;
+      for (const r of part) await dbRun(db, 'UPDATE news_harvest_items SET data_gz=?, data_json=NULL WHERE url_key=? AND data_json IS NOT NULL', [packBody(r.data_json), r.url_key]);
+    }
+    await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL, data_gz=NULL WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]).catch(() => {});
+    await trimForDisk().catch(e => log('[news-harvest] disk trim failed: ' + (e && e.message)));
     await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
     await index.prune(now()).catch(e => log('[news-index] prune failed: ' + (e && e.message)));
     // Tables that grew without end (findability spec §7.1): 45 days like the slice, study articles kept.
@@ -366,6 +376,73 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     } catch (_) {}
     await dbRun(db, `UPDATE news_editions SET status='failed', closed_at=?, report_json=? WHERE status='building' AND cutoff_at < ?`,
       [iso(now()), JSON.stringify({ error: 'STALE' }), iso(now() - L.staleRunMs)]).catch(() => {});
+  }
+
+  // «Читать оригинал» (findability spec §2 п.8): any slice article with a kept body opens in the Reading Room
+  // as the original without translation, built on request — nothing extra is stored. Photos only while cached.
+  const RAW = /^(na_[0-9a-f]{24})\.rw$/, RAW_IMG = /^img-(\d{1,2})\.jpg$/;
+  const notFound = () => new NewsError('NEWS_NOT_FOUND', 404);
+  async function rawRow(itemKey, outletId) {
+    const row = await dbGet(db, `SELECT * FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND status='ready' AND full_ok=1 AND paywalled=0${outletId ? ' AND outlet_id=?' : ''} ORDER BY first_seen_at LIMIT 1`,
+      outletId ? [itemKey, itemKey, outletId] : [itemKey, itemKey]);
+    const a = row && bodyOf(row);
+    return a && Array.isArray(a.paragraphs) && a.paragraphs.length ? { row, a } : null;
+  }
+  async function rawWork(outletId, workId) {
+    const m = RAW.exec(String(workId || '')); if (!m) throw notFound();
+    const got = await rawRow(m[1], String(outletId || '')); if (!got) throw notFound();
+    const { row, a } = got;
+    const images = (a.images || []).slice(0, L.imagesPerArticle || 12).map((im, i) => ({ ...im, file: 'img-' + (i + 1) + '.jpg', source_url: im.src }));
+    const draft = draftOf(a, { outletId: row.outlet_id, images, retrievedAt: israelIso(Date.parse(row.first_seen_at) || now()), storyKey: row.story_key });
+    const shown = [];
+    for (const im of draft.images) {
+      let bytes = null; try { bytes = fs.readFileSync(cachedPhotoPath(im.source_url)); } catch (_) {}
+      if (bytes) shown.push({ ...im, url: '/api/news/images/' + m[1] + '/' + im.file + '?v=' + crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 12) });
+    }
+    const article = { source: draft.source, image: draft.image, images: shown, learning: draft.learning, prepared: draft.prepared, quality: draft.quality };
+    const { snapshot, snapshot_sha256 } = buildNewsSnapshot(article, article.learning.versions[0], { workId: m[0], raw: true });
+    return publicWork({ outlet_id: row.outlet_id, work_id: m[0], title: a.title_he, snapshot, snapshot_sha256, published_at: a.published_at || row.published_at });
+  }
+  async function rawImage(itemKey, name) {
+    const n = RAW_IMG.exec(String(name || '')); if (!n || !/^na_[0-9a-f]{24}$/.test(String(itemKey || ''))) return null;
+    const got = await rawRow(itemKey, null); const im = got && (got.a.images || [])[Number(n[1]) - 1];
+    if (!im) return null;
+    try { const bytes = fs.readFileSync(cachedPhotoPath(im.src)); return { mime: 'image/jpeg', sha256: crypto.createHash('sha256').update(bytes).digest('hex'), bytes }; } catch (_) { return null; }
+  }
+
+  // Below 2 GB free: the full text of the oldest days goes first, never inside 3 days; the day search by
+  // text starts from is stored for the page (findability spec §2 п.5).
+  async function trimForDisk() {
+    const guard = diskGuard || (diskGuard = require('../newsDiskGuard').createDiskGuard({ dir: dataDir }));
+    let trimmed = false;
+    // One day per cleanup: cleared bodies only become reusable pages inside the file (no VACUUM), so free
+    // disk does not rise right away — looping «while low» would empty all 45 days in one pass (review W3 I1).
+    for (let i = 0; i < 1; i++) {
+      if (!(await guard.check()).low) break;
+      const oldest = await dbGet(db, 'SELECT MIN(first_seen_at) t FROM news_harvest_items WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ?', [iso(now() - L.plainBodyDays * 86400000)]);
+      if (!oldest || !oldest.t) break;
+      const day = israelIso(Date.parse(oldest.t)).slice(0, 10), end = new Date(Date.parse(israelIso(Date.parse(oldest.t)).slice(0, 10) + 'T00:00:00' + israelIso(Date.parse(oldest.t)).slice(-6)) + 86400000).toISOString();
+      const keys = (await dbAll(db, 'SELECT url_key FROM news_harvest_items WHERE (data_json IS NOT NULL OR data_gz IS NOT NULL) AND first_seen_at < ? AND first_seen_at < ?', [end, iso(now() - L.plainBodyDays * 86400000)])).map(r => r.url_key);
+      if (!keys.length) break;
+      for (let j = 0; j < keys.length; j += 200) {
+        const part = keys.slice(j, j + 200);
+        await dbRun(db, `UPDATE news_harvest_items SET data_json=NULL, data_gz=NULL WHERE url_key IN (${part.map(() => '?').join(',')})`, part);
+      }
+      if (index.refreshInBatches) await index.refreshInBatches(keys).catch(e => log('[news-index] refresh failed: ' + (e && e.message)));
+      else await reindex(keys);
+      trimmed = true;
+      log('[news-harvest] disk low: full text of ' + day + ' removed (' + keys.length + ')');
+    }
+    if (trimmed) {
+      const left = await dbGet(db, 'SELECT MIN(first_seen_at) t FROM news_harvest_items WHERE data_json IS NOT NULL OR data_gz IS NOT NULL');
+      const from = left && left.t ? israelIso(Date.parse(left.t)).slice(0, 10) : israelIso(now()).slice(0, 10);
+      await dbRun(db, `INSERT INTO news_settings(key, value_json, updated_at) VALUES ('search_horizon', ?, ?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, updated_at=excluded.updated_at`,
+        [JSON.stringify({ from_day: from }), iso(now())]);
+    } else {
+      const h = await dbGet(db, "SELECT value_json FROM news_settings WHERE key='search_horizon'").catch(() => null);
+      const cut = israelIso(now() - L.keepBodyDays * 86400000).slice(0, 10);
+      if (h && (parse(h.value_json) || {}).from_day <= cut) await dbRun(db, "DELETE FROM news_settings WHERE key='search_horizon'");
+    }
   }
 
   function exclusive(fn) {
@@ -522,7 +599,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       // Only this edition's own articles (its overview), not another edition's material.
       if (row.edition_id !== e.edition_id && !(rep.overview_keys || []).includes(row.url_key)) throw extrasError('NOT_A_CANDIDATE');
       if (row.paywalled) throw extrasError('PAYWALL');
-      const a = row.full_ok ? parse(row.data_json) : null;
+      const a = row.full_ok ? bodyOf(row) : null;
       if (!a || !Array.isArray(a.paragraphs) || !Array.isArray(a.images)) throw extrasError('NO_BODY');
       rows.push({ row: { ...row, selected_by: 'dot', selection_note_ru: note, asked: k }, a });
     }
@@ -594,11 +671,11 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       const row = await dbGet(db, `SELECT * FROM news_harvest_items WHERE outlet_id=? AND (url_key=? OR canonical_key=?)
         ORDER BY status='ready' DESC LIMIT 1`, [candidate.outlet_id, itemKey, itemKey]);
       const firstSeen = row && Date.parse(row.first_seen_at);
-      if (!row || !row.data_json || !Number.isFinite(firstSeen) || firstSeen <= t - L.keepBodyDays * 86400000) throw extrasError('SOURCES_EXPIRED');
+      if (!row || !hasBody(row) || !Number.isFinite(firstSeen) || firstSeen <= t - L.keepBodyDays * 86400000) throw extrasError('SOURCES_EXPIRED');
       if (row.paywalled) throw extrasError('PAYWALL');
       if (row.main_state !== 'none' || (row.lease_until && row.lease_until > when)
         || await dbGet(db, 'SELECT 1 FROM news_articles WHERE article_id=?', [itemKey])) throw extrasError('ALREADY_TAKEN');
-      const a = row.full_ok ? parse(row.data_json) : null;
+      const a = row.full_ok ? bodyOf(row) : null;
       if (!a || !Array.isArray(a.paragraphs) || !a.paragraphs.length || !Array.isArray(a.images)) throw extrasError('NO_BODY');
       if (a.paywalled) throw extrasError('PAYWALL');
       if (row.status !== 'ready' || row.story_key !== candidate.story_key || a.title_he !== candidate.title_he
@@ -641,14 +718,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
           // that won the race cannot be silently re-ordered or overwritten.
           saved = await dbRun(db, `INSERT INTO news_archive_orders(article_id,order_id,edition_id,actor_kind,actor_id,url_key,note_ru,created_at,expires_at,draft_sha256,file_name)
             SELECT ?,?,?,?,?,?,?,?,?,?,? FROM news_harvest_items AS h
-            WHERE h.url_key=? AND h.status='ready' AND h.main_state='none' AND h.full_ok=1 AND h.paywalled=0 AND h.data_json=? AND h.story_key=?
+            WHERE h.url_key=? AND h.status='ready' AND h.main_state='none' AND h.full_ok=1 AND h.paywalled=0 AND h.data_json IS ? AND h.data_gz IS ? AND h.story_key=?
               AND (h.lease_until IS NULL OR h.lease_until<=?) AND NOT EXISTS(SELECT 1 FROM news_articles WHERE article_id=?)
             ON CONFLICT(article_id) DO UPDATE SET order_id=excluded.order_id,edition_id=excluded.edition_id,actor_kind=excluded.actor_kind,
               actor_id=excluded.actor_id,url_key=excluded.url_key,note_ru=excluded.note_ru,created_at=excluded.created_at,expires_at=excluded.expires_at,
               draft_sha256=excluded.draft_sha256,file_name=excluded.file_name
             WHERE news_archive_orders.expires_at<=? AND news_archive_orders.emitted_pack_id IS NULL`,
             [itemKey, id, e.edition_id, actor.kind, String(actor.id), row.url_key, note, when, expires, draftSha, name,
-              row.url_key, row.data_json, candidate.story_key, iso(readyAt), itemKey, iso(readyAt)]);
+              row.url_key, row.data_json, row.data_gz || null, candidate.story_key, iso(readyAt), itemKey, iso(readyAt)]);
           if (!saved.changes) throw extrasError('ALREADY_TAKEN');
         } catch (err) { fs.rmSync(file, { force: true }); throw err; }
         if (old && old.file_name) try { fs.rmSync(path.join(dir, path.basename(old.file_name)), { force: true }); } catch (_) {}
@@ -842,7 +919,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup };
+    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup, rawWork, rawImage };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

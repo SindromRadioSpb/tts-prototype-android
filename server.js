@@ -1453,7 +1453,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/library-ui.js?v=908",
   // News section (3.11.885)
   "/js/news-outlets.js?v=885",
-  "/js/news-reader.js?v=895",
+  "/js/news-reader.js?v=912",
   "/js/news-local-sweep.js?v=885",
   "/css/news-reader.css?v=895",
   "/js/atlas-progress-export.js?v=876",
@@ -1541,9 +1541,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=911",
-  "/i18n/locales/en.js?v=911",
-  "/i18n/locales/he.js?v=911",
+  "/i18n/locales/ru.js?v=912",
+  "/i18n/locales/en.js?v=912",
+  "/i18n/locales/he.js?v=912",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4644,7 +4644,7 @@ const _newsLifecycleBoot = setTimeout(() => {
 if (_newsLifecycleBoot.unref) _newsLifecycleBoot.unref();
 // The news index is built once per index version (in the background, after boot settles).
 const _newsIndexBoot = setTimeout(() => {
-  newsStore().index.ensureBuilt(1).then(n => { if (n) console.log("[news-index] built:", n, "keys"); }).catch(e => console.error("[news-index] build failed:", e && e.message));
+  newsStore().index.ensureBuilt(2).then(n => { if (n) console.log("[news-index] built:", n, "keys"); }).catch(e => console.error("[news-index] build failed:", e && e.message));
 }, 120 * 1000);
 if (_newsIndexBoot.unref) _newsIndexBoot.unref();
 // Article harvester: checks every 10 minutes — an edition at each cut-off (06:00, 10:30, 16:30, 20:30 Israel time by default), an hourly poll between.

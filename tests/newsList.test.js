@@ -119,3 +119,10 @@ test('list says the index is being built until its first build is done (review W
   assert.equal((await L.list({})).building, false);
   db.close();
 });
+test('list reports the day text search starts from when the disk guard shortened it', async () => {
+  const { db, L } = await setup();
+  assert.equal((await L.list({})).body_search_from, null);
+  await run(db, "INSERT INTO news_settings(key, value_json, updated_at) VALUES ('search_horizon', ?, 't')", [JSON.stringify({ from_day: '2026-11-11' })]);
+  assert.equal((await L.list({})).body_search_from, '2026-11-11');
+  db.close();
+});

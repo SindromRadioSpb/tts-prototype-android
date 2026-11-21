@@ -178,3 +178,19 @@ test('backfill writes in transactions and leaves nothing half-done when a batch 
   assert.ok(Array.isArray(tx));
   db.close();
 });
+
+test('a word only in the body is found, with a snippet from the body; body_until is 45 days after first seen', async () => {
+  const db = await openDb(), ix = createNewsIndex({ db, now: () => NOW });
+  const { createNewsList } = require('../db/newsList');
+  const { packBody } = require('../news/harvest/newsBody');
+  const h = await harvestRow(db, { first_seen_at: '2026-11-15T10:00:00Z' });
+  await run(db, 'UPDATE news_harvest_items SET data_gz=? WHERE url_key=?', [packBody({ title_he: h.title_he, paragraphs: ['פסקה ראשונה.', 'בסוף הכתבה מוזכר הפרלמנט האירופי בהקשר אחר לגמרי.'] }), h.url_key]);
+  await ix.refresh([h.url_key]);
+  const [r] = await rows(db);
+  assert.equal(r.body_until, '2026-12-30T10:00:00.000Z');
+  const L = createNewsList({ db, now: () => NOW });
+  const found = await L.list({ q: 'האירופי' });
+  assert.equal(found.items.length, 1);
+  assert.match(found.items[0].snippet, /הפרלמנט האירופי/);
+  db.close();
+});

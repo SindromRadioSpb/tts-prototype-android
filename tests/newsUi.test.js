@@ -240,3 +240,11 @@ test('list row: publication time in Israel time, with the date when it is anothe
   const other = UI.renderOverviewItem(document, { ...ovIt(2), published_at: '2026-11-20T21:30:00.000Z' }, { showTime: true, day: '2026-11-21' });
   assert.match(other.querySelector('.nw-ov-time').textContent, /20 ноября, 23:30/);
 });
+test('slice row with a kept body offers the original; without a body or as a study article it does not', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const it = { ...ovIt(1), full_ok: 1, body_until: '2099-01-01T00:00:00.000Z' };
+  const el = UI.renderOverviewItem(document, it, { rawLink: true, returnTo: '/news.html?view=overview' });
+  assert.ok(el.querySelector('a.nw-ov-raw').getAttribute('href').startsWith('/library.html?news=' + it.item_key + '.rw&'));
+  assert.equal(UI.renderOverviewItem(document, { ...it, body_until: null }, { rawLink: true }).querySelector('a.nw-ov-raw'), null);
+  assert.equal(UI.renderOverviewItem(document, { ...it, work_id: 'na_' + 'a'.repeat(24) + '.b1' }, { rawLink: true }).querySelector('a.nw-ov-raw'), null);
+});
