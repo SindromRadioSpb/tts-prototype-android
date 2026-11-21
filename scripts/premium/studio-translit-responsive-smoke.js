@@ -21,7 +21,7 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
     if (remote) { assert.ok(arg('version') && !baseline); assert.equal((await (await fetch(base + '/api/client-config?verify=' + Date.now())).json()).version, arg('version')); }
     browser = await chromium.launch({ headless: true });
     for (const surface of ['classic', 'ide']) {
-      const context = await browser.newContext({ serviceWorkers: 'block', viewport: mobile ? { width: 380, height: 780 } : { width: 1280, height: 900 } });
+      const context = await browser.newContext({ hasTouch: mobile, serviceWorkers: 'block', viewport: mobile ? { width: 380, height: 780 } : { width: 1280, height: 900 } });
       await context.route('**/*', async route => {
         const url = new URL(route.request().url());
         if (url.origin !== base || !['GET', 'HEAD'].includes(route.request().method())) return route.abort();
@@ -64,7 +64,7 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
         if (surface === 'ide') v3IdeApplyMode(true);
         const rows = Array.from({ length: count }, (_, i) => ({ he: 'שלום עולם ' + i, he_niqqud: 'שָׁלוֹם עוֹלָם ' + i,
           ru: 'Синтетическая строка ' + i, translit: i === 0 ? 'MY OWN LATIN' : 'stored-' + i, translit_ru: '',
-          edit_meta_json: i === 0 ? { edited: { translit: true } } : null, _v3_sentenceId: 's' + i, _v3_textId: 'fixture' }));
+          edit_meta_json: i === 0 ? { edited: { translit: true } } : null, _v3_sentenceId: 's' + i, _v3_textId: surface === 'classic' && i === count - 1 ? undefined : 'fixture' }));
         currentTableData = rows;
         const name = surface === 'ide' ? 'v3IdeRenderTable' : 'renderTable', original = window[name];
         window[name] = function (...args) { __studioProbe.renders++; return original.apply(this, args); };
@@ -119,7 +119,7 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
       if (surface === 'classic' && !baseline && !remote) {
         // Wait out the automatic render hook, then repeat the real injector
         // from a known unadorned table while transliteration is still held.
-        await page.waitForFunction(n => __studioProbe.table.querySelectorAll('.row-bookmark-btn').length === n, count);
+        await page.waitForFunction(n => __studioProbe.table.querySelectorAll('.row-bookmark-btn').length === n, count - 1);
         const bookmarksOnly = await page.evaluate(async () => {
           const p = __studioProbe, editor = p.editor;
           p.table.querySelectorAll('.col-action-row-bm').forEach(node => node.remove());
@@ -158,7 +158,8 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
             transliterationHeld: v3TranslitStore().isFilling() && !p.patchDone };
         });
         report.bookmarksOnly = bookmarksOnly;
-        assert.equal(bookmarksOnly.buttons, count);
+        assert.equal(bookmarksOnly.buttons, count - 1);
+        assert.equal(bookmarksOnly.prior.ancestors[0].height, bookmarksOnly.after.ancestors[0].height, 'filling saved-row slots does not grow or shrink the table');
         assert.ok(bookmarksOnly.transliterationHeld && bookmarksOnly.editorPreserved);
         assert.deepEqual(bookmarksOnly.caret, [4, 9]);
         assert.ok(bookmarksOnly.prior.editorFullyVisible && bookmarksOnly.after.editorFullyVisible, 'bookmark injection alone keeps the focused editor visible');
@@ -200,6 +201,47 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
         if (mobile) assert.equal(await page.getAttribute('html', 'dir'), 'rtl');
         fs.mkdirSync(path.dirname(out), { recursive: true });
         await page.screenshot({ path: out.replace(/\.json$/, '') + '-' + surface + '.png' });
+        if (report.bookmarksOnly && surface === 'classic') {
+          const pick = '#tableContainer #proTable tr[data-row-idx="' + Math.floor(count * .7) + '"] .row-bookmark-btn';
+          const button = page.locator(pick);
+          const controls = await page.evaluate(async ({ pick, count }) => {
+            const table = __studioProbe.table, b = document.querySelector(pick);
+            const savedSlot = b.closest('.col-action-row-bot');
+            const unsaved = table.querySelector('tr[data-row-idx="' + (count - 1) + '"]');
+            window.__bookmarkWrites = [];
+            const originalLdb = StudioAgentHost.ldb;
+            StudioAgentHost.ldb = async () => ({
+              getTextByIdLite: async () => ({ title: 'synthetic' }),
+              listBookmarks: async () => [],
+              addBookmark: async arg => window.__bookmarkWrites.push(['add', arg.text_id, arg.sentence_id]),
+              removeBookmark: async (textId, sid) => window.__bookmarkWrites.push(['remove', textId, sid])
+            });
+            window.__restoreBookmarkLdb = () => { StudioAgentHost.ldb = originalLdb; };
+            table.classList.add('tbl-edit-mode');
+            const hiddenInEditMode = !b.getClientRects().length && parseFloat(getComputedStyle(savedSlot).paddingBlockEnd) === 0;
+            table.classList.remove('tbl-edit-mode');
+            return { savedEnabled: !b.disabled && b.getAttribute('aria-pressed') === 'false',
+              hiddenInEditMode, unsavedHasNoSlot: !unsaved.querySelector('.col-action-row-bot,.row-bookmark-btn') };
+          }, { pick, count });
+          assert.deepEqual(controls, { savedEnabled: true, hiddenInEditMode: true, unsavedHasNoSlot: true });
+          if (mobile) await button.tap(); else { await button.focus(); await page.keyboard.press('Space'); }
+          await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-pressed') === 'true' && !document.querySelector(selector)?.disabled, pick);
+          if (mobile) await button.tap(); else await page.keyboard.press('Space');
+          await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-pressed') === 'false' && !document.querySelector(selector)?.disabled, pick);
+          report.bookmarkControls = await page.evaluate(async ({ pick }) => {
+            window.__restoreBookmarkLdb();
+            const b = document.querySelector(pick), slot = b.closest('.col-action-row-bot');
+            document.body.classList.add('room-mode');
+            try {
+              b.closest('.col-action-row-bm').remove();
+              await StudioBookmarks.inject();
+              return { writes: window.__bookmarkWrites, roomDidNotInject: !slot.querySelector('.row-bookmark-btn'),
+                roomHasNoPadding: parseFloat(getComputedStyle(slot).paddingBlockEnd) === 0 };
+            } finally { document.body.classList.remove('room-mode'); }
+          }, { pick });
+          const sid = 's' + Math.floor(count * .7);
+          assert.deepEqual(report.bookmarkControls, { writes: [['add', 'fixture', sid], ['remove', 'fixture', sid]], roomDidNotInject: true, roomHasNoPadding: true });
+        }
         // A late fill belonging to A cannot patch a newly mounted B.
         const cancelled = await page.evaluate(async () => {
           const old = __studioProbe.table; currentTableData = [{ he: 'חדש', he_niqqud: 'חָדָשׁ', translit: 'B' }];

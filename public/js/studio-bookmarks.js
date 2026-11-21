@@ -54,6 +54,7 @@
     btn.textContent = on ? '★' : '☆';
     btn.setAttribute('aria-pressed', String(on));
     btn.title = tt(on ? 'room.bookmark.remove' : 'room.bookmark.add', on ? 'Убрать закладку' : 'Закладка');
+    btn.setAttribute('aria-label', btn.title);
   }
 
   async function toggle(btn) {
@@ -94,41 +95,9 @@
     }
   }
 
-  // Keep the edit/reading viewport steady for one synchronous layout batch.
-  // Capture again after each idle yield: manual scroll or a new edit then owns
-  // the next position. Do not retain anchors across DB reads or idle tasks.
-  function captureBatchPosition(table, last) {
-    var mount = table.parentElement, doc = table.ownerDocument, view = doc.defaultView;
-    var editor = doc.activeElement;
-    if (mount && editor && table.contains(editor) && editor.matches('.cell-editor-wrap textarea, .cell-editor-wrap input, .cell-editor-wrap [contenteditable="true"]')) {
-      var page = doc.scrollingElement, scroller = mount;
-      while (scroller && scroller !== page &&
-        !(/auto|scroll|overlay/.test(view.getComputedStyle(scroller).overflowY) && scroller.scrollHeight > scroller.clientHeight)) scroller = scroller.parentElement;
-      scroller = scroller || page;
-      var pos = editor.getBoundingClientRect();
-      var clip = scroller === page ? { top: 0, bottom: view.innerHeight } : scroller && scroller.getBoundingClientRect();
-      if (clip && pos.bottom > Math.max(0, clip.top) && pos.top < Math.min(view.innerHeight, clip.bottom)) {
-        // scrollTop can round to an integer. Carry its residual while this
-        // exact editor and offset persist, rather than accumulating it.
-        var same = last.editor === editor && last.scroller === scroller &&
-          last.expected === scroller.scrollTop && Math.abs(pos.top - last.top) <= 1;
-        var top = same ? last.top : pos.top;
-        last.editor = editor; last.scroller = scroller; last.top = top;
-        return function () {
-          if (!table.isConnected || doc.activeElement !== editor || !table.contains(editor)) return;
-          var delta = editor.getBoundingClientRect().top - top;
-          if (Math.abs(delta) > 0.5) scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: 'instant' });
-          last.expected = scroller.scrollTop;
-        };
-      }
-    }
-    last.editor = null;
-    return window.ReaderMorph && window.ReaderMorph.captureReadingPosition
-      ? window.ReaderMorph.captureReadingPosition(mount) : function () {};
-  }
-
-  // A 2500-row table shows first. Bookmark controls use the cached set and
-  // remain in their original actionable row layout, inserted in idle slices.
+  // The Classic shell reserves a slot in the existing saved-row note wrapper
+  // before render. Only the interactive button is added at idle time; the slot
+  // does not change the table's geometry when filled.
   var SLICE = 400;
   var injectTimer = 0;
   function scheduleInject() {
@@ -150,12 +119,14 @@
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       if (cell.querySelector('.row-bookmark-btn')) continue;
+      var slot = cell.querySelector(':scope > .col-action-row-bot');
+      if (!slot) continue;
       var tts = cell.querySelector('.row-tts-btn[data-row-idx]');
       if (!tts) continue;
       var idx = Number(tts.getAttribute('data-row-idx'));
       var row = Number.isFinite(idx) ? h.getRow(idx) : null;
       if (!row || !row._v3_sentenceId || !row._v3_textId) continue;
-      todo.push({ cell: cell, idx: idx, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
+      todo.push({ slot: slot, idx: idx, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
     }
     if (!todo.length) return;
     var sets = {};
@@ -169,29 +140,19 @@
         else setTimeout(r, 16);
       });
     };
-    var last = {};
-    for (var start = 0; start < todo.length; start += SLICE) {
-      if (start) await idle();
-      if (!table.isConnected) return;
-      var restore = null;
-      try {
-        for (var j = start; j < Math.min(start + SLICE, todo.length); j++) {
-          var p = todo[j];
-          if (!p.cell.isConnected || p.cell.querySelector('.row-bookmark-btn')) continue;
-          if (!restore) restore = captureBatchPosition(table, last);
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'row-bookmark-btn';
-          btn.setAttribute('data-row-idx', String(p.idx));
-          btn.setAttribute('aria-label', tt('room.bookmark.add', 'Закладка'));
-          paint(btn, sets[p.textId].has(p.sid));
-          var wrap = document.createElement('div');
-          wrap.className = 'col-action-row col-action-row-bm';
-          wrap.appendChild(btn);
-          var edits = p.cell.querySelector('.row-edit-actions');
-          if (edits) p.cell.insertBefore(wrap, edits); else p.cell.appendChild(wrap);
-        }
-      } finally { if (restore) restore(); }
+    for (var j = 0; j < todo.length; j++) {
+      if (j && j % SLICE === 0) { await idle(); if (!table.isConnected) return; }
+      var p = todo[j];
+      if (!p.slot.isConnected || p.slot.querySelector('.row-bookmark-btn')) continue;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'row-bookmark-btn';
+      btn.setAttribute('data-row-idx', String(p.idx));
+      paint(btn, sets[p.textId].has(p.sid));
+      var wrap = document.createElement('div');
+      wrap.className = 'col-action-row col-action-row-bm';
+      wrap.appendChild(btn);
+      p.slot.appendChild(wrap);
     }
   }
   // the Room may have changed a text's bookmarks while this tab was away: re-read on return

@@ -1840,7 +1840,41 @@ td.col-action-cell {
   width: 100%;
 }
 .col-action-row-top { margin-bottom: 2px; }
-.col-action-row-bot {}
+/* The existing note wrapper marks a saved Classic row (both text and sentence IDs).
+   Reserve only its bookmark slot before any idle injection, with no effect on
+   unsaved rows, the IDE, or index.html's shared Reading Room mode. */
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-cell > .col-action-row-bot {
+    --studio-bookmark-slot: 32px;
+    position: relative;
+    padding-block-end: var(--studio-bookmark-slot);
+}
+html[data-look="gouache"] body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-cell > .col-action-row-bot {
+    --studio-bookmark-slot: 28px;
+}
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-row-bot > .col-action-row-bm {
+    position: absolute;
+    inset-block-end: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid !important;
+    place-items: center;
+    inline-size: 38px !important;
+    block-size: var(--studio-bookmark-slot);
+}
+body:not(.room-mode) #tableContainer > #proTable.tbl-edit-mode .col-action-row-bot > .col-action-row-bm {
+    display: none !important;
+}
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-row-bm > .row-bookmark-btn {
+    position: relative;
+}
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-row-bm > .row-bookmark-btn::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    inline-size: 44px;
+    block-size: 38px;
+    transform: translate(-50%, -50%);
+}
 
 /* Ensure resize grips on th are never clipped */
 #proTable thead th {
