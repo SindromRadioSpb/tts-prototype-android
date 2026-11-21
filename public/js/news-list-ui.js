@@ -155,6 +155,23 @@
         heavy = h(doc, "input", { type: "checkbox", name: "noHeavy" }); heavy.checked = ctx.noHeavy();
         fields.push(h(doc, "label", { class: "nw-toggle" }, [heavy, " " + t("news.noHeavy", "Без тяжёлых тем")]));
       }
+      if (ctx.orders && s.tag) {
+        var dayNow = s.day || (lastData && lastData.day) || null, ranged = !!(s.from || s.to);
+        var from0 = ranged ? s.from || null : dayNow, to0 = ranged ? s.to || null : dayNow;
+        var ot = h(doc, "button", { type: "button", class: "nw-button nw-order-tag", text: fill(t("news.list.orderTag", "Отдать dot: #{tag} за {when}"), { tag: s.tag, when: from0 === to0 ? (from0 ? dayLabel(from0, loc) : "") : (from0 ? dayLabel(from0, loc) : "…") + " — " + (to0 ? dayLabel(to0, loc) : "…") }) });
+        var otRes = h(doc, "p", { class: "nw-order-tag-result", role: "status" });
+        ot.addEventListener("click", function () {
+          ot.disabled = true;
+          Promise.resolve(ctx.orders.orderTag({ tag: s.tag, from: from0, to: to0 })).then(function (res) {
+            res = res || {};
+            var reasons = {}; (res.skipped || []).forEach(function (x) { var k = t("news.list.skip." + x.reason, x.reason); reasons[k] = (reasons[k] || 0) + 1; });
+            otRes.textContent = fill(t("news.list.orderTagDone", "Заказано: {n}, пропущено: {m}"), { n: (res.created || []).length, m: (res.skipped || []).length })
+              + (Object.keys(reasons).length ? " (" + Object.keys(reasons).map(function (k) { return k + " — " + reasons[k]; }).join(", ") + ")" : "");
+          }).catch(function (e) { otRes.textContent = e && e.message === "ORDER_TOO_BIG" ? t("news.list.orderTooBig", "Больше 50 статей — сузьте даты") : t("news.manage.failed", "Не получилось. Попробуйте ещё раз."); })
+            .then(function () { ot.disabled = false; });
+        });
+        fields.push(h(doc, "div", { class: "nw-sheet-order" }, [ot, otRes]));
+      }
       var apply = h(doc, "button", { type: "button", class: "nw-button", text: t("news.list.apply", "Применить") });
       var reset = h(doc, "button", { type: "button", class: "nw-link-btn", text: t("news.list.reset", "Сбросить") });
       apply.addEventListener("click", function () {
@@ -169,6 +186,31 @@
         x.addEventListener("click", function () { ctx.go(Object.assign({}, s, { story: null })); });
         storyChip.replaceChildren(x);
       } else storyChip.replaceChildren();
+    }
+    // The owner's order for dot (W5): «Сделать учебной», then the order's status and dot's reason.
+    var ORDER_TEXT = { skipped: "не заказано", open: "заказано, ждёт dot", taken: "dot взял заказ", done: "опубликовано по заказу", failed: "отказ dot", expired: "заказ не выполнен: текст удалён" };
+    function orderBox(r) {
+      var box = h(doc, "div", { class: "nw-order" });
+      function paint() {
+        if (r.order) {
+          var st = t("news.list.order." + r.order.status, ORDER_TEXT[r.order.status] || r.order.status) + (r.order.reason ? ": " + t("news.list.skip." + r.order.reason, r.order.reason) : "");
+          box.replaceChildren(h(doc, "span", { class: "nw-order-status", "data-status": r.order.status, text: st }));
+          return;
+        }
+        if (!(r.full_ok && !r.paywalled && r.body_until)) { box.replaceChildren(); return; }
+        var b = h(doc, "button", { type: "button", class: "nw-button nw-button-quiet nw-order-btn", text: t("news.list.orderOne", "Сделать учебной (заказ dot)") });
+        b.addEventListener("click", function () {
+          b.disabled = true;
+          Promise.resolve(ctx.orders.order(r)).then(function (res) {
+            if (res && res.created && res.created.length) r.order = { status: "open" };
+            else if (res && res.skipped && res.skipped[0]) r.order = { status: "skipped", reason: res.skipped[0].reason };
+            paint();
+          }).catch(function () { b.disabled = false; });
+        });
+        box.replaceChildren(b);
+      }
+      paint();
+      return box.childNodes.length ? box : null;
     }
     // ★, tags and «прочитано» under a row (W4).
     function marksBar(r) {
@@ -202,6 +244,7 @@
       var el = r.card && !(ctx.noHeavy && ctx.noHeavy() && r.card.heavy) ? ctx.renderCard(r.card) : r.card ? null : ctx.renderItem(r);
       if (!el) return null;
       var extra = [];
+      if (ctx.orders && r.kind === "slice") { var ob = orderBox(r); if (ob) extra.push(ob); }
       if (M) {
         extra.push(marksBar(r));
         el.addEventListener("click", function (e) { var a = e.target && e.target.closest && e.target.closest('a[href*="/library.html?news="]'); if (a) { r.read = true; Promise.resolve(M.read(r)).catch(function () {}); } });

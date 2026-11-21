@@ -99,3 +99,10 @@ test('per-user caps: marks, distinct tags, reads (review W4 I3)', async t => {
   for (const n of [5, 6, 7]) await marks.read(USER.id, K(n));
   assert.deepEqual([...(await marks.readSet(USER.id, [K(5), K(6), K(7)]))].sort(), [K(6), K(7)], 'the oldest read goes');
 });
+test('ownerTags: the owner\'s tags with their article keys, for dot', async t => {
+  const { db, marks } = await setup(t);
+  await run(db, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, role TEXT)");
+  await run(db, "INSERT INTO users(id, role) VALUES (1, 'owner'), (2, 'user')");
+  await marks.mark({ id: '1', kind: 'owner' }, K(1), 'выборы'); await marks.mark({ id: '1', kind: 'owner' }, K(2), '★'); await marks.mark({ id: '2', kind: 'user' }, K(3), 'чужое');
+  assert.deepEqual(await marks.ownerTags(), { 'выборы': [K(1)], '★': [K(2)] });
+});

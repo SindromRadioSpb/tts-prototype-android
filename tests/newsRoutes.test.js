@@ -272,3 +272,81 @@ test('marks over the cap answer 409', async t => {
   const r = await fetch('http://127.0.0.1:' + server.address().port + '/api/news/marks', { method: 'PUT', headers: { 'content-type': 'application/json', 'x-lp-csrf': 'c' }, body: JSON.stringify({ item_key: 'na_' + 'a'.repeat(24), tag: 'x' }) });
   assert.equal(r.status, 409);
 });
+
+// Findability W5: the owner's orders for dot.
+async function ordersApp(t, { orderForOwner } = {}) {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createOwnerOrders } = require('../news/newsOwnerOrders');
+  const { createNewsMarks } = require('../db/newsMarks');
+  const { packBody } = require('../news/harvest/newsBody');
+  const db = await openDb();
+  const run = (sql, p = []) => new Promise((res, rej) => db.run(sql, p, e => e ? rej(e) : res()));
+  const K = n => 'na_' + String(n).padStart(24, '0');
+  for (const n of [1, 2]) {
+    await run(`INSERT INTO news_harvest_items(url_key, canonical_key, outlet_id, url, first_seen_at, status, title_he, full_ok, data_gz) VALUES (?,?,?,?,?,'ready','כ',1,?)`,
+      [K(n), K(n), 'ynet', 'https://www.ynet.co.il/news/article/' + n, '2026-11-21T08:00:00.000Z', packBody({ paragraphs: ['ט.'] })]);
+    await run(`INSERT INTO news_index(item_key, day, outlet_id, fresh_at, kind, title_he, updated_at) VALUES (?, '2026-11-21', 'ynet', 't', 'slice', 'כ', 't')`, [K(n)]);
+  }
+  const now = () => Date.parse('2026-11-21T12:00:00Z');
+  const marks = createNewsMarks({ db, now }), orders = createOwnerOrders({ db, now, marks });
+  const harvester = { orderForOwner: orderForOwner || (async o => ({ order_id: 'nso_' + 'e'.repeat(32), buffer: Buffer.from('ZIP:' + o.item_key), name: 'news-archive-order-x.zip' })),
+    nextEdition: async () => ({ edition_id: 'ne_x' }) };
+  const owner = { user: { id: 'owner', role: 'owner' }, session: { csrf: 'oc' } };
+  const app = express();
+  mountNewsRoutes(app, { repo: {}, harvester, marks, orders, resolveUser: async req => req.headers.cookie === 'o' ? owner : null,
+    editorAuth: { resolve: async req => req.headers.authorization === 'Bearer dot' ? { id: 'editor:e1', kind: 'editor', via: 'bearer' } : null } });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(() => db.close(r))));
+  const base = 'http://127.0.0.1:' + server.address().port;
+  const OWN = { cookie: 'o', 'x-lp-csrf': 'oc' }, DOTH = { authorization: 'Bearer dot' };
+  const call = (method, url, headers, json) => fetch(base + url, { method, headers: { ...headers, ...(json ? { 'content-type': 'application/json' } : {}) }, body: json ? JSON.stringify(json) : undefined });
+  return { call, OWN, DOTH, K, orders, marks };
+}
+test('orders: owner creates, dot lists, takes (draft zip) and fails with a reason; editions/next carries open orders', async t => {
+  const { call, OWN, DOTH, K } = await ordersApp(t);
+  assert.equal((await call('POST', '/api/news/orders', {}, { item_key: K(1), note_ru: 'x' })).status, 401);
+  const made = await (await call('POST', '/api/news/orders', OWN, { item_key: K(1), note_ru: 'Выбор владельца' })).json();
+  assert.equal(made.created.length, 1);
+  await call('POST', '/api/news/orders', OWN, { item_key: K(2), note_ru: 'Второй' });
+  const next = await (await call('GET', '/api/news/editor/editions/next', DOTH)).json();
+  assert.equal(next.orders.length, 2, 'dot sees the open orders where it looks first');
+  const open = await (await call('GET', '/api/news/editor/orders?status=open', DOTH)).json();
+  assert.deepEqual(open.orders.map(o => o.item_key).sort(), [K(1), K(2)]);
+  const take = await call('POST', '/api/news/editor/orders/' + made.created[0].order_id + '/take', DOTH, {});
+  assert.equal(take.status, 200); assert.equal(take.headers.get('content-type'), 'application/zip');
+  assert.equal(Buffer.from(await take.arrayBuffer()).toString(), 'ZIP:' + K(1));
+  const failed = await call('POST', '/api/news/editor/orders/' + open.orders.find(o => o.item_key === K(2)).order_id + '/fail', DOTH, { reason: 'Текст слишком короткий' });
+  assert.equal(failed.status, 200);
+  const mine = await (await call('GET', '/api/news/orders', OWN)).json();
+  assert.deepEqual(mine.orders.map(o => [o.item_key, o.status, o.reason]).sort(), [[K(1), 'taken', null], [K(2), 'failed', 'Текст слишком короткий']]);
+});
+test('orders: a tag order over 50 is refused; a take that cannot be built says why and keeps the order open', async t => {
+  const { call, OWN, DOTH, K, marks, orders } = await ordersApp(t, { orderForOwner: async () => { throw Object.assign(new Error('SOURCES_EXPIRED'), { code: 'SOURCES_EXPIRED' }); } });
+  await marks.mark({ id: 'owner', kind: 'owner' }, K(1), 'выборы');
+  const r = await (await call('POST', '/api/news/orders', OWN, { tag: 'выборы', from: '2026-11-21', to: '2026-11-21', note_ru: 'По тегу' })).json();
+  assert.equal(r.created.length, 1);
+  const take = await call('POST', '/api/news/editor/orders/' + r.created[0].order_id + '/take', DOTH, {});
+  assert.equal(take.status, 410); assert.equal((await take.json()).error, 'SOURCES_EXPIRED');
+  assert.equal((await orders.get(r.created[0].order_id)).reason, 'SOURCES_EXPIRED');
+  const bad = await call('POST', '/api/news/orders', OWN, { item_key: 'junk', note_ru: '' });
+  assert.equal(bad.status, 400);
+});
+test('orders: the owner sees each row\'s order status in the list', async t => {
+  const { openDb } = require('./helpers/newsDb.cjs');
+  const { createOwnerOrders } = require('../news/newsOwnerOrders');
+  const { createNewsMarks } = require('../db/newsMarks');
+  const { createNewsList } = require('../db/newsList');
+  const db = await openDb();
+  const run = (sql, p = []) => new Promise((res, rej) => db.run(sql, p, e => e ? rej(e) : res()));
+  const K = 'na_' + '1'.repeat(24), now = () => Date.parse('2026-11-21T12:00:00Z');
+  await run("INSERT INTO news_settings(key, value_json, updated_at) VALUES ('index_version','2','t')");
+  await run(`INSERT INTO news_index(item_key, day, outlet_id, fresh_at, kind, title_he, updated_at) VALUES (?, '2026-11-21', 'ynet', 't', 'slice', 'כ', 't')`, [K]);
+  await run(`INSERT INTO news_owner_orders(order_id, item_key, note_ru, status, reason, created_by, created_at, updated_at) VALUES ('noo_1', ?, 'n', 'failed', 'Слишком коротко', 'owner', 't', 't')`, [K]);
+  const app = express();
+  mountNewsRoutes(app, { repo: {}, editorAuth: { resolve: async () => null }, resolveUser: async () => ({ user: { id: 'owner', role: 'owner' }, session: { csrf: 'c' } }),
+    list: createNewsList({ db, now }), marks: createNewsMarks({ db, now }), orders: createOwnerOrders({ db, now }) });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(() => db.close(r))));
+  const r = await (await fetch('http://127.0.0.1:' + server.address().port + '/api/news/list?day=2026-11-21', { headers: { cookie: 'x' } })).json();
+  assert.deepEqual([r.items[0].order.status, r.items[0].order.reason], ['failed', 'Слишком коротко']);
+});

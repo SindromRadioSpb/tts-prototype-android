@@ -145,7 +145,7 @@ async function harvesterSetup(t, { clock, pages = {}, onFetch = null, index } = 
     return web[url] != null ? new Response(web[url], { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 });
   };
   const sources = [sourceFor('ynet'), sourceFor('c14')];
-  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources, delayMs: 0, now: () => clock.now, limits: { minChars: 200 }, index });
+  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources, delayMs: 0, now: () => clock.now, limits: { minChars: 200 }, index, tagsForDot: async () => ({ 'выборы': ['na_' + 'a'.repeat(24)] }) });
   return { db, dataDir, harvester, requests };
 }
 
@@ -164,7 +164,8 @@ test('hourly poll keeps every new article; an edition makes main drafts + «Об
   assert.equal(r.overview_items, 2); assert.equal(r.stories, 2);
   assert.equal(r.slot, 'extra'); assert.match(r.edition_id, /^ne_[0-9a-f]{18}$/);
   const zip = new AdmZip((await harvester.runFile(r.run_id)).path), names = zip.getEntries().map(e => e.entryName).sort();
-  assert.deepEqual(names, ['README-dot.md', 'candidates.json', 'harvest.json', 'interests.md', 'overview.json', 'reading.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
+  assert.deepEqual(names, ['README-dot.md', 'candidates.json', 'harvest.json', 'interests.md', 'overview.json', 'reading.json', 'tags.json', 'ynet-0001.draft.json', 'ynet-0001/img-1.jpg', 'ynet-0001/img-2.jpg']);
+  assert.deepEqual(JSON.parse(zip.readAsText('tags.json')), { schema: 'linguistpro-news-owner-tags', tags: { 'выборы': ['na_' + 'a'.repeat(24)] } }, 'the owner tags travel with the edition (W5)');
   const img = await sharp(zip.readFile('ynet-0001/img-1.jpg')).metadata();
   assert.equal(img.width, 1600); assert.ok(zip.readFile('ynet-0001/img-1.jpg').length <= 600 * 1024);
   const draft = JSON.parse(zip.readAsText('ynet-0001.draft.json'));

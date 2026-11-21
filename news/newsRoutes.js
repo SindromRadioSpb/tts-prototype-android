@@ -12,7 +12,7 @@ const { validTag, validKey } = require('../db/newsMarks');
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -70,6 +70,49 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         limit: q.limit, no_heavy: q.no_heavy === '1' })) });
     } catch (e) { send(res, e); }
   });
+  // The owner's orders for dot (findability W5): the owner (or an editor) orders, dot takes and answers.
+  if (orders && harvester) {
+    const ORDER_STATUS = { ORDER_TOO_BIG: 400, NOTE_REQUIRED: 400, NEWS_PARAM_INVALID: 400, ORDER_UNKNOWN: 404, ORDER_CLOSED: 409, SOURCES_EXPIRED: 410, ALREADY_TAKEN: 409,
+      PAYWALL: 409, NO_BODY: 409, UNKNOWN_ITEM: 404, ARCHIVE_SOURCE_CHANGED: 409, ARCHIVE_PHOTOS_UNAVAILABLE: 409, ARCHIVE_ORDER_ACTOR: 403 };
+    const orderFail = (res, e) => { const st = e && ORDER_STATUS[e.code]; if (st) return res.status(st).json({ ok: false, error: e.code }); send(res, e); };
+    app.post('/api/news/orders', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+      try {
+        const b = req.body || {};
+        const r = b.tag ? await orders.orderTag(actor, { tag: validTag(String(b.tag)), from: b.from || null, to: b.to || null, note_ru: b.note_ru })
+          : await orders.orderArticle(actor, { item_key: b.item_key, note_ru: b.note_ru });
+        audit('news_owner_order', actor.id, { created: r.created.length, skipped: r.skipped.length, tag: b.tag || null }, req.ip);
+        res.json({ ok: true, ...r });
+      } catch (e) { orderFail(res, e); }
+    });
+    app.get('/api/news/orders', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res); if (!actor) return;
+      try { res.json({ ok: true, orders: await orders.list({}) }); } catch (e) { send(res, e); }
+    });
+    app.get('/api/news/editor/orders', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res); if (!actor) return;
+      try { res.json({ ok: true, orders: await orders.list({ status: ['open', 'taken', 'done', 'failed', 'expired'].includes(String(req.query.status)) ? String(req.query.status) : 'open' }) }); } catch (e) { send(res, e); }
+    });
+    app.post('/api/news/editor/orders/:id/take', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+      let o = null;
+      try {
+        o = await orders.take(actor, req.params.id);
+        const r = await harvester.orderForOwner(o, actor);
+        await orders.setArchiveOrder(o.order_id, r.order_id);
+        audit('news_owner_order_take', actor.id, { order_id: o.order_id, archive_order_id: r.order_id }, req.ip);
+        res.set({ 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="' + r.name + '"', 'X-Content-Type-Options': 'nosniff' });
+        res.send(r.buffer);
+      } catch (e) {
+        if (o && e && e.code) await orders.noteError(o.order_id, e.code).catch(() => {});
+        orderFail(res, e);
+      }
+    });
+    app.post('/api/news/editor/orders/:id/fail', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
+      try { res.json({ ok: true, order: await orders.fail(actor, req.params.id, (req.body || {}).reason) }); } catch (e) { orderFail(res, e); }
+    });
+  }
   // Any signed-in reader (W4: tags, ★, reads) → { id, kind:'owner'|'user', csrf } or null.
   async function userOf(req) {
     const auth = await Promise.resolve(resolveUser(req)).catch(() => null);
@@ -138,7 +181,8 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       const out = await list.list(p);
       if (user) {
         const keys = out.items.map(i => i.item_key), m = await marks.marksFor(user.id, keys), r = await marks.readSet(user.id, keys);
-        for (const i of out.items) { i.marks = m.get(i.item_key) || []; if (r.has(i.item_key)) i.read = true; }
+        const ord = orders && user.kind === 'owner' ? await orders.forItems(keys) : null;
+        for (const i of out.items) { i.marks = m.get(i.item_key) || []; if (r.has(i.item_key)) i.read = true; if (ord && ord.get(i.item_key)) i.order = ord.get(i.item_key); }
       }
       res.set('Cache-Control', out.building || user ? 'private, no-store' : 'public, max-age=30');
       res.json({ ok: true, ...out });
@@ -318,7 +362,8 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       });
       app.get('/api/news/editor/editions/next', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;
-        try { res.json({ ok: true, edition: await harvester.nextEdition() }); } catch (e) { send(res, e); }
+        // The owner's open orders come first for dot (findability W5, dotTask «Часть 0»).
+        try { res.json({ ok: true, edition: await harvester.nextEdition(), ...(orders ? { orders: await orders.list({ status: 'open' }) } : {}) }); } catch (e) { send(res, e); }
       });
       app.get('/api/news/editor/editions/:id/download', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;

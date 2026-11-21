@@ -101,3 +101,15 @@ test('editor: interests card saves the text (PUT) and refuses more than 4000 cha
   const ro = await UIE.renderInterestsCard(document, { api, say: () => {}, canSave: false, json: o => JSON.stringify(o) });
   assert.equal(ro.querySelector('textarea').disabled, true);
 });
+
+test('editor page lists the owner\x27s orders with status and reasons (findability W5)', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const orders = [{ order_id: 'noo_1', item_key: 'na_' + '1'.repeat(24), status: 'failed', reason: 'Слишком коротко', note_ru: 'Выбор владельца', tag: null, created_at: '2026-11-21T10:00:00.000Z' },
+    { order_id: 'noo_2', item_key: 'na_' + '2'.repeat(24), status: 'open', reason: null, note_ru: 'По тегу', tag: 'выборы', created_at: '2026-11-21T11:00:00.000Z' }];
+  const el = UI.renderOrdersTable(document, orders, { t: tFor(locales().ru) });
+  const rows = [...el.querySelectorAll('.ne-order')];
+  assert.equal(rows.length, 2);
+  assert.match(rows[0].textContent, /отказ/); assert.match(rows[0].textContent, /Слишком коротко/);
+  assert.match(rows[1].textContent, /#выборы/); assert.match(rows[1].textContent, /ждёт dot/);
+  assert.match(UI.renderOrdersTable(document, [], { t: tFor(locales().ru) }).textContent, /Заказов нет/);
+});

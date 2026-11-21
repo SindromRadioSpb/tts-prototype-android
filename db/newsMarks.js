@@ -120,8 +120,15 @@ function createNewsMarks({ db, now = () => Date.now(), photoOf = async () => nul
     }
     return out;
   }
+  // The owner's tags with their article keys — tags.json in dot's edition archive (findability W5).
+  async function ownerTags() {
+    const rows = await dbAll(db, "SELECT m.tag, m.item_key FROM news_marks m JOIN users u ON CAST(u.id AS TEXT) = m.actor_id WHERE lower(u.role) = 'owner' ORDER BY m.tag, m.created_at").catch(() => []);
+    const out = {};
+    for (const r of rows) (out[r.tag] = out[r.tag] || []).push(r.item_key);
+    return out;
+  }
   const pinImage = (itemKey, name) => dbGet(db, 'SELECT mime, sha256, bytes FROM news_pin_images WHERE item_key=? AND name=?', [itemKey, name]);
-  return { mark, unmark, marksFor, tags, keysWith, read, readSet, pinImage };
+  return { mark, unmark, marksFor, tags, keysWith, read, readSet, pinImage, ownerTags };
 }
 
 module.exports = { createNewsMarks, validTag, validKey, STAR, LIMITS };

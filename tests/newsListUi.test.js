@@ -171,3 +171,49 @@ test('tag filter in the sheet lists the user\'s tags with counts; listUrl sends 
   assert.match(LU.listUrl({ view: 'overview', star: true }, null, ['na_1', 'na_2']), /keys=na_1%2Cna_2/);
   assert.doesNotMatch(LU.listUrl({ view: 'overview', star: true }, null, ['na_1']), /star=/);
 });
+
+// ---- W5: owner orders from the feed ----------------------------------------------------------------------
+const orderable = n => ({ ...sliceRow(n), full_ok: 1, body_until: '2099-01-01T00:00:00.000Z' });
+test('order button only for owner/editor; a click orders and shows the status', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r'), sent = [];
+  const { ctx } = ctxFor(document, [page([orderable(1)])]);
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  assert.equal(root.querySelector('.nw-order-btn'), null, 'a reader has no order button');
+  const root2 = document.createElement('main'); document.body.appendChild(root2);
+  const c2 = ctxFor(document, [page([orderable(2)])], { orders: { order: async r => { sent.push(r.item_key); return { created: [{ status: 'open' }], skipped: [] }; }, orderTag: async () => ({}) } }).ctx;
+  await LU.render(root2, { view: 'overview', kind: 'all', sort: 'fresh' }, c2).ready;
+  root2.querySelector('.nw-order-btn').click(); await new Promise(r => setTimeout(r, 0));
+  assert.deepEqual(sent, ['na_s2']);
+  assert.match(root2.querySelector('.nw-order-status').textContent, /заказано/);
+});
+test('order status badge with reason', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r');
+  const { ctx } = ctxFor(document, [page([{ ...orderable(1), order: { status: 'failed', reason: 'Слишком коротко' } }])], { orders: { order: async () => ({}), orderTag: async () => ({}) } });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  assert.match(root.querySelector('.nw-order-status').textContent, /отказ.*Слишком коротко/);
+  assert.equal(root.querySelector('.nw-order-btn'), null, 'already ordered');
+});
+test('tag order dialog sends tag and date range and shows skipped reasons', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r'), sent = [];
+  const { ctx } = ctxFor(document, [page([orderable(1)], { day: '2026-11-21' })], { marks: marksCtx().api,
+    orders: { order: async () => ({}), orderTag: async p => { sent.push(p); return { created: [{}, {}], skipped: [{ item_key: 'na_x', reason: 'ALREADY_LEARNING' }] }; } } });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh', tag: 'выборы' }, ctx).ready;
+  root.querySelector('.nw-order-tag').click(); await new Promise(r => setTimeout(r, 0));
+  assert.deepEqual(sent, [{ tag: 'выборы', from: '2026-11-21', to: '2026-11-21' }]);
+  assert.match(root.querySelector('.nw-order-tag-result').textContent, /Заказано: 2.*пропущено: 1/);
+});
+test('review W5 I3: order reasons are words, not codes; a local skip is not «отказ dot»', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const root = document.getElementById('r');
+  const tr = { 'news.list.skip.ARCHIVE_PHOTOS_UNAVAILABLE': 'фото издания недоступны', 'news.list.skip.ALREADY_ORDERED': 'уже заказана' };
+  const { ctx } = ctxFor(document, [page([{ ...orderable(1), order: { status: 'open', reason: 'ARCHIVE_PHOTOS_UNAVAILABLE' } }, orderable(2)])],
+    { t: (k, f) => tr[k] || f, orders: { order: async () => ({ created: [], skipped: [{ item_key: 'na_s2', reason: 'ALREADY_ORDERED' }] }), orderTag: async () => ({}) } });
+  await LU.render(root, { view: 'overview', kind: 'all', sort: 'fresh' }, ctx).ready;
+  assert.match(root.querySelector('.nw-order-status').textContent, /фото издания недоступны/);
+  root.querySelector('.nw-order-btn').click(); await new Promise(r => setTimeout(r, 0));
+  const second = [...root.querySelectorAll('.nw-order-status')][1].textContent;
+  assert.match(second, /не заказано: уже заказана/); assert.doesNotMatch(second, /отказ/);
+});

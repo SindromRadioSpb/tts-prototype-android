@@ -435,6 +435,13 @@
       });
       return marksApi;
     }
+    function orderPost(body) {
+      var headers = { "content-type": "application/json" };
+      if (manage && manage.csrf) headers["x-lp-csrf"] = manage.csrf;
+      return win.fetch("/api/news/orders", { method: "POST", credentials: "same-origin", headers: headers, body: JSON.stringify(body) }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) throw new Error((j && j.error) || "HTTP_" + r.status); return j; });
+      });
+    }
     var locale = function () { return (typeof win.appGetLocale === "function" && win.appGetLocale()) || "ru"; };
 
     function status(key, fallback, retry) {
@@ -512,6 +519,11 @@
       if (my !== token) return null;
       listApi = win.NewsListUi.render(root, state, {
         marks: marks,
+        // The owner's (or an editor's) orders for dot (findability W5).
+        orders: manage ? {
+          order: function (r) { return orderPost({ item_key: r.item_key, note_ru: t("news.list.orderNote", "Выбор владельца из ленты") }); },
+          orderTag: function (p) { return orderPost({ tag: p.tag, from: p.from, to: p.to, note_ru: fill(t("news.list.orderTagNote", "Заказ по тегу #{tag}"), { tag: p.tag }) }); },
+        } : null,
         t: t, locale: locale(), heading: head, statusHost: statusHost(my),
         outlets: (Outlets ? Outlets.OUTLETS : []).map(function (x) { return { id: x.id, name: x.name_latin }; }),
         getJson: function (url, opts) { return win.fetch(url, { cache: "no-cache", signal: opts && opts.signal }).then(function (r) { if (!r.ok) throw new Error("HTTP_" + r.status); return r.json(); }); },

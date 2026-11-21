@@ -1541,9 +1541,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=913",
-  "/i18n/locales/en.js?v=913",
-  "/i18n/locales/he.js?v=913",
+  "/i18n/locales/ru.js?v=914",
+  "/i18n/locales/en.js?v=914",
+  "/i18n/locales/he.js?v=914",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4612,11 +4612,14 @@ function newsStore() {
     const db = require("./db/sqlite").getDb();
     // One index for the overview and every outlet (docs/superpowers/specs/2026-11-21-news-findability-design.md §7.1).
     const index = require("./db/newsIndex").createNewsIndex({ db });
-    _newsStore = { index, repo: require("./db/newsRepo").createNewsRepo({ db, index }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
-      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m), index }),
+    // A published article closes the owner's order for it (findability W5).
+    _newsStore = { index, repo: require("./db/newsRepo").createNewsRepo({ db, index, onPublished: ids => _newsStore.orders.onPublished(ids) }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
+      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m), index, tagsForDot: () => _newsStore.marks.ownerTags() }),
       list: require("./db/newsList").createNewsList({ db, cardsFor: ids => _newsStore.repo.cardsFor(ids) }),
       // Tags, ★ and reads per user; the owner's marks keep articles and their photos (findability W4).
       marks: require("./db/newsMarks").createNewsMarks({ db, photoOf: async src => _newsStore.harvester.cachedPhotoBytes(src) }) };
+    // The owner's orders for dot (findability W5).
+    _newsStore.orders = require("./news/newsOwnerOrders").createOwnerOrders({ db, marks: _newsStore.marks });
     // Editions: what dot publishes is counted against the edition it came from.
     _newsStore.repo.setEditionListener(r => _newsStore.harvester.accountPack(r));
     // Archived days offloaded to the owner's PC and back (owner only).
@@ -4626,7 +4629,7 @@ function newsStore() {
 }
 const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
 require("./news/newsRoutes").mountNewsRoutes(app, {
-  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list), marks: lazyMember(s => s.marks),
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list), marks: lazyMember(s => s.marks), orders: lazyMember(s => s.orders),
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
   // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
   audit: (type, actorId, detail, ip) => {
@@ -4637,6 +4640,8 @@ require("./news/newsRoutes").mountNewsRoutes(app, {
 });
 const _newsLifecycle = setInterval(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
+  // Owner orders whose full text is gone can no longer be made (findability W5).
+  newsStore().orders.expire().catch(e => console.error("[news-orders] expire failed:", e && e.message));
 }, 3600 * 1000);
 if (_newsLifecycle.unref) _newsLifecycle.unref();
 // Deploys restart the interval: also run once shortly after boot so stages advance even with frequent releases.

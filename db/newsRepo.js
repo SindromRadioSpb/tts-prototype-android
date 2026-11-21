@@ -94,7 +94,7 @@ function openPack(zipBuffer) {
   return { manifest, byName };
 }
 
-function createNewsRepo({ db, now = () => Date.now(), index = { refresh: async () => ({}) } } = {}) {
+function createNewsRepo({ db, now = () => Date.now(), index = { refresh: async () => ({}) }, onPublished = null } = {}) {
   if (!db) fail('DB_NOT_AVAILABLE', 503);
   const nowMs = () => { const v = now(); return typeof v === 'number' ? v : Date.parse(v); };
   const iso = () => new Date(nowMs()).toISOString();
@@ -631,7 +631,13 @@ function createNewsRepo({ db, now = () => Date.now(), index = { refresh: async (
   }
 
   const after = (fn, keysOf) => async (...args) => { const r = await fn(...args); await touch(keysOf(r, args)); return r; };
-  const ingestPackIndexed = after(ingestPack, r => (r.items || []).map(i => i.article_id));
+  // Published articles close the owner's orders for them (findability W5); a failure never fails the pack.
+  const ingestPackIndexed = async (...args) => {
+    const r = await after(ingestPack, x => (x.items || []).map(i => i.article_id))(...args);
+    const published = (r.items || []).filter(i => i.status === 'published' || i.status === 'revised' || i.status === 'archived').map(i => i.article_id).filter(Boolean);
+    if (onPublished && published.length) await Promise.resolve(onPublished(published)).catch(e => console.warn('[news-orders] close failed:', e && e.message));
+    return r;
+  };
   const restoreIndexed = after(restoreArticle, (r, a) => [a[1]]);
   const lifecycleIndexed = after(runLifecycle, () => { const k = carded; carded = []; return k; });
   return { setEditionListener, ingestPack: ingestPackIndexed, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, cardsFor, runLifecycle: lifecycleIndexed, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle: restoreIndexed, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };

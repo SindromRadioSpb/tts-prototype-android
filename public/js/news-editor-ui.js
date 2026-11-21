@@ -66,6 +66,24 @@
     return box;
   }
 
+  // The owner's orders for dot (findability W5): what was ordered, what dot did, why not.
+  var ORDER_STATUS = { open: "ждёт dot", taken: "dot взял", done: "опубликован", failed: "отказ", expired: "текст удалён" };
+  function renderOrdersTable(doc, orders, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; };
+    var box = h(doc, "div", { class: "ne-orders" });
+    if (!orders.length) { box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.orders.empty", "Заказов нет. Заказать можно в ленте: «Сделать учебной» у статьи или «Отдать dot» для тега.") })); return box; }
+    orders.forEach(function (o) {
+      box.appendChild(h(doc, "div", { class: "ne-pack ne-order", "data-status": o.status }, [
+        h(doc, "strong", { text: t("newsEditor.orders.status." + o.status, ORDER_STATUS[o.status] || o.status) }),
+        h(doc, "span", { text: (o.tag ? "#" + o.tag + " · " : "") + o.note_ru }),
+        o.reason ? h(doc, "span", { class: "ne-order-reason", text: t("newsEditor.orders.reason", "Причина: {r}").replace("{r}", t("news.list.skip." + o.reason, o.reason)) }) : null,
+        h(doc, "span", { class: "ne-muted", text: o.item_key + " · " + ilTime(o.created_at) }),
+        o.work_id ? h(doc, "a", { href: "/library.html?news=" + encodeURIComponent(o.work_id) + "&from=news", text: t("newsEditor.orders.open", "Открыть материал") }) : null]));
+    });
+    return box;
+  }
+
   // receipt: { pack_id, totals, items:[{path, article_id?, status, code?, overlap?, flagged?, warnings?}], warnings }
   function renderReceipt(doc, receipt, opts) {
     opts = opts || {};
@@ -359,6 +377,13 @@
       return box;
     }
 
+    function ordersCard() {
+      var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-orders-title" }, [h(doc, "h2", { id: "ne-orders-title", text: t("newsEditor.orders.title", "Заказы для dot") })]);
+      var host = h(doc, "div", { "aria-live": "polite" });
+      box.appendChild(host);
+      api("GET", "/api/news/orders").then(function (data) { host.replaceChildren(renderOrdersTable(doc, data.orders || [], { t: t })); }).catch(function (e) { host.replaceChildren(h(doc, "p", { text: errorText(e) })); });
+      return box;
+    }
     // «Выпуски»: the day's four editions — cut-off, archive, dot, publication — and the schedule.
     function editionsCard() {
       var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-editions-title" }, [h(doc, "h2", { id: "ne-editions-title", text: t("newsEditor.editions.title", "Выпуски") }),
@@ -432,7 +457,7 @@
         paintStorage();
       }
       renderInterestsCard(doc, { t: t, api: api, say: say, json: json, canSave: session.kind === "owner" }).then(function (b) { interestsHost.replaceChildren(b); }).catch(function () {});
-      var parts = [who, editionsCard(), storageHost, interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var parts = [who, ordersCard(), editionsCard(), storageHost, interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }
@@ -468,5 +493,5 @@
     } else box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.ownerOnly", "Менять интересы может только владелец") }));
     return box;
   }
-  return { renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
+  return { renderOrdersTable: renderOrdersTable, renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
 });

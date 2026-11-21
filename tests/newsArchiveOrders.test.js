@@ -36,7 +36,7 @@ async function harness(t, { closed = true, paywalled = false, full = true, photo
   const db = new sqlite3.Database(':memory:'), exec = query => sql(db, 'exec', query);
   const run = (query, p) => sql(db, 'run', query, p), all = (query, p) => sql(db, 'all', query, p);
   t.after(() => new Promise(resolve => db.close(() => { fs.rmSync(dataDir, { recursive: true, force: true }); resolve(); })));
-  for (const name of fs.readdirSync(path.join(__dirname, '../migrations')).filter(f => /^(07[89]|08\d|09[02])_news.*\.sql$/.test(f)).sort())
+  for (const name of fs.readdirSync(path.join(__dirname, '../migrations')).filter(f => /^(07[89]|08\d|09\d)_news.*\.sql$/.test(f)).sort())
     await exec(fs.readFileSync(path.join(__dirname, '../migrations', name), 'utf8'));
   const itemKey = C.articleKey(outletId, sourceUrl);
   const article = { title_he: title, url: sourceUrl, canonical_url: sourceUrl, published_at: SOURCE_TIME, section_original_he: 'חדשות', section: 'local',
@@ -270,4 +270,29 @@ test('closed archive: a 5-day-old article is ordered from its compressed body (f
   assert.equal(r.status, 200, await r.clone().text());
   const z = new AdmZip(Buffer.from(await r.arrayBuffer())), m = JSON.parse(z.readAsText('archive-order.json'));
   assert.ok(JSON.parse(z.readAsText(m.draft)).learning.versions[0].rows.length > 0);
+});
+
+test('owner order: dot takes it 20 days later (no edition archive needed), publishes, the order closes (findability W5)', async t => {
+  const s = await harness(t, { photo: false, images: [] });
+  const { createOwnerOrders } = require('../news/newsOwnerOrders');
+  const orders = createOwnerOrders({ db: s.db, now: () => Date.parse(SOURCE_TIME) + 20 * 86400000 });
+  s.advance(20 * 86400000);
+  await s.run("DELETE FROM news_editions"); // the edition archive is long gone
+  const [o] = (await orders.orderArticle({ id: 'owner', kind: 'owner' }, { item_key: KEY, note_ru: 'Заказ владельца' })).created;
+  const editor = (await s.all("SELECT editor_id FROM news_editors LIMIT 1"))[0];
+  const actor = { id: 'editor:' + (editor ? editor.editor_id : 'x'), kind: 'editor' };
+  const built = await s.harvester.orderForOwner(o, actor);
+  assert.match(built.order_id, /^nso_[0-9a-f]{32}$/);
+  const z = new AdmZip(built.buffer), m = JSON.parse(z.readAsText('archive-order.json'));
+  assert.equal(m.item_key, KEY);
+  assert.ok(JSON.parse(z.readAsText(m.draft)).learning.versions[0].rows.length > 0);
+  const again = await s.harvester.orderForOwner(o, actor);
+  assert.equal(again.order_id, built.order_id, 'taking it again gives the same draft');
+});
+test('owner order: a main article dot dropped can still be ordered by the owner (review W5 I2)', async t => {
+  const s = await harness(t, { photo: false, images: [] });
+  await s.run("UPDATE news_harvest_items SET main_state='dropped' WHERE url_key=?", [KEY]);
+  const editor = (await s.all("SELECT editor_id FROM news_editors LIMIT 1"))[0];
+  const built = await s.harvester.orderForOwner({ item_key: KEY, note_ru: 'Заказ' }, { id: 'editor:' + editor.editor_id, kind: 'editor' });
+  assert.match(built.order_id, /^nso_/);
 });
