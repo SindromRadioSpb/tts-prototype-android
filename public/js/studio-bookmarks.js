@@ -54,6 +54,7 @@
     btn.textContent = on ? '★' : '☆';
     btn.setAttribute('aria-pressed', String(on));
     btn.title = tt(on ? 'room.bookmark.remove' : 'room.bookmark.add', on ? 'Убрать закладку' : 'Закладка');
+    btn.setAttribute('aria-label', btn.title);
   }
 
   async function toggle(btn) {
@@ -66,6 +67,8 @@
     var ldb = await db();
     if (!ldb || typeof ldb.addBookmark !== 'function') return;
     var on = btn.classList.contains('bookmarked');
+    // Native disabling can blur a keyboard user's button during the DB write.
+    var doc = btn.ownerDocument, hadFocus = doc.activeElement === btn;
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
     paint(btn, !on);                       // answer the tap at once; roll back on failure
@@ -91,13 +94,16 @@
     } finally {
       btn.disabled = false;
       btn.removeAttribute('aria-busy');
+      // Do not take focus back if the user has moved to another control.
+      if (hadFocus && btn.isConnected && doc.activeElement === doc.body) {
+        btn.focus({ preventScroll: true });
+      }
     }
   }
 
-  // 3.11.907: a 2500-row Studio table is rebuilt whole by renderTable; adding a button to every row in
-  // the same task doubled the layout on a phone. Now: the table is shown first, the buttons go in at
-  // the browser's next idle moment in ONE batch (one relayout), already painted from the cached set —
-  // the bookmarks table is read once per text, not on every render.
+  // The Classic shell reserves a slot in the existing saved-row note wrapper
+  // before render. Only the interactive button is added at idle time; the slot
+  // does not change the table's geometry when filled.
   var SLICE = 400;
   var injectTimer = 0;
   function scheduleInject() {
@@ -112,17 +118,21 @@
     if (document.body && document.body.classList.contains('room-mode')) return;
     var h = host();
     if (!h || !h.getRow) return;
-    var cells = document.querySelectorAll('#tableContainer td.col-action-cell');
+    var table = document.querySelector('#tableContainer #proTable');
+    if (!table) return;
+    var cells = table.querySelectorAll('td.col-action-cell');
     var todo = [];
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       if (cell.querySelector('.row-bookmark-btn')) continue;
+      var slot = cell.querySelector(':scope > .col-action-row-bot');
+      if (!slot) continue;
       var tts = cell.querySelector('.row-tts-btn[data-row-idx]');
       if (!tts) continue;
       var idx = Number(tts.getAttribute('data-row-idx'));
       var row = Number.isFinite(idx) ? h.getRow(idx) : null;
       if (!row || !row._v3_sentenceId || !row._v3_textId) continue;
-      todo.push({ cell: cell, idx: idx, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
+      todo.push({ slot: slot, idx: idx, textId: String(row._v3_textId), sid: String(row._v3_sentenceId) });
     }
     if (!todo.length) return;
     var sets = {};
@@ -137,20 +147,18 @@
       });
     };
     for (var j = 0; j < todo.length; j++) {
-      if (j && j % SLICE === 0) { await idle(); if (!todo[j].cell.isConnected) return; }
+      if (j && j % SLICE === 0) { await idle(); if (!table.isConnected) return; }
       var p = todo[j];
-      if (!p.cell.isConnected || p.cell.querySelector('.row-bookmark-btn')) continue;
+      if (!p.slot.isConnected || p.slot.querySelector('.row-bookmark-btn')) continue;
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'row-bookmark-btn';
       btn.setAttribute('data-row-idx', String(p.idx));
-      btn.setAttribute('aria-label', tt('room.bookmark.add', 'Закладка'));
       paint(btn, sets[p.textId].has(p.sid));
       var wrap = document.createElement('div');
       wrap.className = 'col-action-row col-action-row-bm';
       wrap.appendChild(btn);
-      var edits = p.cell.querySelector('.row-edit-actions');
-      if (edits) p.cell.insertBefore(wrap, edits); else p.cell.appendChild(wrap);
+      p.slot.appendChild(wrap);
     }
   }
   // the Room may have changed a text's bookmarks while this tab was away: re-read on return

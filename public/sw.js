@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.908";
+const CACHE_VERSION = "v3.11.909";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -246,14 +246,14 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=908",
+  "/js/reader-morph.js?v=909",
   "/js/ru-forms.js?v=739",
   "/js/word-gloss.js?v=908",
   "/js/word-gloss-ai.js?v=879",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",
-  "/js/studio-morph.js?v=908",
+  "/js/studio-morph.js?v=909",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
@@ -365,7 +365,7 @@ const PRECACHE_URLS = [
   // PAS-B — Studio agent UI (per-row 🤖 explain; весь агент-код Студии в этом модуле).
   "/js/studio-agent.js",
   // 3.11.904 — Studio row bookmarks (shared bookmarks table with the Room).
-  "/js/studio-bookmarks.js?v=907",
+  "/js/studio-bookmarks.js?v=909",
   // Wave 2 C3a — browser-owned voice -> editable role-play draft.
   "/js/voice-draft.js",
   // Tier-3 «точный режим» — client-side Dicta context morphology (opt-in; no outbound until enabled).

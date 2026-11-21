@@ -1840,7 +1840,41 @@ td.col-action-cell {
   width: 100%;
 }
 .col-action-row-top { margin-bottom: 2px; }
-.col-action-row-bot {}
+/* The existing note wrapper marks a saved Classic row (both text and sentence IDs).
+   Reserve only its bookmark slot before any idle injection, with no effect on
+   unsaved rows, the IDE, or index.html's shared Reading Room mode. */
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-cell > .col-action-row-bot {
+    --studio-bookmark-slot: 32px;
+    position: relative;
+    padding-block-end: var(--studio-bookmark-slot);
+}
+html[data-look="gouache"] body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-cell > .col-action-row-bot {
+    --studio-bookmark-slot: 28px;
+}
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-row-bot > .col-action-row-bm {
+    position: absolute;
+    inset-block-end: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid !important;
+    place-items: center;
+    inline-size: 38px !important;
+    block-size: var(--studio-bookmark-slot);
+}
+body:not(.room-mode) #tableContainer > #proTable.tbl-edit-mode .col-action-row-bot > .col-action-row-bm {
+    display: none !important;
+}
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-row-bm > .row-bookmark-btn {
+    position: relative;
+}
+body:not(.room-mode) #tableContainer > #proTable:not(.tbl-edit-mode) .col-action-row-bm > .row-bookmark-btn::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    inline-size: 44px;
+    block-size: 38px;
+    transform: translate(-50%, -50%);
+}
 
 /* Ensure resize grips on th are never clipped */
 #proTable thead th {
@@ -13799,7 +13833,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/dicta-autoparse-offer.js?v=781"></script>
 <script src="/js/learning-field-provenance.js?v=802"></script>
 <script src="/js/learning-targets.js?v=804"></script>
-<script src="/js/reader-morph.js?v=908"></script>
+<script src="/js/reader-morph.js?v=909"></script>
 <!-- Слой слов Ф1: подстрочник + лента слов (общий для Студии и Зала). -->
 <script src="/js/word-gloss.js?v=908"></script>
 <!-- Слой слов Ф3: перевод слов в контексте (Gemini, опция). -->
@@ -13923,7 +13957,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      same fail-closed projector before the Studio adapter; no word_study dual-write. -->
 <script src="/js/lexical-resolution-core.js"></script>
 <script src="/js/lexical-resolution-service.js?v=802"></script>
-<script src="/js/studio-morph.js?v=908"></script>
+<script src="/js/studio-morph.js?v=909"></script>
 
 <!-- W2-S5a Studio Ingest captions/video deps — pure, no cross-deps between the two, but BOTH
      must load before studio-import.js (calls CaptionsParse.parse/StudioYtPlayer.*) and before
@@ -13957,7 +13991,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/voice-draft.js"></script>
 <script src="/js/studio-agent.js"></script>
 <!-- 3.11.904 — закладки строк в Студии (та же таблица bookmarks, что в Зале; инъекция после renderTable) -->
-<script src="/js/studio-bookmarks.js?v=907"></script>
+<script src="/js/studio-bookmarks.js?v=909"></script>
 <script src="/js/tutor-client.js?v=2"></script>
 <script src="/js/tutor-practice.js?v=2"></script>
 <script src="/js/tutor-notebook.js?v=718"></script>
@@ -13986,7 +14020,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // tests/i18n.smoke.js (Suite 10) валит сборку при расхождении.
     // Потребители: stale-tab guard транскрипции (studio-import.js), штамп
     // провенанса asr.codeVersion, source_client_version синка (cloud-sync.js).
-    window.APP_VERSION = "3.11.908";
+    window.APP_VERSION = "3.11.909";
 
     // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
     // D5 kill switch: if a previous /api/client-config response stashed

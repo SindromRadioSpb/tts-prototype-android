@@ -254,6 +254,10 @@
     rowWorkTable = table; rowWorkHandle = handle;
     rowWork = window.ReaderMorph.createRowWork(mount, function (row) { handle.refresh(row); }, {
       rowSelector: "#proTable tbody tr[data-row-idx]",
+      pauseWhile: function () {
+        var active = table.ownerDocument.activeElement;
+        return !!(active && table.contains(active) && active.closest('.cell-editor-wrap'));
+      },
       isCurrent: function () { return handle === rmAttach && table.isConnected && studioMount() === mount && !editModeOn(); },
     });
     return rowWork;
