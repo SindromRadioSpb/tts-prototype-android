@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.907";
+const CACHE_VERSION = "v3.11.908";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=897",
+  "/js/library-ui.js?v=908",
   // News section (3.11.885)
   "/js/news-outlets.js?v=885",
   "/js/news-reader.js?v=895",
@@ -185,9 +185,9 @@ const PRECACHE_URLS = [
   // BRR-P0-002b Stage 1 — embedded warm reader (same-page reader inside library.html).
   // reader-core.css carries the table fidelity + Hebrew @font-face; both offline-precached.
   "/js/reader-core.js?v=817",
-  "/js/reader-row-work.js?v=1",
+  "/js/reader-row-work.js?v=908",
   "/css/reader-core.css?v=661",
-  "/css/reader-morph.css?v=883",
+  "/css/reader-morph.css?v=908",
   "/css/lexical-resolution.css?v=6",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
@@ -246,14 +246,14 @@ const PRECACHE_URLS = [
   "/js/dicta-enrich.js?v=781",
   "/js/dicta-autoparse-offer.js?v=781",
   "/js/learning-field-provenance.js?v=802",
-  "/js/reader-morph.js?v=905",
+  "/js/reader-morph.js?v=908",
   "/js/ru-forms.js?v=739",
-  "/js/word-gloss.js?v=905",
+  "/js/word-gloss.js?v=908",
   "/js/word-gloss-ai.js?v=879",
   "/js/public-word-audio.js?v=453",
   "/js/corpus-place-parse.js?v=785",
   "/js/morph-host.js?v=807",
-  "/js/studio-morph.js?v=817",
+  "/js/studio-morph.js?v=908",
   // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
   // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
   "/js/studio-karaoke.js",
@@ -346,18 +346,18 @@ const PRECACHE_URLS = [
   "/js/table-presets.js?v=782",
   "/js/world-activity.js?v=799",
   "/js/memorial-adapter.js?v=856",
-  "/js/world-boot.js?v=882",
+  "/js/world-boot.js?v=908",
   "/js/ulpan-world.js?v=856",
-  "/js/world-engine.js?v=882",
+  "/js/world-engine.js?v=908",
   "/js/world-render.js?v=856",
-  "/css/world-skin.css?v=799",
-  "/js/app-nav.js?v=907",
+  "/css/world-skin.css?v=908",
+  "/js/app-nav.js?v=908",
   // «Гуашь» look (3.11.898): the stylesheet and the one-breath canvas; paintings are fetched on demand
-  "/css/lp-gouache.css?v=907",
+  "/css/lp-gouache.css?v=908",
   "/js/lp-gouache.js?v=907",
   "/js/app-footer.js?v=669",
   "/js/original-title.js?v=657",
-  "/css/app-nav.css?v=653",
+  "/css/app-nav.css?v=908",
   "/js/media-host.js?v=783",
   // Studio Ingest W2-S5a — captions ingest (parser core + YouTube player adapter).
   "/js/captions-parse.js?v=796",

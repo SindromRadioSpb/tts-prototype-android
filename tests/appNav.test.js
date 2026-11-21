@@ -60,9 +60,13 @@ test("phone bar: 56px plus the safe area, 44px targets, hidden in an open text",
 
 // R7: on a desktop the sticky strip covered every scrollIntoView({ block: "start" }) target
 // (the Studio result panel landed at top 0, under a 45px nav).
+// 3.11.908: html.lp-b-nav (set by app-nav.js) instead of html:has(> body.lp-has-app-nav) — a :has()
+// on <html> was re-checked on every node inserted into a long table.
 test("desktop: scroll targets land below the sticky strip", () => {
   const css = read("public/css/app-nav.css");
-  assert.match(css, /@media \(min-width: 600px\) \{[\s\S]*?html:has\(> body\.lp-has-app-nav\) \{ scroll-padding-top: 56px; \}/);
+  assert.match(css, /@media \(min-width: 600px\) \{[\s\S]*?html\.lp-b-nav \{ scroll-padding-top: 56px; \}/);
+  const js = read("public/js/app-nav.js");
+  assert.ok(js.includes('["lp-b-nav", /(?:^|\\s)lp-has-app-nav(?:\\s|$)/]'), "the class mirrors body.lp-has-app-nav");
 });
 
 // R7 verification: on a phone the fixed toasts and the Mediatheque selection bar sat on the bar.

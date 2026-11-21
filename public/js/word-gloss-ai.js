@@ -170,13 +170,23 @@
     });
   }
   async function hydratePayloads(ps) {
-    var need = [];
-    ps.forEach(function (p) { if (p && !mem.has(p.storageKey)) { need.push(p.storageKey, p.key); p.aliases.concat(p.legacy).forEach(function (k) { need.push(k); }); } });
-    if (!need.length) return;
-    var got = await idbGet(need), migrate = [];
+    // Two passes: a row's own key first, the alias / shared / legacy keys only for the rows it
+    // missed. WebKit (the iPhone engine) pays per request — 968 rows took 4 s with all five keys
+    // per row asked at once; a row that has its saved layer now costs one request.
+    var ownKeys = [];
+    ps.forEach(function (p) { if (p && !mem.has(p.storageKey)) ownKeys.push(p.storageKey); });
+    if (!ownKeys.length) return;
+    var got = await idbGet(ownKeys), rest = [], need = [], migrate = [];
     ps.forEach(function (p) {
       if (!p || mem.has(p.storageKey)) return;
       if (got[p.storageKey] && validEntry(got[p.storageKey], p.words.length)) { mem.set(p.storageKey, got[p.storageKey]); return; }
+      rest.push(p); need.push(p.key); p.aliases.concat(p.legacy).forEach(function (k) { need.push(k); });
+    });
+    if (!rest.length) return;
+    var more = await idbGet(need);
+    for (var k in more) got[k] = more[k];
+    rest.forEach(function (p) {
+      if (!p || mem.has(p.storageKey)) return;
       for (var a = 0; a < p.aliases.length; a++) {
         var own = mem.get(p.aliases[a]) || got[p.aliases[a]];
         if (own && validEntry(own, p.words.length)) { mem.set(p.storageKey, own); migrate.push([p.storageKey, own]); return; }

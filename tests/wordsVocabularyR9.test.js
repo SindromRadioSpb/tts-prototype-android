@@ -80,7 +80,12 @@ test("the sheet's calendar and memory buttons carry visible labels", () => {
 
 test("toasts rise above an open word card or words sheet", () => {
   const css = read("public/css/app-nav.css");
-  assert.match(css, /body:has\(\.rm-sheet\.rm-open:not\(\[hidden\]\)\) \.room-toast,\nbody:has\(\.room-study\.room-study-open:not\(\[hidden\]\)\) \.room-toast,\nbody:has\(\.rm-sheet\.rm-open:not\(\[hidden\]\)\) #toastContainer \{\n  top: calc\(12px \+ env\(safe-area-inset-top, 0px\)\); bottom: auto;\n\}/);
+  // 3.11.908: body classes set by app-nav.js instead of body:has(…), which the browser re-checked on
+  // every node inserted into the page (a long table inserts tens of thousands of word spans)
+  assert.match(css, /body\.lp-wordcard-up \.room-toast,\nbody\.lp-studysheet-up \.room-toast,\nbody\.lp-wordcard-up #toastContainer \{\n  top: calc\(12px \+ env\(safe-area-inset-top, 0px\)\); bottom: auto;\n\}/);
+  const js = read("public/js/app-nav.js");
+  assert.ok(js.includes('sheetOpen(el, "rm-sheet", "rm-open")'));
+  assert.ok(js.includes('sheetOpen(el, "room-study", "room-study-open")'));
 });
 
 test("the glossary names every term in three languages and records the «Мои материалы» decision", () => {

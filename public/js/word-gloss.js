@@ -395,26 +395,46 @@
   var _rowViews = new WeakMap();
   function stopRowView(mount) {
     var view = _rowViews.get(mount); if (!view) return;
-    view.queue.close();
+    view.queue.close(); view.stop();
     view.rows.forEach(function (row) { if (row.classList.contains('rm-gloss-pending')) row.classList.remove('rm-gloss-pending'); });
     _rowViews.delete(mount);
   }
   function rowView(mount, isCurrent) {
     var table = mount.querySelector('#proTable'), view = _rowViews.get(mount);
-    if (view && view.table === table) { view.isCurrent = isCurrent; view.queue.refresh(); return view; }
+    if (view && view.table === table) { view.isCurrent = isCurrent; view.ready.clear(); view.queue.refresh(); return view; }
     if (view) stopRowView(mount);
     var rows = Array.prototype.slice.call(mount.querySelectorAll('#proTable tbody tr'));
     var RM = window.ReaderMorph;
     if (!RM || !RM.createRowQueue || !mount.ownerDocument.elementsFromPoint || (rows.length <= 120 && mount.textContent.length <= 12000)) return null;
-    view = { table: table, rows: rows, isCurrent: isCurrent, queue: null,
-      reveal: function (row) { if (view.isCurrent() && row.classList.contains('rm-gloss-pending')) row.classList.remove('rm-gloss-pending'); } };
+    // A long table shows a row's interlinear only once the whole row is painted, and only near the
+    // screen. Painting a hidden row changes no geometry, so it needs no reading-position fix; rows
+    // that become ready in the same frame are revealed together with one position fix.
+    var revealFrame = null, toReveal = new Set();
+    function flushReveal() {
+      revealFrame = null;
+      if (!view.isCurrent()) { toReveal.clear(); return; }
+      var batch = Array.from(toReveal).filter(function (row) { return row.isConnected && row.classList.contains('rm-gloss-pending'); });
+      toReveal.clear();
+      if (!batch.length) return;
+      var restore = capturePosition(mount), anchor = restore.anchorRow, at = anchor ? rows.indexOf(anchor) : -1;
+      // rows that grow below the line being read move nothing on screen: no second layout needed
+      var below = at >= 0 && batch.every(function (row) { return rows.indexOf(row) > at; });
+      try { batch.forEach(function (row) { row.classList.remove('rm-gloss-pending'); }); } finally { if (!below) restore(); }
+    }
+    view = { table: table, rows: rows, isCurrent: isCurrent, queue: null, ready: new Set(), near: new Set(),
+      reveal: function (row) {
+        if (!view.isCurrent() || !row.classList.contains('rm-gloss-pending')) return;
+        toReveal.add(row);
+        if (revealFrame == null) revealFrame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame(flushReveal) : setTimeout(flushReveal, 0);
+      },
+      // a painted row: shown now if it is near the screen, otherwise when it comes near
+      painted: function (row) { view.ready.add(row); if (view.near.has(row)) view.reveal(row); },
+      stop: function () { if (revealFrame != null) { (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : clearTimeout)(revealFrame); revealFrame = null; } toReveal.clear(); } };
     rows.forEach(function (row) { row.classList.add('rm-gloss-pending'); });
     view.queue = RM.createRowQueue(mount, rows, function () { return view.isCurrent(); }, { onVisible: function (visible) {
+      view.near = new Set(visible);
       if (!view.isCurrent()) return;
-      var reveal = visible.filter(function (row) { return row.classList.contains('rm-gloss-pending'); });
-      if (!reveal.length) return;
-      var restore = capturePosition(mount);
-      try { reveal.forEach(view.reveal); } finally { restore(); }
+      visible.forEach(function (row) { if (view.ready.has(row)) view.reveal(row); });
     } });
     _rowViews.set(mount, view); return view;
   }
@@ -432,15 +452,16 @@
     var queue = RM && RM.createRowQueue ? RM.createRowQueue(mount, rows, isCurrent) : {
       next: function () { return fallbackRow || (fallbackRow = rows[cursor++] || null); }, done: function () { fallbackRow = null; }, close: function () {},
     };
-    var work = new Map(), hydrated = new Set(), tr, deadline = workNow() + 8, sliceWords = 0, restorePosition = null;
+    var work = new Map(), hydrated = new Set(), bulkHydrate = false, tr, deadline = workNow() + 8, sliceWords = 0, sliceCap = 60, restorePosition = null;
     function beginPosition() { if (!restorePosition) restorePosition = capturePosition(mount); }
     function flushPosition() { if (restorePosition) { restorePosition(); restorePosition = null; } }
     try {
+    if (queue.ready) await queue.ready;   // the rows on screen are known before the first batch is chosen
     while ((tr = queue.next())) {
       if (!isCurrent()) return;
       var item = work.get(tr);
       if (!item) {
-        if (opts.prepareRow) { if (!opts.view || queue.isPriority(tr) || !tr.classList.contains("rm-gloss-pending")) beginPosition(); opts.prepareRow(tr); }
+        if (opts.prepareRow) { if (!opts.view || !tr.classList.contains("rm-gloss-pending")) beginPosition(); opts.prepareRow(tr); }
         if (AI && opts.hydrate !== false) {
           if (!hydrated.has(tr)) {
             var candidates = queue.batch ? queue.batch(tr, 32, queue.isPriority(tr)) : [tr], batch = [], chars = 0;
@@ -452,6 +473,16 @@
             flushPosition();
             try { await AI.hydrate(batch); } catch (_) {}
             batch.forEach(function (r) { hydrated.add(r); });
+            // After the rows on screen, read the saved context of the rest of the text ahead of the
+            // passes, so a jump or a fast scroll finds its rows ready. In portions: storage answers in
+            // order, and WebKit pays per request (968 rows ≈ 4 s), so a row coming on screen must
+            // wait for one portion at most, never for the whole text.
+            if (!bulkHydrate && rows.length > 32) {
+              bulkHydrate = true;
+              (async function () {
+                for (var b = 0; b < rows.length; b += 64) { if (!isCurrent()) return; try { await AI.hydrate(rows.slice(b, b + 64)); } catch (_) {} }
+              })();
+            }
           } else AI.rowPayload(tr); // Bind keys after a prefetched row is wrapped.
         }
         if (!isCurrent()) return;
@@ -459,10 +490,10 @@
         item = { spans: rowSpans(tr), at: 0 }; work.set(tr, item);
       }
       if (opts.paint !== false && !mount.classList.contains(GLOSS_ON)) { beginPosition(); mount.classList.add(GLOSS_ON); }
+      // A hidden (pending) row keeps its plain geometry while painted; it is revealed whole.
       var visible = !opts.view || !tr.classList.contains('rm-gloss-pending');
-      if (!visible && queue.isPriority && queue.isPriority(tr)) { beginPosition(); opts.view.reveal(tr); visible = true; }
       if (visible && opts.paint !== false) beginPosition();
-      var end = Math.min(item.at + Math.max(1, 60 - sliceWords), item.spans.length);
+      var end = Math.min(item.at + Math.max(1, sliceCap - sliceWords), item.spans.length);
       for (; item.at < end; item.at++) {
         if (!isCurrent()) return;
         var sp = item.spans[item.at]; sliceWords++;
@@ -493,11 +524,14 @@
         }
         if (workNow() >= deadline) { item.at++; break; }
       }
-      if (item.at >= item.spans.length) { queue.done(tr); work.delete(tr); }
-      if (sliceWords >= 60 || workNow() >= deadline) {
+      if (item.at >= item.spans.length) { queue.done(tr); work.delete(tr); if (opts.view && opts.paint !== false) opts.view.painted(tr); }
+      if (sliceWords >= sliceCap || workNow() >= deadline) {
         flushPosition();
-        if (RM && RM.yieldWordWork) await RM.yieldWordWork(); else await new Promise(function (r) { setTimeout(r, 0); });
-        deadline = workNow() + 8; sliceWords = 0;
+        var urgent = function () { return !!(queue.hasPriority && queue.hasPriority()); };
+        if (RM && RM.yieldWordWork) await RM.yieldWordWork(!urgent()); else await new Promise(function (r) { setTimeout(r, 0); });
+        // rows on screen: short slices; the rest of the text: fewer, larger ones (see yieldWordWork)
+        var bg = !urgent();
+        deadline = workNow() + (bg ? 24 : 8); sliceWords = 0; sliceCap = bg ? 240 : 60;
       }
     }
     } finally { flushPosition(); queue.close(); }
@@ -654,7 +688,7 @@
     var aiFetch = !!(opts.ai && mode.aiOn);
     // A lazy observer belongs to this application generation, including its delayed callbacks.
     if (AI) AI.stopLazy(mount);
-    var restoreSetup = capturePosition(mount);
+    var restoreSetup = (mount.querySelector('.rm-w[data-gloss]') || _ribbons.has(mount)) ? capturePosition(mount) : function () {};
     if (opts.ribbon) { var st = ensureRibbon(mount); st.isCurrent = isCurrent; st.epoch = (st.epoch || 0) + 1; st.rowIdx = undefined; place(st); }
     else removeRibbon(mount);
     var view = null;

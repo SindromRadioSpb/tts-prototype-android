@@ -64,7 +64,15 @@ body.theme-dark {
 }
 
 /* ── Тапабельные слова (базовый вид) ─────────────────────────────────────────── */
-.rm-w { cursor: pointer; border-radius: 3px; transition: background-color var(--lp-motion-hover) var(--lp-ease-standard); }
+/* padding .01px (rounds to zero in layout) keeps every word a real inline box. A bare span is
+   "culled" by Chrome and WebKit; giving it a status background then un-culls it and re-lays out the
+   whole long table (CPU ×4, 1000 rows: 20 ms for one coloured word, every frame of a colour pass). */
+.rm-w { cursor: pointer; border-radius: 3px; padding-inline: .01px; }
+/* The hover fade is for a mouse only: on a phone a status colouring pass would otherwise start
+   a background animation on every coloured word of a long text (tens of thousands). */
+@media (hover: hover) and (pointer: fine) {
+  .rm-w { transition: background-color var(--lp-motion-hover) var(--lp-ease-standard); }
+}
 .rm-w:hover { background: var(--bg-muted); }
 .rm-w:focus { outline: none; background: var(--bg-muted); }
 .rm-w:focus-visible { box-shadow: 0 0 0 2px var(--accent); }

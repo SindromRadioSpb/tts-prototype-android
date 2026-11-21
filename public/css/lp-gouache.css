@@ -20,7 +20,10 @@
 
 /* 3.11.907 perf rule: never end a selector with :is(…) — such a rule cannot be bucketed by class and is
    tested against every element (a 2500-row table is ~100k); write the list out. Where the list mixed
-   weights, :not(.__lp) / :not(lpx) pad the lighter ones to the list's weight. */
+   weights, :not(.__lp) / :not(lpx) pad the lighter ones to the list's weight.
+   3.11.908 perf rule: no :has() on <html> (a top-level &) or <body> — the browser re-checks it on every
+   node inserted anywhere, and a long table inserts tens of thousands of word spans. Use the classes
+   app-nav.js mirrors: html.lp-b-night / lp-b-day / lp-b-reading / lp-b-nav (tests/longTablePerf.test.js). */
 html[data-look="gouache"]:not([data-world]) {
   /* ── section pigments and scenes ─────────────────────────────────────────── */
   --pL: #e8a81c; --pD: #f6c64a; --pdL: #8a5d00; --pdD: #f6d27a; --psL: #fbf0cf; --psD: #332a12;
@@ -77,9 +80,9 @@ html[data-look="gouache"]:not([data-world]) {
   @media (prefers-color-scheme: dark) {
     &:not([data-lp-section="news"], [data-lp-section="mediatheque"]) body:not(.theme-light) { --L: ; --D: initial; }
   }
-  &:has(body.theme-dark, body.nw-dark, body.ml-dark) { background-color: #0d1330; --lp-scene: var(--sD); --lp-sky: #16245a; color-scheme: dark; }
+  &.lp-b-night:not(lpx) { background-color: #0d1330; --lp-scene: var(--sD); --lp-sky: #16245a; color-scheme: dark; }
   @media (prefers-color-scheme: dark) {
-    &:not([data-lp-section="news"], [data-lp-section="mediatheque"]):has(body:not(.theme-light)) { background-color: #0d1330; --lp-scene: var(--sD); --lp-sky: #16245a; color-scheme: dark; }
+    &:not([data-lp-section="news"], [data-lp-section="mediatheque"]):not(.lp-b-day):not(lpx) { background-color: #0d1330; --lp-scene: var(--sD); --lp-sky: #16245a; color-scheme: dark; }
   }
 
   /* ── tokens ──────────────────────────────────────────────────────────────── */
@@ -164,7 +167,7 @@ html[data-look="gouache"]:not([data-world]) {
   &[dir="rtl"]::before { transform: scaleX(-1); }
   & .lp-gouache-air { position: absolute; z-index: -1; inset: 0 0 auto 0; height: var(--lp-mast); width: 100%; pointer-events: none; }
   /* an open text, a quiz or a study screen gets the whole page: no picture behind the work */
-  &:has(body.room-reading, body.room-study)::before,
+  &.lp-b-reading:not(lpx)::before,
   & body.room-reading .lp-gouache-air, & body.room-study .lp-gouache-air { display: none; }
 
   /* ── navigation: a strip of paper pinned over the picture ────────────────── */
@@ -209,7 +212,7 @@ html[data-look="gouache"]:not([data-world]) {
   @media (min-width: 600px) {
     & body.lp-has-app-nav > .lp-app-nav { margin-bottom: 0; }
     & body.room-study.lp-has-app-nav #roomReader { top: 56px; }
-    &:has(> body.lp-has-app-nav) { scroll-padding-top: 68px; }
+    &.lp-b-nav:not(lpx) { scroll-padding-top: 68px; }
   }
   @media (max-width: 599px) {
     & .lp-app-nav {
@@ -810,7 +813,7 @@ html[data-look="gouache"]:not([data-world]) {
   /* desktop, open text: the navigation strip stays on top with paper under it, the reading bar
      sticks just below it and the table head below the bar — nothing scrolls through a gap */
   @media (min-width: 600px) {
-    &:has(> body.room-reading.lp-has-app-nav) .lp-app-nav {
+    & body.room-reading.lp-has-app-nav .lp-app-nav {
       background: var(--lp-paper) url("/art/gouache/paper.webp") 0 0 / 128px 128px; padding-bottom: 8px;
       box-shadow: 0 10px 16px -14px rgba(10, 16, 44, .55);
     }

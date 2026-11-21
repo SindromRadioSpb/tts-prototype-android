@@ -1115,6 +1115,8 @@
   function ensureEngine() {
     if (_eng) return Promise.resolve(_eng);
     if (_engPromise) return _engPromise;
+    var engineDone; _engineBusy = new Promise(function (r) { engineDone = r; });
+    var settle = function () { _engineBusy = null; engineDone(); };
     _engPromise = (async function () {
       var NA = window.NotesAutoGen, ID = window.InflectionDict;
       if (!NA || !ID) throw new Error("morph engine scripts not loaded");
@@ -1124,16 +1126,32 @@
       var ds = await ID.ensureReady();
       if (ruReady) await ruReady;
       if (!ds || !Array.isArray(ds.paradigms) || !ds.index) throw new Error("inflection dataset unavailable");
-      var maps = NA.buildResolverMaps(ds.paradigms);
+      // Built between frames: on a phone the whole dataset was one multi-second task that held up
+      // drawing, scrolling and every other read of an open text (CPU ×4: ≈2.5 s).
+      // The engine colours the rows on screen, so its slices go first: background work of the other
+      // passes waits for it (engineBusy), and its own pauses only let a frame be drawn.
+      var sliceEnd = wordWorkNow() + 12, frameDue = wordWorkNow() + 96;
+      var engineYield = function () { return wordWorkNow() >= sliceEnd; };
+      var enginePause = function () {
+        // short pauses between slices, and a drawn frame at least every ~100 ms (the page barely
+        // changes while the engine is built; scrolling itself stays on the compositor)
+        var pause = wordWorkNow() >= frameDue && typeof requestAnimationFrame === 'function' ? afterFrame() : quickYield();
+        return pause.then(function () { var now = wordWorkNow(); sliceEnd = now + 12; if (now >= frameDue) frameDue = now + 96; });
+      };
+      var maps = typeof NA.buildResolverMapsAsync === "function"
+        ? await NA.buildResolverMapsAsync(ds.paradigms, engineYield, enginePause)
+        : NA.buildResolverMaps(ds.paradigms);
       var pidMap = new Map();
       for (var i = 0; i < ds.paradigms.length; i++) {
         var p = ds.paradigms[i];
         if (p && p.pealim_id != null && !pidMap.has(String(p.pealim_id))) pidMap.set(String(p.pealim_id), p);
       }
+      if (engineYield()) await enginePause();
       // root → lemmas index (for the «Слова от этого корня» chips; dictionary-derived,
       // self-contained — no corpus/CrossText dependency).
       var rootIndex = new Map();
       for (var j = 0; j < ds.paradigms.length; j++) {
+        if ((j & 255) === 255 && engineYield()) await enginePause();
         var pp = ds.paradigms[j];
         if (!pp || !pp.root) continue;
         var disp = pp.lemma_niqqud || pp.lemma || "";
@@ -1168,15 +1186,19 @@
               else attested = await ar.json();
             }
           } catch (_) { attested = null; }
-          procLex = window.ProcliticSegment.buildLexicon(paradigms, {
-            names: Object.keys(NAME_PROPER), func: Object.keys(FUNCTION_GLOSS),
-            attested: attested ? { content: attested.content, nominal: attested.nominal } : null,
-          });
+          var lexOpts = { names: Object.keys(NAME_PROPER), func: Object.keys(FUNCTION_GLOSS),
+            attested: attested ? { content: attested.content, nominal: attested.nominal } : null };
+          procLex = typeof window.ProcliticSegment.buildLexiconAsync === "function"
+            ? await window.ProcliticSegment.buildLexiconAsync(paradigms, lexOpts, engineYield, enginePause)
+            : window.ProcliticSegment.buildLexicon(paradigms, lexOpts);
         }
       } catch (_) { procLex = null; }
-      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex, procLex: procLex, dictaLex: _pendingDictaLex };
+      var eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex, procLex: procLex, dictaLex: _pendingDictaLex };
+      // the canonical-form index the first reading of a word needs (built lazily before: ~1.5 s in one task)
+      try { await _canonIndexAsync(eng, engineYield, enginePause); } catch (_) {}
+      _eng = eng;
       return _eng;
-    })().catch(function (e) { _engPromise = null; throw e; });
+    })().then(function (e) { settle(); return e; }, function (e) { settle(); _engPromise = null; throw e; });
     return _engPromise;
   }
 
@@ -1306,16 +1328,25 @@
     }
     return out;
   }
+  function _canonIndexAdd(idx, p) {
+    var push = function (k, v) { if (!k) return; if (!idx.has(k)) idx.set(k, []); idx.get(k).push(v); };
+    if (!p || /^Conjugation of/.test(p.lemma || "")) return;
+    if (p.lemma_niqqud && !/[A-Za-z]/.test(p.lemma_niqqud)) push(canonForm(p.lemma_niqqud), { p: p, slot: "BASE" });
+    var cells = p.cells || {};
+    Object.keys(cells).forEach(function (k) { if (cells[k] && cells[k].he) push(canonForm(cells[k].he), { p: p, slot: k }); });
+  }
   function _canonIndex(eng) {
     if (eng.canonIdx) return eng.canonIdx;
     var idx = new Map();
-    var push = function (k, v) { if (!k) return; if (!idx.has(k)) idx.set(k, []); idx.get(k).push(v); };
-    eng.pidMap.forEach(function (p) {
-      if (!p || /^Conjugation of/.test(p.lemma || "")) return;
-      if (p.lemma_niqqud && !/[A-Za-z]/.test(p.lemma_niqqud)) push(canonForm(p.lemma_niqqud), { p: p, slot: "BASE" });
-      var cells = p.cells || {};
-      Object.keys(cells).forEach(function (k) { if (cells[k] && cells[k].he) push(canonForm(cells[k].he), { p: p, slot: k }); });
-    });
+    eng.pidMap.forEach(function (p) { _canonIndexAdd(idx, p); });
+    eng.canonIdx = idx;
+    return idx;
+  }
+  // the same index built in slices (identical result: pidMap insertion order is kept)
+  async function _canonIndexAsync(eng, shouldYield, pause) {
+    if (eng.canonIdx) return eng.canonIdx;
+    var idx = new Map(), n = 0, list = Array.from(eng.pidMap.values());
+    for (var i = 0; i < list.length; i++) { _canonIndexAdd(idx, list[i]); if ((++n & 63) === 0 && shouldYield()) await pause(); }
     eng.canonIdx = idx;
     return idx;
   }
@@ -3362,13 +3393,148 @@
     var word = words[Math.min(lo, words.length - 1)], box = word && word.getBoundingClientRect();
     var anchor = box && box.height > 0 && box.bottom > top && box.top < bottom ? word : row;
     var before = anchor.getBoundingClientRect().top;
-    return function () {
+    var restore = function () {
       if (!anchor.isConnected || !mount.contains(anchor)) return;
       // Measuring first incorporates any native anchoring already performed.
       // Correct only the remaining visual delta, without starting smooth scrolling.
       var delta = anchor.getBoundingClientRect().top - before;
       if (Math.abs(delta) > 1) scrollHost.scrollTo({ top: scrollHost.scrollTop + delta, behavior: 'instant' });
     };
+    restore.anchorRow = row;   // the row being read: growth strictly below it moves nothing on screen
+    return restore;
+  }
+
+  // Row preparation (word wrapping) in short tasks, rows on screen first — the classic-script twin
+  // of reader-row-work.js (the Room's module), for the Studio. prepare(row) runs once per row;
+  // ensure(row) prepares a row now (a pass that reached it, a focused or playing row).
+  function createRowWork(mount, prepare, options) {
+    options = options || {};
+    var rows = Array.prototype.slice.call(mount.querySelectorAll(options.rowSelector || 'tr[data-row-idx]'));
+    var done = new Set(), priority = new Set(), cursor = 0, cancelled = false, finished = false, timer = null, frame = null, observer = null, resolve;
+    var complete = new Promise(function (r) { resolve = r; });
+    var isCurrent = options.isCurrent || function () { return mount.isConnected; };
+    function ensure(row) {
+      if (!row || cancelled || done.has(row) || !isCurrent() || !mount.contains(row)) return false;
+      done.add(row); priority.delete(row);
+      if (observer) observer.unobserve(row);
+      prepare(row);
+      return true;
+    }
+    function stop(ok) {
+      if (cancelled) return;
+      cancelled = true; finished = !!ok; clearPending();
+      if (observer) observer.disconnect();
+      mount.removeEventListener('focusin', focus);
+      priority.clear(); resolve(ok);
+    }
+    function step() {
+      timer = null;
+      if (cancelled) return;
+      if (!isCurrent()) { stop(false); return; }
+      var urgent = priority.size > 0;
+      if (!urgent && !scrollQuiet()) { schedule(); return; }
+      var deadline = wordWorkNow() + sliceBudget(!urgent);
+      do {
+        var next = priority.values().next().value;
+        if (next) ensure(next);
+        else if (cursor < rows.length) ensure(rows[cursor++]);
+        else { stop(true); return; }
+      } while (wordWorkNow() < deadline);
+      schedule();
+    }
+    function clearPending() {
+      if (timer != null) { if (timer !== -1) clearTimeout(timer); timer = null; }
+      if (frame != null) { cancelAnimationFrame(frame); frame = null; }
+    }
+    // after a wait for the engine: one background slice, then the usual pacing
+    function scheduleAfterEngine() {
+      if (timer != null || frame != null || cancelled) return;
+      frame = requestAnimationFrame(function () { frame = null; timer = setTimeout(step, 0); });
+    }
+    function schedule() {
+      if (timer != null || frame != null || cancelled) return;
+      if (priority.size > 0 || typeof requestAnimationFrame !== 'function') { timer = setTimeout(step, 0); return; }
+      watchScroll();
+      var busy = engineBusy();
+      if (busy) { timer = -1; busy.then(function () { if (timer === -1) { timer = null; scheduleAfterEngine(); } }); return; }
+      timer = setTimeout(function () {
+        timer = null;
+        frame = requestAnimationFrame(function () { frame = null; timer = setTimeout(step, 0); });
+      }, scrollQuiet() ? 0 : SCROLL_QUIET_MS);
+    }
+    function focus(event) { ensure(event.target && event.target.closest ? event.target.closest('tr[data-row-idx]') : null); }
+    mount.addEventListener('focusin', focus);
+    if (typeof IntersectionObserver === 'function') {
+      var positions = new Map(); rows.forEach(function (row, i) { positions.set(row, i); });
+      observer = new IntersectionObserver(function (entries) {
+        var added = false;
+        for (var i = 0; i < entries.length; i++) {
+          if (!entries[i].isIntersecting) continue;
+          var at = positions.get(entries[i].target); if (at == null) continue;
+          // the row itself, the rows below it, then a few above: ready before they scroll in
+          for (var k = 0; k <= 11; k++) {
+            var r = rows[k <= 8 ? at + k : at - (k - 8)];
+            if (r && !done.has(r) && !priority.has(r)) { priority.add(r); added = true; }
+          }
+        }
+        // a row coming on screen does not wait for a background pause
+        if (added && !cancelled) { clearPending(); schedule(); }
+      }, { rootMargin: '700px 0px' });
+      rows.forEach(function (row) { observer.observe(row); });
+    }
+    var warm = wordWorkNow() + 8;
+    for (var w = 0; w < rows.length && w < 8; w++) { ensure(rows[w]); if (wordWorkNow() >= warm) break; }
+    timer = setTimeout(step, 0);
+    return {
+      complete: complete, ensure: ensure, cancel: function () { stop(false); },
+      // everything now (an explicit request that needs the whole text, e.g. a word list)
+      finish: function () { while (!cancelled && cursor < rows.length) ensure(rows[cursor++]); priority.forEach(ensure); if (!cancelled) stop(true); return complete; },
+      // 'running' | 'done' (every row prepared) | 'stopped' (cancelled or no longer current)
+      state: function () { return !cancelled ? 'running' : (finished ? 'done' : 'stopped'); },
+    };
+  }
+
+  // One IntersectionObserver per mounted table, shared by every row queue on it (colours, gloss,
+  // reveal). Without IntersectionObserver (tests, old engines) queues fall back to hit testing.
+  var _trackers = typeof WeakMap === 'function' ? new WeakMap() : null;
+  function viewportTracker(mount, rows) {
+    if (!_trackers || typeof IntersectionObserver !== 'function' || !rows.length) return null;
+    // A mount can host more than one row list (a Room page with an inline material table):
+    // each distinct list keeps its own observer; lists of a replaced table are dropped.
+    var list = (_trackers.get(mount) || []).filter(function (x) { if (x.first.isConnected) return true; x.dispose(); return false; });
+    _trackers.set(mount, list);
+    for (var k = 0; k < list.length; k++) if (list[k].first === rows[0] && list[k].count === rows.length) return list[k];
+    var t, visible = new Set(), subs = [], positions = new Map();
+    rows.forEach(function (row, i) { positions.set(row, i); });
+    var sorted = function () { return Array.from(visible).sort(function (a, b) { return positions.get(a) - positions.get(b); }); };
+    // Rows next to the ones on screen are prepared too, so they are ready before they scroll in.
+    // (A rootMargin does not reach past a scrolling table container, only past the page.)
+    var AHEAD = 8, BEHIND = 3;
+    var withNeighbours = function (list) {
+      if (!list.length) return list;
+      // the rows on screen first, then the ones below them, then the few above
+      var first = positions.get(list[0]), last = positions.get(list[list.length - 1]), out = list.slice();
+      for (var n = last + 1; n <= Math.min(rows.length - 1, last + AHEAD); n++) out.push(rows[n]);
+      for (var m = first - 1; m >= Math.max(0, first - BEHIND); m--) out.push(rows[m]);
+      return out;
+    };
+    var io = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) visible.add(entries[i].target); else visible.delete(entries[i].target);
+      }
+      var list = withNeighbours(sorted());
+      subs.slice().forEach(function (fn) { try { fn(list); } catch (_) {} });
+    }, { rootMargin: '25% 0px' });
+    rows.forEach(function (row) { io.observe(row); });
+    t = {
+      first: rows[0], count: rows.length,
+      visible: function () { return withNeighbours(sorted()); },
+      subscribe: function (fn) { subs.push(fn); },
+      unsubscribe: function (fn) { var at = subs.indexOf(fn); if (at >= 0) subs.splice(at, 1); },
+      dispose: function () { try { io.disconnect(); } catch (_) {} subs.length = 0; visible.clear(); },
+    };
+    list.push(t);
+    return t;
   }
 
   // Shared row order for gloss and morphology. Hit testing seeds the restored
@@ -3406,7 +3572,10 @@
       } catch (_) {}
       if (options && options.onVisible) options.onVisible(visible);
     }
-    refreshViewport();
+    // With an IntersectionObserver the browser reports the rows on screen after its next frame;
+    // hit testing here would force a layout of the whole freshly built table (CPU ×4: ~0.6 s).
+    var observed = !(options && options.observe === false) && _trackers && typeof IntersectionObserver === 'function' && rows.length > 0;
+    if (!observed) refreshViewport();
     function viewportScroll(event) {
       var target = event.target;
       if (target !== doc && target !== window && !(target && target.contains && target.contains(mount)) && !mount.contains(target)) return;
@@ -3414,12 +3583,37 @@
       if (typeof requestAnimationFrame === 'function') viewportFrame = requestAnimationFrame(function () { viewportFrame = null; refreshViewport(); });
       else refreshViewport();
     }
+    // The browser reports rows entering and leaving the screen after its own layout of a frame.
+    // Hit-testing on every scroll frame or size change forced a full layout of a long table in
+    // the middle of word work (~40k elements on 1000 rows); that was most of the waiting time.
+    var tracker = null, readyResolve = null;
+    var ready = new Promise(function (r) { readyResolve = r; });
+    function trackedVisible(list) {
+      if (readyResolve && list.length) { readyResolve(); readyResolve = null; }
+      if (closed || (isCurrent && !isCurrent())) return;
+      priority.clear();
+      add(fromNode(doc && doc.activeElement));
+      add(mount.querySelector('tr.row-playing, tr.smk-row-active, tr.rm-row-current'));
+      list.forEach(add);
+      if (options && options.onVisible) options.onVisible(list);
+    }
     mount.addEventListener('focusin', focus); mount.addEventListener('pointerdown', focus);
     if (!(options && options.observe === false)) {
-      if (window.addEventListener) { window.addEventListener('scroll', viewportScroll, { capture: true, passive: true }); window.addEventListener('resize', viewportScroll, { passive: true }); }
-      if (typeof ResizeObserver !== 'undefined') { sizeObserver = new ResizeObserver(function () { viewportScroll({ target: window }); }); sizeObserver.observe(mount); }
+      tracker = viewportTracker(mount, rows);
+      if (tracker) {
+        tracker.subscribe(trackedVisible); trackedVisible(tracker.visible());
+        // a fresh observer reports after the next frame; do not wait longer than that for it
+        if (readyResolve) setTimeout(function () { if (readyResolve) { readyResolve(); readyResolve = null; } }, 120);
+      }
+      else {
+        if (window.addEventListener) { window.addEventListener('scroll', viewportScroll, { capture: true, passive: true }); window.addEventListener('resize', viewportScroll, { passive: true }); }
+        if (typeof ResizeObserver !== 'undefined') { sizeObserver = new ResizeObserver(function () { viewportScroll({ target: window }); }); sizeObserver.observe(mount); }
+      }
     }
+    if (!tracker && readyResolve) { readyResolve(); readyResolve = null; }
     return {
+      // resolves once the rows on screen are known (at once without an observer)
+      ready: ready,
       next: function () {
         if (closed || (isCurrent && !isCurrent())) return null;
         if (current && priority.has(current) && !done.has(current)) return current;
@@ -3440,12 +3634,14 @@
         return batch;
       },
       prioritize: add,
-      refresh: refreshViewport,
+      refresh: function () { if (tracker) trackedVisible(tracker.visible()); else refreshViewport(); },
       isPriority: function (row) { return priority.has(row); },
+      hasPriority: function () { return priority.size > 0; },
       close: function () {
         closed = true;
         if (viewportFrame != null) cancelAnimationFrame(viewportFrame);
         if (sizeObserver) sizeObserver.disconnect();
+        if (tracker) tracker.unsubscribe(trackedVisible);
         if (window.removeEventListener) { window.removeEventListener('scroll', viewportScroll, true); window.removeEventListener('resize', viewportScroll); }
         priority.clear(); started.clear();
         mount.removeEventListener('focusin', focus); mount.removeEventListener('pointerdown', focus);
@@ -3453,7 +3649,59 @@
     };
   }
   function wordWorkNow() { return typeof performance !== 'undefined' ? performance.now() : Date.now(); }
-  function yieldWordWork() {
+  // urgent (rows on screen): continue as soon as the browser allows. Background (rows away from the
+  // screen): wait for the next frame to be drawn first, so a long text never holds up scrolling —
+  // back-to-back slices let the browser draw only now and then (≈1 frame per 0.6 s, CPU ×4).
+  // Every frame that changes a long table costs the browser a fixed ~100 ms (CPU ×4: paint
+  // properties, commit, layout of a ~40k-element layer), however small the change. So background
+  // work waits while the person scrolls (scrolling alone stays on the compositor) and then runs
+  // in larger slices, i.e. fewer such frames.
+  var _lastScrollAt = -1e9, _scrollWatch = false;
+  function watchScroll() {
+    if (_scrollWatch || typeof window === 'undefined' || !window.addEventListener) return;
+    _scrollWatch = true;
+    var mark = function () { _lastScrollAt = wordWorkNow(); };
+    window.addEventListener('scroll', mark, { capture: true, passive: true });
+    window.addEventListener('touchmove', mark, { capture: true, passive: true });
+    window.addEventListener('wheel', mark, { capture: true, passive: true });
+  }
+  var SCROLL_QUIET_MS = 220, BACKGROUND_SLICE_MS = 24, _engineBusy = null;
+  // A pause without the 4 ms clamp of nested timers: the next slice follows as soon as the
+  // browser has handled input and, when due, drawn a frame.
+  // scheduler.yield continuations outrank drawing: a caller that runs for long must also break
+  // for a frame now and then (the engine does it every ~100 ms).
+  var _yieldChannel = null, _yieldQueue = [];
+  function quickYield() {
+    if (typeof window !== 'undefined' && window.scheduler && typeof window.scheduler.yield === 'function') return window.scheduler.yield();
+    if (typeof MessageChannel === 'function') {
+      if (!_yieldChannel) { _yieldChannel = new MessageChannel(); _yieldChannel.port1.onmessage = function () { var r = _yieldQueue.shift(); if (r) r(); }; }
+      return new Promise(function (resolve) { _yieldQueue.push(resolve); _yieldChannel.port2.postMessage(0); });
+    }
+    return new Promise(function (resolve) { setTimeout(resolve, 0); });
+  }
+  // capped: a slow download of the dataset never holds the background passes for long
+  function engineBusy() { return _engineBusy ? Promise.race([_engineBusy, new Promise(function (r) { setTimeout(r, 3000); })]) : null; }
+  function scrollQuiet() { return wordWorkNow() - _lastScrollAt >= SCROLL_QUIET_MS; }
+  function afterFrame() { return new Promise(function (resolve) { requestAnimationFrame(function () { setTimeout(resolve, 0); }); }); }
+  function untilScrollQuiet() {
+    watchScroll();
+    var busy = engineBusy();
+    if (busy) return busy.then(function () { return scrollQuiet() ? afterFrame() : untilScrollQuiet(); });
+    if (scrollQuiet()) return afterFrame();
+    return new Promise(function (resolve) {
+      (function wait() { var left = SCROLL_QUIET_MS - (wordWorkNow() - _lastScrollAt); if (left <= 0) afterFrame().then(resolve); else setTimeout(wait, Math.max(16, left)); })();
+    });
+  }
+  function sliceBudget(background) { return background ? BACKGROUND_SLICE_MS : 8; }
+  // Urgent work (rows on screen) also lets a frame be drawn at least every ~40 ms: back-to-back
+  // slices left WebKit no gap to deliver storage answers (the first saved translations of the
+  // screen took ~1.9 s to arrive) and drew no frames meanwhile.
+  var _lastFrameYield = 0;
+  function yieldWordWork(background) {
+    if (typeof requestAnimationFrame === 'function') {
+      if (background) return untilScrollQuiet().then(function () { _lastFrameYield = wordWorkNow(); });
+      if (wordWorkNow() - _lastFrameYield > 40) return afterFrame().then(function () { _lastFrameYield = wordWorkNow(); });
+    }
     if (typeof window !== 'undefined' && window.scheduler && typeof window.scheduler.yield === 'function') return window.scheduler.yield();
     return new Promise(function (resolve) { setTimeout(resolve, 0); });
   }
@@ -3484,7 +3732,9 @@
     if (!isCurrent()) return;
     var rows = mount.querySelectorAll('tbody tr'), queue = createRowQueue(mount, rows.length ? rows : [mount], isCurrent), work = new Map();
     try {
-    var row, deadline = wordWorkNow() + 8, sliceWords = 0;
+    await queue.ready;   // start with the rows on screen, not the top of the text
+    if (!isCurrent()) return;
+    var row, deadline = wordWorkNow() + 8, sliceWords = 0, sliceCap = 60;
     while ((row = queue.next())) {
       if (!isCurrent()) return;
       var item = work.get(row);
@@ -3507,7 +3757,7 @@
         if (!isCurrent()) return;
         item = { spans: spans, places: places, at: 0 }; work.set(row, item);
       }
-      var end = Math.min(item.at + Math.max(1, 60 - sliceWords), item.spans.length);
+      var end = Math.min(item.at + Math.max(1, sliceCap - sliceWords), item.spans.length);
       for (; item.at < end; item.at++) {
         var i = item.at, span = item.spans[i];
         sliceWords++;
@@ -3554,9 +3804,11 @@
         if (wordWorkNow() >= deadline) { item.at++; break; }
       }
       if (item.at >= item.spans.length) { queue.done(row); work.delete(row); }
-      if (sliceWords >= 60 || wordWorkNow() >= deadline) {
-        await yieldWordWork();
-        deadline = wordWorkNow() + 8; sliceWords = 0;
+      if (sliceWords >= sliceCap || wordWorkNow() >= deadline) {
+        var background = !queue.hasPriority();
+        await yieldWordWork(background);
+        background = !queue.hasPriority();
+        deadline = wordWorkNow() + sliceBudget(background); sliceWords = 0; sliceCap = background ? 240 : 60;
       }
     }
     } finally { queue.close(); }
@@ -4575,7 +4827,10 @@
     headTranslitHtml: headTranslitHtml,
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud, scanRows: scanRows, joinSplitWords: joinSplitWords, setDictaLexicon: setDictaLexicon,
-    createRowQueue: createRowQueue, captureReadingPosition: captureReadingPosition, yieldWordWork: yieldWordWork,
+    createRowQueue: createRowQueue, createRowWork: createRowWork, engineBusy: engineBusy,
+    // start the offline word engine early (sliced), e.g. when the colour layer is on: the first
+    // coloured word of an opened text then does not wait for the dataset and its indexes
+    warmEngine: function () { try { ensureEngine().catch(function () {}); } catch (_) {} }, captureReadingPosition: captureReadingPosition, yieldWordWork: yieldWordWork,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore, relativeStrippedForm: relativeStrippedForm,
     applyLexicalResolution: applyLexicalResolution,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,

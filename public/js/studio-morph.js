@@ -62,6 +62,8 @@
     var mount = studioMount(), h = ensureHost();
     if (!mount || !h || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== "function") { reviewWords = []; _renderReviewWords(); return; }
     _reviewResult(tt("room.morph.study.loading", "Собираю слова…"));
+    // the list covers the whole text: finish wrapping the rows that are still plain
+    try { var work = ensureWork(mount); if (work) await work.finish(); } catch (_) {}
     try { reviewWords = await window.ReaderMorph.collectNewWords(mount, (await h.ensureWordStates()) || {}); } catch (_) { reviewWords = []; }
     _reviewResult(""); _renderReviewWords();
   }
@@ -228,11 +230,36 @@
   // САМОЛЕЧЕНИЕ: ячейка с data-rm-wrapped, но без .rm-w внутри (правка ячейки перезаписала
   // innerHTML) → снять флаг, wrapMount перевернёт заново на следующем refresh.
   function healStaleWrapFlags(mount) {
-    var tds = mount.querySelectorAll("td[data-rm-wrapped]");
+    var tds = mount.querySelectorAll("td[data-rm-wrapped]"), rows = [];
     for (var i = 0; i < tds.length; i++) {
-      if (!tds[i].querySelector(".rm-w")) tds[i].removeAttribute("data-rm-wrapped");
+      if (!tds[i].querySelector(".rm-w")) {
+        tds[i].removeAttribute("data-rm-wrapped");
+        var tr = tds[i].closest("tr"); if (tr && rows.indexOf(tr) < 0) rows.push(tr);
+      }
     }
+    return rows;
   }
+
+  // Word wrapping of a long table runs in short tasks, rows on screen first (as in the Room):
+  // wrapping all 2000 Hebrew cells of a 1000-row text in one task froze the page for seconds.
+  // The colour and interlinear passes wrap the row they reach themselves (prepareRow).
+  var rowWork = null, rowWorkTable = null, rowWorkHandle = null;
+  function ensureWork(mount) {
+    mount = mount || studioMount();
+    var table = mount && mount.querySelector("#proTable");
+    if (!table || !rmAttach || !window.ReaderMorph || typeof window.ReaderMorph.createRowWork !== "function") return null;
+    if (rowWork && rowWorkTable === table && rowWorkHandle === rmAttach && rowWork.state() !== "stopped") return rowWork;
+    if (rowWork) rowWork.cancel();
+    var handle = rmAttach;
+    rowWorkTable = table; rowWorkHandle = handle;
+    rowWork = window.ReaderMorph.createRowWork(mount, function (row) { handle.refresh(row); }, {
+      rowSelector: "#proTable tbody tr[data-row-idx]",
+      isCurrent: function () { return handle === rmAttach && table.isConnected && studioMount() === mount && !editModeOn(); },
+    });
+    return rowWork;
+  }
+  // idempotent: a wrapped cell is skipped, so a row the work already prepared costs a lookup
+  function prepareRow(row) { if (!(rowWork && rowWork.ensure(row)) && rmAttach) rmAttach.refresh(row); }
 
   // «🤖 Объяснить (наставник)» — тот же /api/agent/explain-word, что в Зале; требует
   // СОХРАНЁННЫЙ текст (text_key + консенты облака). Несохранённый → честный отказ.
@@ -306,6 +333,7 @@
     mount.addEventListener('click', suppressEditTap, true);
 
     var opts = {
+      deferWrap: true,
       getRow: function (i) {
         try { return (window.StudioAgentHost && window.StudioAgentHost.getRow) ? window.StudioAgentHost.getRow(i) : null; }
         catch (_) { return null; }
@@ -372,8 +400,10 @@
     var isCurrent = function () { return revision === _decorRevision && studioMount() === mount && !!table && table.isConnected && mount.querySelector('#proTable') === table; };
     if (editModeOn()) { applyWordLayer(mount, isCurrent); return; }   // в режиме правки не враппим и не красим; подстрочник/лента снимаются
     if (!statusOnly) {
-      healStaleWrapFlags(mount);
-      if (rmAttach && typeof rmAttach.refresh === "function") rmAttach.refresh();
+      var healed = healStaleWrapFlags(mount) || [];
+      var work = ensureWork(mount);
+      if (!work) { if (rmAttach && typeof rmAttach.refresh === "function") rmAttach.refresh(); }
+      else healed.forEach(function (tr) { try { rmAttach.refresh(tr); } catch (_) {} });   // cells rewritten by an edit
       // Saved context of B can paint immediately even if A's status read is pending.
       applyWordLayer(mount, isCurrent);
     }
@@ -391,7 +421,7 @@
           dueSet = window.ReaderMorph.dueSetFromSchedule((await ldb.getSrsSchedule()) || {}, states || {}, Date.now());
         } catch (_) { dueSet = null; }
       }
-      try { await window.ReaderMorph.decorateWords(mount, states, { color: color, fadeMode: "full", dueSet: dueSet,
+      try { await window.ReaderMorph.decorateWords(mount, states, { color: color, fadeMode: "full", dueSet: dueSet, prepareRow: prepareRow,
         isCurrent: function () { return isCurrent() && !editModeOn(); } }); } catch (_) {}
     } finally {
       _decorBusy = false;
@@ -412,7 +442,7 @@
       window.WordGlossAI.bindRows(mount, bound);
     }
     if (editModeOn()) { try { window.WordGloss.apply(mount, { gloss: false, ribbon: false, isCurrent: isCurrent }); } catch (_) {} return; }
-    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi"), strict: window.WordGloss.enabled("studio", "GlossStrict"),
+    try { window.WordGloss.apply(mount, { gloss: window.WordGloss.enabled("studio", "Gloss"), ribbon: window.WordGloss.enabled("studio", "Ribbon"), ai: window.WordGloss.enabled("studio", "GlossAi"), strict: window.WordGloss.enabled("studio", "GlossStrict"), prepareRow: prepareRow,
       isCurrent: function () { return (!isCurrent || isCurrent()) && !editModeOn(); } }); } catch (_) {}
   }
 
@@ -437,11 +467,24 @@
   }
   if (!wrapRenderTable()) document.addEventListener("DOMContentLoaded", wrapRenderTable);
 
+  // The colour layer / interlinear are on: prepare the offline word engine shortly after the page
+  // opens, so a material's first colours do not wait for it (it is built in slices).
+  function warmWordEngine() {
+    try {
+      var gloss = window.WordGloss && window.WordGloss.enabled && window.WordGloss.enabled("studio", "Gloss");
+      if ((wordStatusEnabled() || gloss) && window.ReaderMorph && window.ReaderMorph.warmEngine) window.ReaderMorph.warmEngine();
+    } catch (_) {}
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(warmWordEngine, 2500); });
+  else setTimeout(warmWordEngine, 2500);
+
   window.StudioMorph = {
     refresh: refresh,
     wordStatusEnabled: wordStatusEnabled,
     wordStatusSet: wordStatusSet,
     attachOnce: attachOnce,
+    // wrap one row now (karaoke reuses the morph spans of the row it highlights)
+    ensureRow: function (tr) { try { if (editModeOn()) return; ensureWork(); prepareRow(tr); } catch (_) {} },
     openReviewWords: openReviewWords,
     refreshReviewWords: _renderReviewWords,
   };

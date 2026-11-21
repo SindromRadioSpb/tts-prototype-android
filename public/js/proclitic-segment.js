@@ -92,13 +92,23 @@
   //          (מוֹרֶה «teacher», הֻרְגַּלְנוּ Hophal) that a bare-lemma guard would miss.
   // func:    the reader-morph FUNCTION_GLOSS closed-class skeletons.
   function buildLexicon(paradigms, opts) {
-    opts = opts || {};
+    var b = lexiconBuilder(), arr = paradigms || [];
+    for (var i = 0; i < arr.length; i++) b.add(arr[i]);
+    return b.finish(opts);
+  }
+  // The same lexicon built in slices (a browser builds it between frames). shouldYield() → true
+  // ends a slice; pause() is awaited between slices. Identical result to buildLexicon.
+  async function buildLexiconAsync(paradigms, opts, shouldYield, pause) {
+    var b = lexiconBuilder(), arr = paradigms || [];
+    for (var i = 0; i < arr.length; i++) { b.add(arr[i]); if ((i & 63) === 63 && shouldYield()) await pause(); }
+    return b.finish(opts);
+  }
+  function lexiconBuilder() {
     var lemmas = Object.create(null), content = Object.create(null),
       names = Object.create(null), cellVA = Object.create(null), func = Object.create(null), fossil = Object.create(null),
       nominal = Object.create(null);
-    var arr = paradigms || [];
-    for (var i = 0; i < arr.length; i++) {
-      var p = arr[i]; if (!p) continue;
+    var add = function (p) {
+      if (!p) return;
       var isContent = p.pos === "noun" || p.pos === "verb" || p.pos === "adjective";
       var isVA = p.pos === "verb" || p.pos === "adjective";
       var isNom = p.pos === "noun" || p.pos === "adjective";
@@ -115,7 +125,9 @@
         }
       }
       if (p.pos === "propernoun") { var ns = skeleton(p.lemma_niqqud || p.lemma); if (ns) names[ns] = 1; }
-    }
+    };
+    var finish = function (opts) {
+    opts = opts || {};
     var addAll = function (target, list) { if (list) for (var j = 0; j < list.length; j++) { var v = skeleton(list[j]); if (v) target[v] = 1; } };
     addAll(names, opts.names);
     addAll(func, opts.func);
@@ -128,6 +140,8 @@
     // never triggers a false article. { content:[…], nominal:[…] } — nominal ⊆ content.
     if (opts.attested) { addAll(content, opts.attested.content); addAll(lemmas, opts.attested.content); addAll(nominal, opts.attested.nominal); }
     return { lemmas: lemmas, content: content, nominal: nominal, names: names, cellVA: cellVA, func: func, fossil: fossil };
+    };
+    return { add: add, finish: finish };
   }
 
   function isLexeme(sk, lex) { return !!(lex && (lex.lemmas[sk] || lex.names[sk] || lex.func[sk] || lex.cellVA[sk])); }
@@ -341,7 +355,7 @@
 
   var API = {
     skeleton: skeleton, stripNiqqud: stripNiqqud, vowelUnits: vowelUnits,
-    buildLexicon: buildLexicon, detect: detect,
+    buildLexicon: buildLexicon, buildLexiconAsync: buildLexiconAsync, detect: detect,
     enumerateParses: enumerateParses, chooseOffline: chooseOffline, verdictOf: verdictOf,
     SUBORD: SUBORD, PREP: PREP, PROCLITIC_LETTERS: PROCLITIC_LETTERS, FOSSIL_LIST: FOSSIL_LIST,
     SEG_KIND_RU: SEG_KIND_RU,

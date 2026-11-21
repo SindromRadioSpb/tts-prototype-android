@@ -91,7 +91,7 @@ test('saved word layer begins before the status pass completes', async () => {
   const table = { isConnected: true }, mount = { querySelector: () => table };
   const context = vm.createContext({ _decorBusy: false, _decorDirty: false, _decorRevision: 0, studioMount: () => mount,
     window: { ReaderMorph: { decorateWords: () => waiting } }, editModeOn: () => false,
-    healStaleWrapFlags() {}, rmAttach: { refresh() {} }, wordStatusEnabled: () => false, ensureHost: () => null,
+    healStaleWrapFlags() {}, rmAttach: { refresh() {} }, ensureWork: () => null, prepareRow() {}, wordStatusEnabled: () => false, ensureHost: () => null,
     applyWordLayer: () => glosses++ });
   vm.runInContext(morph.slice(start, end), context);
   const refreshing = context.refreshDecorations();
@@ -107,7 +107,7 @@ test('B context starts while A state is pending and only B may receive the late 
   const pending = new Promise(resolve => { release = resolve; }), owners = [], painted = [];
   const mount = { querySelector: () => table };
   const context = vm.createContext({ _decorBusy: false, _decorDirty: false, _decorRevision: 0,
-    studioMount: () => mount, editModeOn: () => false, healStaleWrapFlags() {}, rmAttach: { refresh() {} },
+    studioMount: () => mount, editModeOn: () => false, healStaleWrapFlags() {}, rmAttach: { refresh() {} }, ensureWork: () => null, prepareRow() {},
     wordStatusEnabled: () => true, ensureHost: () => ({ ensureWordStates: () => ++calls === 1 ? pending : Promise.resolve({}) }),
     applyWordLayer: (_, current) => owners.push(current),
     window: { ReaderMorph: { decorateWords: async (_, __, opts) => { if (opts.isCurrent()) painted.push(table.id); } } } });

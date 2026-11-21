@@ -1,7 +1,7 @@
 /* Worlds boot: Classic by default; load the engine only for a world the learner chose. */
 (function () {
   "use strict";
-  var ENGINE_URL = "/js/world-engine.js?v=882"; // lockstep with the sw.js precache key
+  var ENGINE_URL = "/js/world-engine.js?v=908"; // lockstep with the sw.js precache key
   var loading = null;
   function load() {
     if (loading) return loading;

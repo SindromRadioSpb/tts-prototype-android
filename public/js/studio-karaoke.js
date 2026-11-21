@@ -73,6 +73,11 @@
     // Морф-слой (studio-morph) уже обернул ячейку: те же .rm-w[data-w-offset] (общий
     // токенизатор) — переиспользуем и НЕ рестор-им на stop(), иначе затрём раскраску
     // статусов и tap-атрибуты (data-surface/data-niqqud). Возврат "reuse" ≠ "own".
+    // A long table is wrapped row by row in the background: wrap this row through the morph
+    // layer first, so karaoke never builds its own spans that the morph wrap would replace.
+    if (!td.getAttribute("data-rm-wrapped") && window.StudioMorph && typeof window.StudioMorph.ensureRow === "function") {
+      try { var tr0 = td.closest("tr"); if (tr0) window.StudioMorph.ensureRow(tr0); } catch (_) {}
+    }
     if (td.getAttribute("data-rm-wrapped")) return td.querySelector(".rm-w") ? "reuse" : false;
     if (td.getAttribute(WRAP_FLAG)) return "own"; // already wrapped this run
     var text = td.textContent || "";

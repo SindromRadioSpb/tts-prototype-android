@@ -78,6 +78,22 @@
   // homograph signal), rootAlias (base key → Pealim-asserted TRUE root). Pure; the
   // caller passes InflectionDict.ensureReady().paradigms.
   function buildResolverMaps(paradigms) {
+    var builder = resolverMapsBuilder(), arr = paradigms || [];
+    for (var i = 0; i < arr.length; i++) builder.add(arr[i]);
+    return builder.maps;
+  }
+  // The same maps built in slices: a browser builds them between frames (the full dataset is a
+  // single multi-second task on a phone otherwise). shouldYield() → true ends a slice; pause()
+  // returns the promise to await between slices. Identical result to buildResolverMaps.
+  async function buildResolverMapsAsync(paradigms, shouldYield, pause) {
+    var builder = resolverMapsBuilder(), arr = paradigms || [];
+    for (var i = 0; i < arr.length; i++) {
+      builder.add(arr[i]);
+      if ((i & 31) === 31 && shouldYield()) await pause();
+    }
+    return builder.maps;
+  }
+  function resolverMapsBuilder() {
     var alias = new Map(), cell = new Map(), formIdx = new Map(), rootAlias = new Map();
     var push = function (map, kk, par) {
       if (!kk) return; if (!map.has(kk)) map.set(kk, []);
@@ -95,10 +111,8 @@
       var list = rootAlias.get(kk);
       if (!list.some(function (x) { return x.root === r && x.pos === (par.pos || ""); })) list.push({ pos: par.pos || "", binyan: par.binyan || "", root: r });
     };
-    var arr = paradigms || [];
-    for (var i = 0; i < arr.length; i++) {
-      var par = arr[i];
-      if (!par) continue;
+    var add = function (par) {
+      if (!par) return;
       if (par.meaning) { [par.root, par.lemma, par.form].forEach(function (k) { push(alias, stripNiqqud(k), par); }); }
       if (/noun|adjective|verb/.test(par.pos || "") && par.root) {
         [par.lemma, par.root, par.form].forEach(function (k) { pushRoot(stripNiqqud(k), par); });
@@ -111,8 +125,8 @@
           pushForm(normVowels(c.he), par);
         }
       }
-    }
-    return { alias: alias, cell: cell, formIdx: formIdx, rootAlias: rootAlias };
+    };
+    return { add: add, maps: { alias: alias, cell: cell, formIdx: formIdx, rootAlias: rootAlias } };
   }
 
   // The unit's decisive vocalized form(s): prefer the BASE (== Dicta stem skeleton)
@@ -428,7 +442,7 @@
     queryLemma: queryLemma, unitFormVariants: unitFormVariants, formMatches: formMatches,
     dictaTokenToUnit: dictaTokenToUnit, pickBaseParadigm: pickBaseParadigm,
     // resolver
-    buildResolverMaps: buildResolverMaps, formFirstResolve: formFirstResolve,
+    buildResolverMaps: buildResolverMaps, buildResolverMapsAsync: buildResolverMapsAsync, formFirstResolve: formFirstResolve,
     offlineMeaningLookup: offlineMeaningLookup, resolveTrueRoot: resolveTrueRoot,
     checkUnit: checkUnit, resolveContentUnit: resolveContentUnit,
     // assembly

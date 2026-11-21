@@ -48,7 +48,8 @@ html[data-world] body.theme-dark {
 /* ── the world behind everything ────────────────────────────────────────── */
 /* Only the Studio lets the world's ground show through (all its surfaces are opaque cards); the
    Room and the Mediatheque keep their own page background under their content. */
-html[data-world] body:has(.classic-shell) { background: transparent !important; }
+/* (the Studio page is the one with the classic shell; no body:has(), it is re-checked on every insertion) */
+html[data-world][data-lp-section="studio"] body { background: transparent !important; }
 /* Below the street the page is quiet ground, one flat tone per lighting — no second sky. */
 html[data-world][data-world-light="day"] { background: #6b5d4b !important; }
 html[data-world][data-world-light="dusk"] { background: #3a2e3c !important; }

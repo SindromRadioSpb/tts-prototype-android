@@ -32,7 +32,7 @@ const localDb = new Proxy(localDbRaw, {
   },
 });
 import * as readerCore from '/js/reader-core.js?v=817';
-import { scheduleRowWork } from '/js/reader-row-work.js?v=1';
+import { scheduleRowWork } from '/js/reader-row-work.js?v=908';
 import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js?v=876';
 import { adaptBenYehudaItem, adaptMyTextItem, adaptGroupCorpusItem, adaptPublicCorpusItem, learningSignals } from '/js/corpus-item-presenter.js?v=877';
 import * as roomB6 from '/js/room-b6-core.js?v=861';
@@ -17210,6 +17210,13 @@ async function boot() {
     backfillZombieMarkSeeds().then(() => r4HealDrain());   // R3.1 seeds → R4a heals (fire-and-forget chain)
     roomCloudAutoSync();   // CLG-P3.2 — fire-and-forget; no-op (single 401) without a live session
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
+    // colours / interlinear on: the offline word engine is prepared (in slices) before a text opens
+    setTimeout(() => {
+      try {
+        const gloss = window.WordGloss && window.WordGloss.enabled && window.WordGloss.enabled('room', 'Gloss');
+        if ((wordStatusEnabled() || gloss) && window.ReaderMorph && window.ReaderMorph.warmEngine) window.ReaderMorph.warmEngine();
+      } catch (_) {}
+    }, 2500);
     // Studio↔Room compat Ф1 — deep-link «Открыть в Зале»: ?open=<text_key> resolves a locally
     // MATERIALIZED text (own or corpus) and opens the Room reader. Unknown key → stay on home
     // (honest no-op; the Studio only links texts it just listed from the same OPFS).

@@ -77,11 +77,66 @@
     if (typeof window.addEventListener === "function") window.addEventListener("hashchange", function () { render(nav); });
   }
 
-  window.LpAppNav = { mount: mount, currentId: currentId };
+  // Page-level states as classes on <html>, for CSS that used html:has(body…) / body:has(.sheet…).
+  // A :has() whose subject is <html> or <body> is re-checked by the browser on every node inserted
+  // anywhere in the page; a long table inserts tens of thousands of word spans and the whole
+  // document's style was recalculated over and over (≈1.4 s per pass, CPU ×4, 1000 rows).
+  // Only the <body> class and the two bottom sheets (direct children of <body>) are watched.
+  var ROOT_STATES = [
+    ["lp-b-night", /(?:^|\s)(?:theme-dark|nw-dark|ml-dark)(?:\s|$)/],
+    ["lp-b-day", /(?:^|\s)theme-light(?:\s|$)/],
+    ["lp-b-reading", /(?:^|\s)(?:room-reading|room-study)(?:\s|$)/],
+    ["lp-b-nav", /(?:^|\s)lp-has-app-nav(?:\s|$)/],
+  ];
+  function syncRootStates() {
+    var b = document.body; if (!b) return;
+    var cls = b.className || "", root = document.documentElement.classList;
+    ROOT_STATES.forEach(function (s) { var on = s[1].test(cls); if (root.contains(s[0]) !== on) root.toggle(s[0], on); });
+  }
+  function sheetOpen(el, cls, open) { return el.classList.contains(cls) && el.classList.contains(open) && !el.hidden; }
+  function syncSheets() {
+    var b = document.body; if (!b) return;
+    var word = false, study = false;
+    for (var el = b.firstElementChild; el; el = el.nextElementSibling) {
+      if (!word && sheetOpen(el, "rm-sheet", "rm-open")) word = true;
+      if (!study && sheetOpen(el, "room-study", "room-study-open")) study = true;
+    }
+    if (b.classList.contains("lp-wordcard-up") !== word) b.classList.toggle("lp-wordcard-up", word);
+    if (b.classList.contains("lp-studysheet-up") !== study) b.classList.toggle("lp-studysheet-up", study);
+  }
+  var watchedSheets = typeof WeakSet === "function" ? new WeakSet() : null, sheetObserver = null;
+  function watchSheets() {
+    var b = document.body; if (!b || !watchedSheets || typeof MutationObserver !== "function") return;
+    if (!sheetObserver) sheetObserver = new MutationObserver(syncSheets);
+    for (var el = b.firstElementChild; el; el = el.nextElementSibling) {
+      if (watchedSheets.has(el) || !(el.classList.contains("rm-sheet") || el.classList.contains("room-study"))) continue;
+      watchedSheets.add(el);
+      sheetObserver.observe(el, { attributes: true, attributeFilter: ["class", "hidden"] });
+    }
+    syncSheets();
+  }
+  var rootWatched = false;
+  function watchRoot() {
+    if (rootWatched || !document.body) return;
+    rootWatched = true;
+    syncRootStates(); watchSheets();
+    if (typeof MutationObserver !== "function") return;
+    new MutationObserver(syncRootStates).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    new MutationObserver(watchSheets).observe(document.body, { childList: true });
+  }
+  if (document.body) watchRoot();
+  else if (typeof MutationObserver === "function") {
+    // loaded in <head>: start as soon as <body> exists, before its first paint
+    var early = new MutationObserver(function () { if (document.body) { early.disconnect(); watchRoot(); } });
+    early.observe(document.documentElement, { childList: true });
+  }
+
+  window.LpAppNav = { mount: mount, currentId: currentId, syncRootStates: syncRootStates };
   // Loaded right after <body>: mount at once (no late jump on a heavy page), then re-render when
   // the locale scripts further down have defined window.t.
   if (document.body) mount();
   document.addEventListener("DOMContentLoaded", function () {
+    watchRoot();
     mount();
     var nav = document.querySelector("nav.lp-app-nav");
     if (nav) render(nav);

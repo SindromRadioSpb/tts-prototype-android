@@ -22,7 +22,7 @@
   .lp-app-nav { position: sticky; top: 0; z-index: 50; }
   body.lp-has-app-nav > .lp-app-nav { margin-bottom: 8px; }
   /* scrollIntoView({ block: "start" }) targets land below the strip, not under it (R7). */
-  html:has(> body.lp-has-app-nav) { scroll-padding-top: 56px; }
+  html.lp-b-nav { scroll-padding-top: 56px; }
   /* The study-mode reader is a fixed full-screen layer: it starts below the strip, otherwise the
      strip covered its bar («← Полки», ▶, 🔍, Аа) (found in R10 verification). */
   body.room-study.lp-has-app-nav #roomReader { top: 45px; }
@@ -72,10 +72,11 @@ body.ml-dark .lp-app-nav-item[aria-current="page"] { color: #7FA6F5; }
 }
 
 /* R9 (audit P2-7): a toast never covers the buttons of an open bottom sheet — it rises to the top
-   while the word card or the «Мои слова» sheet is open. */
-body:has(.rm-sheet.rm-open:not([hidden])) .room-toast,
-body:has(.room-study.room-study-open:not([hidden])) .room-toast,
-body:has(.rm-sheet.rm-open:not([hidden])) #toastContainer {
+   while the word card or the «Мои слова» sheet is open. The classes come from app-nav.js: a
+   body:has(…) rule is re-checked on every node inserted into the page (long tables). */
+body.lp-wordcard-up .room-toast,
+body.lp-studysheet-up .room-toast,
+body.lp-wordcard-up #toastContainer {
   top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto;
 }
 
