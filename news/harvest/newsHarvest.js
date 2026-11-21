@@ -118,7 +118,9 @@ function leadOf(paragraphs, max = LIMITS.leadChars) {
 
 // ---- the harvester -----------------------------------------------------------------------------------
 function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSharp = () => require('sharp'), sources = SOURCES,
-  limits = {}, delayMs = 1200, now = () => Date.now(), log = () => {}, blocked = [] } = {}) {
+  limits = {}, delayMs = 1200, now = () => Date.now(), log = () => {}, blocked = [], index = { refresh: async () => ({}), prune: async () => 0 } } = {}) {
+  // The news index follows every change of the slice (findability spec §7.1); a failure never stops the harvest.
+  const reindex = keys => keys && keys.length ? index.refresh(keys).catch(e => log('[news-index] refresh failed: ' + (e && e.message))) : Promise.resolve();
   const L = { ...LIMITS, ...limits };
   const dir = path.join(dataDir, 'news-harvest');
   let busy = null, lastPollAt = 0, lastPollReport = null;
@@ -206,7 +208,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
 
   // ---- hourly: feeds → queue → pages ----------------------------------------------------------------
   async function pollNow() {
-    const started = now(), report = { at: iso(started), outlets: {}, pages: 0 };
+    const started = now(), report = { at: iso(started), outlets: {}, pages: 0 }, touched = new Set();
     for (const src of sources) {
       const rep = report.outlets[src.outlet_id] = { feed_items: 0, new: 0, errors: [] };
       if (blocked.includes(src.outlet_id)) { rep.errors.push('BLOCKED_FOR_SERVERS'); continue; }
@@ -225,7 +227,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
           const r = await dbRun(db, `INSERT OR IGNORE INTO news_harvest_items(url_key, outlet_id, url, feed_title, feed_section, feed_image, feed_pub_at, first_seen_at, status)
             SELECT ?,?,?,?,?,?,?,?,'queued' WHERE NOT EXISTS (SELECT 1 FROM news_harvest_seen WHERE url_key=?)`,
             [key, src.outlet_id, it.link, it.title || null, feed.section_he || null, it.image || null, isFinite(t) ? iso(t) : null, iso(now()), key]);
-          if (r.changes) rep.new++;
+          if (r.changes) { rep.new++; touched.add(key); }
         }
         await sleep(delayMs);
       }
@@ -236,6 +238,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     for (const row of queue) {
       const src = sources.find(s => s.outlet_id === row.outlet_id);
       if (!src || challenged.has(row.outlet_id)) continue;
+      touched.add(row.url_key);
       const fail = (reason, final) => dbRun(db, `UPDATE news_harvest_items SET status=?, reason=?, attempts=attempts+1 WHERE url_key=?`, [final ? 'failed' : 'queued', reason, row.url_key]);
       if (!(await allowed(row.url))) { await fail('ROBOTS', true); continue; }
       let page;
@@ -265,6 +268,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
         [reason, canonicalKey, a.published_at || row.feed_pub_at, a.section, a.content_type, a.title_he, a.subtitle_he || null, leadOf(a.paragraphs, L.leadChars) || null,
           a.paywalled ? 1 : 0, fullOk ? 1 : 0, chars, a.images.length, JSON.stringify(a), row.url_key]);
     }
+    await reindex([...touched]);
     lastPollAt = started; lastPollReport = report;
     log(`[news-harvest] poll: ${Object.entries(report.outlets).map(([k, o]) => k + '+' + o.new).join(' ')} · pages ${report.pages}`);
     return report;
@@ -307,6 +311,8 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       readme: fs.readFileSync(path.join(__dirname, 'dotTask.md'), 'utf8'), sleep: () => sleep(Math.round(delayMs / 3)) });
     for (const [id, o] of Object.entries((lastPollReport && lastPollReport.outlets) || {})) if (o.errors.length) (r.report.outlets[id] = r.report.outlets[id] || { items: 0, main: 0 }).errors = o.errors;
     r.report.recheck = recheck;
+    // Stories were assigned to the day's rows: the index takes their story keys.
+    await reindex((await dbAll(db, 'SELECT url_key FROM news_harvest_items WHERE first_seen_at >= ?', [iso(now() - 26 * 3600000)])).map(x => x.url_key));
     const t = iso(now()), status = r.file_name ? 'archived' : 'skipped';
     await dbRun(db, `UPDATE news_editions SET status=?, cut_at=?, archive_ready_at=?, main_count=?, rework_count=?, overview_count=?, file_name=?, bytes=?, report_json=? WHERE edition_id=?`,
       [status, t, r.file_name ? t : null, r.main, r.rework, r.overview_items, r.file_name, r.bytes, JSON.stringify(r.report), editionId]);
@@ -343,6 +349,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     }
     await dbRun(db, 'UPDATE news_harvest_items SET data_json=NULL WHERE data_json IS NOT NULL AND first_seen_at < ?', [iso(now() - L.keepBodyDays * 86400000)]);
     await dbRun(db, 'DELETE FROM news_harvest_items WHERE first_seen_at < ?', [iso(now() - L.keepItemsDays * 86400000)]);
+    await index.prune(now()).catch(e => log('[news-index] prune failed: ' + (e && e.message)));
+    // Tables that grew without end (findability spec §7.1): 45 days like the slice, study articles kept.
+    const cutIso = iso(now() - L.keepItemsDays * 86400000), cutDay = israelIso(now() - L.keepItemsDays * 86400000).slice(0, 10);
+    const alive = "SELECT article_id FROM news_articles WHERE tier<>'withdrawn'";
+    await dbRun(db, `DELETE FROM news_overview_items WHERE day < ? AND item_key NOT IN (${alive})`, [cutDay]).catch(() => {});
+    await dbRun(db, `DELETE FROM news_stories WHERE last_at < ? AND story_key NOT IN (SELECT story_key FROM news_overview_items) AND story_key NOT IN (SELECT story_key FROM news_harvest_items WHERE story_key IS NOT NULL)`, [cutIso]).catch(() => {});
+    await dbRun(db, `DELETE FROM news_article_changes WHERE detected_at < ? AND article_id NOT IN (${alive})`, [cutIso]).catch(() => {});
+    await dbRun(db, `DELETE FROM news_article_fingerprints WHERE created_at < ? AND article_id NOT IN (${alive})`, [cutIso]).catch(() => {});
     await dbRun(db, 'DELETE FROM news_read_signals WHERE at < ?', [iso(now() - 90 * 86400000)]).catch(() => {});
     // Photo cache: 3 days, and at most 500 MB (oldest first).
     try {
@@ -531,6 +545,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     const lease = iso(Math.max(Date.parse(e.lease_until || 0) || 0, now() + schedule.leaseHours * 3600e3));
     for (const o of out) await dbRun(db, `UPDATE news_harvest_items SET main_state='drafted', main_edition_id=?, selected_by='dot', selection_note_ru=?, draft_images_json=?, lease_until=? WHERE url_key=? AND main_state='none'`,
       [e.edition_id, o.note, JSON.stringify(o.images), lease, o.url_key]);
+    await reindex(out.map(o => o.url_key));
     const items2 = out.map(o => ({ item_key: o.item_key, draft: o.draft, images: o.images }));
     const report = { ...rep, main_keys: [...new Set([...(rep.main_keys || []), ...out.map(o => o.url_key)])], extras: [...(rep.extras || []), { file: name, keys: keysAsked, items: items2 }] };
     await dbRun(db, 'UPDATE news_editions SET extras_count=?, report_json=? WHERE edition_id=?', [n, JSON.stringify(report), e.edition_id]);

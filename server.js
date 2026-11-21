@@ -1541,9 +1541,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=910",
-  "/i18n/locales/en.js?v=910",
-  "/i18n/locales/he.js?v=910",
+  "/i18n/locales/ru.js?v=911",
+  "/i18n/locales/en.js?v=911",
+  "/i18n/locales/he.js?v=911",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4610,8 +4610,11 @@ let _newsStore = null;
 function newsStore() {
   if (!_newsStore) {
     const db = require("./db/sqlite").getDb();
-    _newsStore = { repo: require("./db/newsRepo").createNewsRepo({ db }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
-      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m) }) };
+    // One index for the overview and every outlet (docs/superpowers/specs/2026-11-21-news-findability-design.md §7.1).
+    const index = require("./db/newsIndex").createNewsIndex({ db });
+    _newsStore = { index, repo: require("./db/newsRepo").createNewsRepo({ db, index }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
+      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m), index }),
+      list: require("./db/newsList").createNewsList({ db, cardsFor: ids => _newsStore.repo.cardsFor(ids) }) };
     // Editions: what dot publishes is counted against the edition it came from.
     _newsStore.repo.setEditionListener(r => _newsStore.harvester.accountPack(r));
     // Archived days offloaded to the owner's PC and back (owner only).
@@ -4621,7 +4624,7 @@ function newsStore() {
 }
 const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
 require("./news/newsRoutes").mountNewsRoutes(app, {
-  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload),
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list),
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
   // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
   audit: (type, actorId, detail, ip) => {
@@ -4639,6 +4642,11 @@ const _newsLifecycleBoot = setTimeout(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
 }, 90 * 1000);
 if (_newsLifecycleBoot.unref) _newsLifecycleBoot.unref();
+// The news index is built once per index version (in the background, after boot settles).
+const _newsIndexBoot = setTimeout(() => {
+  newsStore().index.ensureBuilt(1).then(n => { if (n) console.log("[news-index] built:", n, "keys"); }).catch(e => console.error("[news-index] build failed:", e && e.message));
+}, 120 * 1000);
+if (_newsIndexBoot.unref) _newsIndexBoot.unref();
 // Article harvester: checks every 10 minutes — an edition at each cut-off (06:00, 10:30, 16:30, 20:30 Israel time by default), an hourly poll between.
 const _newsHarvestTick = setInterval(() => {
   newsStore().harvester.tick().catch(e => console.error("[news-harvest] run failed:", e && e.message));

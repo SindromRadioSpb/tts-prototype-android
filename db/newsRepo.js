@@ -94,12 +94,14 @@ function openPack(zipBuffer) {
   return { manifest, byName };
 }
 
-function createNewsRepo({ db, now = () => Date.now() } = {}) {
+function createNewsRepo({ db, now = () => Date.now(), index = { refresh: async () => ({}) } } = {}) {
   if (!db) fail('DB_NOT_AVAILABLE', 503);
   const nowMs = () => { const v = now(); return typeof v === 'number' ? v : Date.parse(v); };
   const iso = () => new Date(nowMs()).toISOString();
   let queue = Promise.resolve();
-  const overviewItems = createOverviewItems({ db, now });
+  // The news index follows every change of a study article (findability spec §7.1); a failure never fails the write.
+  const touch = keys => index.refresh((keys || []).filter(Boolean)).catch(e => console.warn('[news-index] refresh failed:', e && e.message));
+  const overviewItems = createOverviewItems({ db, now, index });
   let editionListener = null;
   const setEditionListener = fn => { editionListener = typeof fn === 'function' ? fn : null; };
   // Since migration 083 «Обзор дня» is kept by article; before it, one body per day.
@@ -308,6 +310,7 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
       if (row.tier === 'withdrawn') return 'already';
       // «Удалить» = 30-day trash: hidden from everyone, body and works kept so «Восстановить» works.
       await dbRun(db, "UPDATE news_articles SET tier='withdrawn', withdrawn_reason=?, deleted_at=?, updated_at=? WHERE article_id=?", [String(reason || '').slice(0, 500), iso(), iso(), articleId]);
+      await touch([articleId]);
       await event(actor, 'withdrawn', { packId, articleId, detail: { reason: String(reason || '').slice(0, 500) } });
       return 'withdrawn';
     });
@@ -432,6 +435,18 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     const rows = await dbAll(db, `SELECT work_id, article_id, snapshot_sha256 FROM news_works WHERE position_no=1 AND article_id IN (${articleIds.map(() => '?').join(',')})`, articleIds);
     return new Map(rows.map(r => [r.article_id, r]));
   }
+  // Cards of study articles for the one feed (findability spec §7.2): article id → card, alive tiers only.
+  async function cardsFor(articleIds) {
+    const ids = [...new Set((articleIds || []).filter(id => ARTICLE_KEY.test(String(id))))], out = new Map();
+    for (let i = 0; i < ids.length; i += 200) {
+      const part = ids.slice(i, i + 200);
+      const rows = await dbAll(db, `SELECT ${CARD_COLS} FROM news_articles WHERE tier IN ('fresh','archive','card') AND article_id IN (${part.map(() => '?').join(',')})`, part);
+      const works = await firstWorks(rows.map(r => r.article_id));
+      for (const r of rows) out.set(r.article_id, toCard(r, works.get(r.article_id)));
+    }
+    return out;
+  }
+  const ARTICLE_KEY = /^na_[0-9a-f]{24}$/;
   const CARD_COLS = 'article_id,outlet_id,canonical_url,section,section_original_he,content_type,published_at,title_he,title_ru,summary_ru,author,levels_json,image_json,heavy,story_key,tier,provenance_json';
   const encodeCursor = row => Buffer.from(JSON.stringify([row.published_at, row.article_id])).toString('base64url');
   function decodeCursor(c) {
@@ -514,10 +529,12 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
         sections: mine.map(c => ({ section: c.section, count: c.n })).sort((a, b) => b.count - a.count) };
     });
   }
+  let carded = [];
   function runLifecycle(atMs = nowMs()) {
     return serialize(() => transaction(async () => {
       const freshCut = new Date(atMs - FRESH_MS).toISOString(), cardCut = new Date(atMs - ARCHIVE_MS).toISOString(), t = new Date(atMs).toISOString();
       const toCardRows = await dbAll(db, "SELECT article_id FROM news_articles WHERE tier IN ('fresh','archive') AND published_at<?", [cardCut]);
+      carded = toCardRows.map(r => r.article_id);
       for (const r of toCardRows) { await dbRun(db, 'DELETE FROM news_works WHERE article_id=?', [r.article_id]); await dbRun(db, 'DELETE FROM news_images WHERE article_id=?', [r.article_id]); }
       const card = await dbRun(db, "UPDATE news_articles SET tier='card', body_json=NULL, updated_at=? WHERE tier IN ('fresh','archive') AND published_at<?", [t, cardCut]);
       // An offloaded article that became a card has nothing left to bring back (§5.11).
@@ -620,7 +637,11 @@ function createNewsRepo({ db, now = () => Date.now() } = {}) {
     };
   }
 
-  return { setEditionListener, ingestPack, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, runLifecycle, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
+  const after = (fn, keysOf) => async (...args) => { const r = await fn(...args); await touch(keysOf(r, args)); return r; };
+  const ingestPackIndexed = after(ingestPack, r => (r.items || []).map(i => i.article_id));
+  const restoreIndexed = after(restoreArticle, (r, a) => [a[1]]);
+  const lifecycleIndexed = after(runLifecycle, () => { const k = carded; carded = []; return k; });
+  return { setEditionListener, ingestPack: ingestPackIndexed, getOverview, getImage, withdrawArticle, withdrawPack, listFeed, getCard, getWork, listOutlets, cardsFor, runLifecycle: lifecycleIndexed, journal, archiveArticle, unarchiveArticle, deleteArticle, restoreArticle: restoreIndexed, listForEditor, _db: db, _iso: iso, _nowMs: nowMs, _serialize: serialize, _transaction: transaction, _event: event };
 }
 
 module.exports = { createNewsRepo, NewsError, tierFor, LIMITS, FRESH_MS, ARCHIVE_MS, dbGet, dbAll, dbRun };

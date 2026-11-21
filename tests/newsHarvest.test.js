@@ -120,7 +120,7 @@ test('RSS items and robots.txt', () => {
 });
 
 // ---- end to end with a fake web ---------------------------------------------------------------------
-async function harvesterSetup(t, { clock, pages = {}, onFetch = null } = {}) {
+async function harvesterSetup(t, { clock, pages = {}, onFetch = null, index } = {}) {
   const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
   for (const m of ['081_news_harvest.sql', '082_news_harvest_items.sql', '083_news_editions.sql']) await exec(db, fs.readFileSync(path.join(__dirname, '..', 'migrations', m), 'utf8'));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-harvest-'));
@@ -145,7 +145,7 @@ async function harvesterSetup(t, { clock, pages = {}, onFetch = null } = {}) {
     return web[url] != null ? new Response(web[url], { headers: { 'content-type': 'text/html' } }) : new Response('nf', { status: 404 });
   };
   const sources = [sourceFor('ynet'), sourceFor('c14')];
-  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources, delayMs: 0, now: () => clock.now, limits: { minChars: 200 } });
+  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources, delayMs: 0, now: () => clock.now, limits: { minChars: 200 }, index });
   return { db, dataDir, harvester, requests };
 }
 
@@ -812,4 +812,14 @@ test('897 review: a body-only revert does not touch the titles; no original titl
   const ov = (await s.q('SELECT title_ru, changed_at FROM news_overview_items WHERE item_key=?', [s.id]))[0];
   assert.equal(ov.title_ru, 'Старый заголовок'); assert.equal(ov.changed_at, null);
   assert.equal((await s.q('SELECT overview_state FROM news_harvest_items WHERE url_key=?', [s.id]))[0].overview_state, 'done');
+});
+
+// Findability W2: the index follows the harvest (docs/superpowers/specs/2026-11-21-news-findability-design.md §7.1).
+test('harvest poll refreshes index for new rows', async t => {
+  const clock = { now: Date.parse('2026-11-15T03:30:00+02:00') }, seen = [];
+  const { harvester } = await harvesterSetup(t, { clock, index: { refresh: async keys => { seen.push(...keys); return {}; }, prune: async () => 0 } });
+  await harvester.poll();
+  const k = C.articleKey('ynet', C.canonicalizeUrl('https://www.ynet.co.il/news/article/abc123'));
+  assert.ok(seen.includes(k), 'the fetched article is refreshed');
+  assert.ok(seen.includes(C.articleKey('ynet', C.canonicalizeUrl('https://www.ynet.co.il/news/article/short1'))));
 });

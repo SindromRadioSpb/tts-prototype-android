@@ -228,7 +228,7 @@
     tag.style.setProperty("--nw-outlet", o.color);
     var since = opts.lastVisit && it.edition_published_at && it.edition_published_at > opts.lastVisit;
     var box = h(doc, "div", { class: "nw-ov-item" + (big ? " nw-ov-item-lead" : "") + (since ? " nw-ov-item-since" : "") }, [
-      h(doc, "p", { class: "nw-ov-meta" }, [tag, it.paywalled ? " · " + t("news.overview.paywalled", "платная") : "",
+      h(doc, "p", { class: "nw-ov-meta" }, [tag, opts.showTime && it.published_at ? h(doc, "span", { class: "nw-ov-time", text: " · " + (opts.day && israelDate(Date.parse(it.published_at)) !== opts.day ? israelDayLabel(it.published_at, opts.locale) + ", " : "") + israelTime(it.published_at, opts.locale) }) : null, it.paywalled ? " · " + t("news.overview.paywalled", "платная") : "",
         it.work_id ? h(doc, "span", { class: "nw-ov-learn", text: t("news.overview.learnBadge", "учебная") }) : null,
         it.selected_by === "dot" ? h(doc, "span", { class: "nw-selected-dot", text: t("news.selectedByDot", "выбрано dot") }) : null,
         it.edition_slot && it.edition_slot !== "morning" && it.edition_published_at ? h(doc, "span", { class: "nw-ov-new-in", text: fill(t("news.overview.newIn", "новое в {time}"), { time: israelTime(it.edition_published_at, opts.locale) }) }) : null,
@@ -275,35 +275,38 @@
     return art;
   }
 
+  // One state for the overview and every outlet (findability spec §7.3); old outlet addresses
+  // (?tier=archive&q=&from=&to=) keep working: the archive tab became a date range.
+  var KINDS = ["learn", "slice", "all"], SORTS = ["fresh", "time", "match"];
   function parseState(search) {
     var q = new URLSearchParams(String(search || ""));
     var outlet = q.get("outlet"); if (!(Outlets && Outlets.byId(outlet))) outlet = null;
     var section = q.get("section"); if (SECTIONS.indexOf(section) < 0) section = null;
     var day = function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")) ? v : null; };
     var group = q.get("group"); if (GROUP_ORDER.indexOf(group) < 0) group = null;
-    return { outlet: outlet, section: section, tier: q.get("tier") === "archive" ? "archive" : "fresh", q: (q.get("q") || "").slice(0, 200), from: day(q.get("from")), to: day(q.get("to")),
-      view: !outlet && q.get("view") === "overview" ? "overview" : null, day: day(q.get("day")), group: group, ed: EDITION_SLOTS.indexOf(q.get("ed")) >= 0 ? q.get("ed") : null };
+    var story = (q.get("story") || "").slice(0, 120) || null;
+    return { view: outlet ? "outlet" : q.get("view") === "overview" ? "overview" : null, outlet: outlet, section: section,
+      q: (q.get("q") || "").slice(0, 200) || null, from: day(q.get("from")), to: day(q.get("to")), day: day(q.get("day")), group: group,
+      ed: EDITION_SLOTS.indexOf(q.get("ed")) >= 0 ? q.get("ed") : null, kind: KINDS.indexOf(q.get("kind")) >= 0 ? q.get("kind") : "all",
+      sort: SORTS.indexOf(q.get("sort")) >= 0 ? q.get("sort") : "fresh", story: story };
   }
   function stateHref(s) {
     var q = new URLSearchParams();
-    if (s.view === "overview") { q.set("view", "overview"); if (s.day) q.set("day", s.day); if (s.group) q.set("group", s.group); if (s.ed) q.set("ed", s.ed); return "/news.html?" + q.toString(); }
-    if (s.outlet) q.set("outlet", s.outlet);
+    if (s.view === "overview" && !s.outlet) q.set("view", "overview");
+    else if (s.outlet) q.set("outlet", s.outlet);
+    else return "/news.html";
+    if (s.from || s.to) { if (s.from) q.set("from", s.from); if (s.to) q.set("to", s.to); }
+    else if (s.day) q.set("day", s.day);
     if (s.section) q.set("section", s.section);
-    if (s.tier === "archive") q.set("tier", "archive");
-    if (s.tier === "archive" && s.q) q.set("q", s.q);
-    if (s.tier === "archive" && s.from) q.set("from", s.from);
-    if (s.tier === "archive" && s.to) q.set("to", s.to);
-    var str = q.toString();
-    return "/news.html" + (str ? "?" + str : "");
+    if (s.group) q.set("group", s.group);
+    if (s.ed) q.set("ed", s.ed);
+    if (s.kind && s.kind !== "all") q.set("kind", s.kind);
+    if (s.story) q.set("story", s.story);
+    if (s.q) q.set("q", s.q);
+    if (s.sort && s.sort !== "fresh") q.set("sort", s.sort);
+    return "/news.html?" + q.toString();
   }
-  function feedUrl(s, cursor, noHeavy) {
-    var q = new URLSearchParams({ outlet: s.outlet, tier: s.tier, limit: "20" });
-    if (s.section) q.set("section", s.section);
-    if (s.tier === "archive") { if (s.q) q.set("q", s.q); if (s.from) q.set("from", s.from); if (s.to) q.set("to", s.to); }
-    if (noHeavy) q.set("no_heavy", "1");
-    if (cursor) q.set("cursor", cursor);
-    return "/api/news/feed?" + q.toString();
-  }
+
 
   // A returning visitor's old service worker still serves the old Reading Room, which does not know
   // ?news= and would open its home instead of the article. When an update is waiting, show a banner
@@ -407,12 +410,7 @@
     }
     async function getJson(url) { var r = await win.fetch(url, { cache: "no-cache" }); if (!r.ok) throw new Error("HTTP_" + r.status); return r.json(); }
     async function loadOutlets() { if (!outletsCache) outletsCache = (await getJson("/api/news/outlets")).outlets; return outletsCache; }
-    function heavyToggle(onChange) {
-      var id = "nw-no-heavy", input = h(doc, "input", { type: "checkbox", id: id });
-      input.checked = noHeavy();
-      input.addEventListener("change", function () { store.set(HEAVY_KEY, input.checked ? "1" : "0"); onChange(); });
-      return h(doc, "label", { class: "nw-toggle", for: id }, [input, " " + t("news.noHeavy", "Без тяжёлых тем")]);
-    }
+
     function go(state, replace) {
       try { win.history[replace ? "replaceState" : "pushState"]({}, "", stateHref(state)); } catch (_) {}
       render();
@@ -460,127 +458,44 @@
       });
     }
 
-    async function renderOutlet(state, my) {
-      var o = outletOf(state.outlet);
-      var back = h(doc, "a", { class: "nw-back", href: "/news.html", text: t("news.backToOutlets", "← Все издания") });
-      back.addEventListener("click", function (e) { e.preventDefault(); go({ tier: "fresh" }); });
-      var titleTag = h(doc, "span", { class: "nw-outlet-tag nw-outlet-tag-big", text: o.name_latin }); titleTag.style.setProperty("--nw-outlet", o.color);
-      var head = h(doc, "header", { class: "nw-heading" }, [back, h(doc, "h1", {}, [titleTag, " ", h(doc, "span", { lang: "he", dir: "rtl", text: o.name_he })]),
-        h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.retellingNote", "Статьи издания для изучения языка — текст оригинала или пересказ, со ссылкой на источник.") })]);
-      var tabs = h(doc, "div", { class: "nw-tabs", role: "group", "aria-label": t("news.tierLabel", "Свежие или архив") }, ["fresh", "archive"].map(function (tier) {
-        var b = h(doc, "button", { type: "button", class: "nw-tab", "aria-pressed": state.tier === tier ? "true" : "false", text: tier === "fresh" ? t("news.fresh", "Свежие") : t("news.archive", "Архив") });
-        b.addEventListener("click", function () { if (state.tier !== tier) go({ outlet: state.outlet, section: state.section, tier: tier }); });
-        return b;
-      }));
-      var outlets = [];
-      try { outlets = await loadOutlets(); } catch (_) { outlets = []; }
-      if (my !== token) return;
-      var info = outlets.filter(function (x) { return x.outlet_id === state.outlet; })[0] || { sections: [] };
-      var sectionIds = info.sections.map(function (s) { return s.section; });
-      if (state.section && sectionIds.indexOf(state.section) < 0) sectionIds.push(state.section);
-      var chips = h(doc, "div", { class: "nw-chips", role: "group", "aria-label": t("news.sectionsLabel", "Рубрики") }, [null].concat(sectionIds).map(function (id) {
-        var b = h(doc, "button", { type: "button", class: "nw-chip", "aria-pressed": (state.section || null) === id ? "true" : "false", text: id ? sectionLabel(id, t) : t("news.allSections", "Все рубрики") });
-        b.addEventListener("click", function () { go({ outlet: state.outlet, section: id, tier: state.tier, q: state.q, from: state.from, to: state.to }); });
-        return b;
-      }));
-      var controls = h(doc, "div", { class: "nw-controls" }, [tabs, heavyToggle(render)]);
-      var parts = [head, controls, chips];
-      if (state.tier === "archive") {
-        var form = h(doc, "form", { class: "nw-search", role: "search" });
-        var qIn = h(doc, "input", { type: "search", name: "q", id: "nw-q", value: state.q || "", placeholder: t("news.search", "Поиск по заголовку"), "aria-label": t("news.search", "Поиск по заголовку") });
-        var fromIn = h(doc, "input", { type: "date", name: "from", id: "nw-from", value: state.from || "" });
-        var toIn = h(doc, "input", { type: "date", name: "to", id: "nw-to", value: state.to || "" });
-        form.append(qIn, h(doc, "label", { for: "nw-from", text: t("news.from", "С") }), fromIn, h(doc, "label", { for: "nw-to", text: t("news.to", "По") }), toIn,
-          h(doc, "button", { type: "submit", class: "nw-button", text: t("news.find", "Найти") }));
-        form.addEventListener("submit", function (e) { e.preventDefault(); go({ outlet: state.outlet, section: state.section, tier: "archive", q: qIn.value.trim(), from: fromIn.value || null, to: toIn.value || null }); });
-        parts.push(form);
+    // The overview and an outlet are one list screen (findability spec §7.3).
+    var listApi = null;
+    function renderList(state, my) {
+      var back = h(doc, "a", { class: "nw-back", href: "/news.html", text: state.view === "outlet" ? t("news.backToOutlets", "← Все издания") : t("news.backToNews", "← Новости") });
+      back.addEventListener("click", function (e) { e.preventDefault(); go({}); });
+      var head;
+      if (state.view === "outlet") {
+        var o = outletOf(state.outlet), titleTag = h(doc, "span", { class: "nw-outlet-tag nw-outlet-tag-big", text: o.name_latin });
+        titleTag.style.setProperty("--nw-outlet", o.color);
+        head = h(doc, "header", { class: "nw-heading" }, [back, h(doc, "h1", {}, [titleTag, " ", h(doc, "span", { lang: "he", dir: "rtl", text: o.name_he })]),
+          h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.list.outletLead", "Все статьи издания по дням: сначала учебные материалы, затем остальные из среза. Поиск — по заголовкам и тексту.") })]);
+      } else {
+        head = h(doc, "header", { class: "nw-heading" }, [back, h(doc, "h1", { text: t("news.overview.title", "Обзор дня") }),
+          h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.list.overviewLead", "Все статьи изданий за день: сначала учебные материалы, затем остальные из среза. Поиск — по заголовкам и тексту.") })]);
       }
-      var list = h(doc, "div", { class: "nw-feed", "aria-live": "polite" });
-      var more = h(doc, "button", { type: "button", class: "nw-button nw-more", text: t("news.more", "Показать ещё"), hidden: true });
-      parts.push(list, more);
-      root.replaceChildren.apply(root, parts);
-      var returnTo = stateHref(state), cursor = null;
-      async function page() {
-        more.hidden = true;
-        var loading = status("news.loading", "Загрузка новостей…"); list.appendChild(loading);
-        try {
-          var data = await getJson(feedUrl(state, cursor, noHeavy()));
-          if (my !== token) return;
-          loading.remove();
-          data.items.forEach(function (card) { list.appendChild(renderCard(doc, card, { t: t, returnTo: returnTo, locale: locale(), manage: manageOpts() })); });
-          if (!list.children.length) list.appendChild(status(state.tier === "archive" ? "news.emptyArchive" : "news.empty", state.tier === "archive" ? "Ничего не найдено" : "Здесь пока нет свежих статей"));
-          cursor = data.next_cursor; more.hidden = !cursor;
-        } catch (_) { if (my !== token) return; loading.remove(); list.appendChild(status("news.error", "Не удалось загрузить новости", function () { list.lastChild && list.lastChild.remove(); page(); })); }
-      }
-      more.addEventListener("click", page);
-      await page();
+      var returnTo = stateHref(state);
+      listApi = win.NewsListUi.render(root, state, {
+        t: t, locale: locale(), heading: head, statusHost: statusHost(my),
+        outlets: (Outlets ? Outlets.OUTLETS : []).map(function (x) { return { id: x.id, name: x.name_latin }; }),
+        getJson: function (url, opts) { return win.fetch(url, { cache: "no-cache", signal: opts && opts.signal }).then(function (r) { if (!r.ok) throw new Error("HTTP_" + r.status); return r.json(); }); },
+        go: function (next) { go(next); },
+        replaceUrl: function (next) { try { win.history.replaceState({}, "", stateHref(next)); } catch (_) {} },
+        isCurrent: function () { return my === token; },
+        renderItem: function (row) { return renderOverviewItem(doc, row, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale(), showTime: true, day: row.day }); },
+        renderCard: function (card) { return renderCard(doc, card, { t: t, returnTo: returnTo, locale: locale(), manage: manageOpts() }); },
+        noHeavy: noHeavy, setNoHeavy: function (v) { store.set(HEAVY_KEY, v ? "1" : "0"); },
+      });
+      return listApi.ready;
     }
 
     function dayLabel(day, loc) {
       try { return new Date(day + "T12:00:00Z").toLocaleDateString(loc === "he" ? "he-IL" : loc === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", weekday: "short" }); } catch (_) { return day; }
     }
-    // «Обзор дня»: all of the day's articles by story; main stories first; a rubric filter; day by day.
-    async function renderOverview(state, my) {
-      var back = h(doc, "a", { class: "nw-back", href: "/news.html", text: t("news.backToNews", "← Новости") });
-      back.addEventListener("click", function (e) { e.preventDefault(); go({ tier: "fresh" }); });
-      var head = h(doc, "header", { class: "nw-heading" }, [back, h(doc, "h1", { text: t("news.overview.title", "Обзор дня") }),
-        h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.overview.lead", "Все статьи изданий за день: заголовок и первый абзац с переводом, по сюжетам. Главные сюжеты можно читать полностью — с таблицей, огласовкой и переводом.") })]);
-      root.replaceChildren(head, status("news.loading", "Загрузка новостей…"));
-      var data;
-      try { data = await getJson("/api/news/overview" + (state.day ? "?day=" + state.day : "")); }
-      catch (_) { if (my === token) root.replaceChildren(head, status("news.overview.empty", "Обзора за этот день нет")); return; }
-      if (my !== token) return;
-      var ov = data.overview;
-      var nav = h(doc, "nav", { class: "nw-ov-days", "aria-label": t("news.overview.days", "Дни") });
-      [["prev", ov.prev, t("news.overview.prev", "← раньше")], ["day", null, dayLabel(ov.day, locale())], ["next", ov.next, t("news.overview.next", "позже →")]].forEach(function (x) {
-        if (x[0] === "day") { nav.appendChild(h(doc, "strong", { text: x[2] })); return; }
-        if (!x[1]) { nav.appendChild(h(doc, "span", { class: "nw-ov-day-off", "aria-hidden": "true", text: x[2] })); return; }
-        var a = h(doc, "a", { href: stateHref({ view: "overview", day: x[1], group: state.group }), text: x[2] });
-        a.addEventListener("click", function (e) { e.preventDefault(); go({ view: "overview", day: x[1], group: state.group }); });
-        nav.appendChild(a);
-      });
-      var counts = {};
-      ov.stories.forEach(function (s) { var g = storyGroup(s); counts[g] = (counts[g] || 0) + 1; });
-      var chips = h(doc, "div", { class: "nw-chips", role: "group", "aria-label": t("news.sectionsLabel", "Рубрики") }, [null].concat(GROUP_ORDER.filter(function (g) { return counts[g]; })).map(function (g) {
-        var b = h(doc, "button", { type: "button", class: "nw-chip", "aria-pressed": (state.group || null) === g ? "true" : "false",
-          text: (g ? t("news.overview.group." + g, g) : t("news.allSections", "Все рубрики")) + (g ? " · " + counts[g] : "") });
-        b.addEventListener("click", function () { go({ view: "overview", day: ov.day, group: g }, true); });
-        return b;
-      }));
-      var returnTo = stateHref({ view: "overview", day: ov.day, group: state.group, ed: state.ed });
-      var eds = (ov.editions || []).filter(function (e) { return e.published_at; });
-      var edChips = eds.length > 1 ? h(doc, "div", { class: "nw-chips nw-ed-chips", role: "group", "aria-label": t("news.overview.editions", "Выпуски") }, [null].concat(eds.map(function (e) { return e.slot; })).map(function (slot) {
-        var e = eds.filter(function (x) { return x.slot === slot; })[0];
-        var b = h(doc, "button", { type: "button", class: "nw-chip", "aria-pressed": (state.ed || null) === slot ? "true" : "false",
-          text: slot ? t("news.slotShort." + slot, slot) + " · " + israelTime(e.published_at, locale()) : t("news.overview.editionAll", "Все выпуски") });
-        b.addEventListener("click", function () { go({ view: "overview", day: ov.day, group: state.group, ed: slot }, true); });
-        return b;
-      })) : null;
-      var shown = filterByEdition(ov.stories, state.ed).filter(function (s) { return !state.group || storyGroup(s) === state.group; });
-      var split = splitLearn(shown), learn = split.learn, rest = split.slice;
-      var sliceCount = rest.reduce(function (n, s) { return n + s.items.length; }, 0);
-      var parts = [head, statusHost(my), nav, edChips, chips].filter(Boolean);
-      if (shown.length) parts.push(h(doc, "p", { class: "nw-ov-counts", role: "status", text: fill(t("news.overview.counts", "Учебных {learn} · в срезе {slice}"), { learn: learn.length, slice: sliceCount }) }));
-      var itemOpts = { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale() };
-      if (learn.length) parts.push(h(doc, "section", { class: "nw-group nw-ov-learn-list", "aria-labelledby": "nw-ov-main" }, [h(doc, "h2", { id: "nw-ov-main", text: fill(t("news.overview.learnSection", "Учебные материалы · {n}"), { n: learn.length }) })]
-        .concat(learn.map(function (it) { return h(doc, "article", { class: "nw-ov-story nw-ov-main" }, [renderOverviewItem(doc, it, itemOpts)]); }))));
-      if (rest.length) {
-        var sec = h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-ov-rest" }, [h(doc, "h2", { id: "nw-ov-rest", text: fill(t("news.overview.sliceSection", "Только в срезе · {n}"), { n: sliceCount }) })]);
-        // Long days: the first 60 stories at once, the rest on «Показать ещё».
-        var shownCount = 0, more = h(doc, "button", { type: "button", class: "nw-button nw-more", text: t("news.more", "Показать ещё") });
-        var step = function () { rest.slice(shownCount, shownCount + 60).forEach(function (s) { sec.insertBefore(renderStory(doc, s, itemOpts), more); }); shownCount += 60; more.hidden = shownCount >= rest.length; };
-        sec.appendChild(more); more.addEventListener("click", step); step();
-        parts.push(sec);
-      }
-      if (!shown.length) parts.push(status("news.emptyArchive", "Ничего не найдено"));
-      root.replaceChildren.apply(root, parts);
-    }
-
     function render() {
       var my = ++token, state = parseState(win.location.search);
       doc.title = (state.view === "overview" ? t("news.overview.title", "Обзор дня") + " · " : state.outlet ? outletOf(state.outlet).name_latin + " · " : "") + t("news.title", "Новости") + " · LinguistPro";
       root.setAttribute("aria-busy", "true");
-      var job = state.view === "overview" ? renderOverview(state, my) : state.outlet ? renderOutlet(state, my) : renderHome(my);
+      var job = state.view ? renderList(state, my) : renderHome(my);
       Promise.resolve(job).finally(function () { if (my === token) root.removeAttribute("aria-busy"); });
     }
     function applyTheme() {
@@ -597,5 +512,5 @@
     installUpdateGate(win, t);
     probeManage().then(render, render);
   }
-  return { splitLearn: splitLearn, renderOverviewItem: renderOverviewItem, renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
+  return { splitLearn: splitLearn, renderOverviewItem: renderOverviewItem, renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });

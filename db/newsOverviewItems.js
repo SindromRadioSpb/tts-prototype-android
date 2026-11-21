@@ -27,7 +27,7 @@ function sortStories(list) {
   return list.sort((a, b) => (b.main - a.main) || (fresh(b) - fresh(a)) || (outlets(b) - outlets(a)));
 }
 
-function createOverviewItems({ db, now = () => Date.now() }) {
+function createOverviewItems({ db, now = () => Date.now(), index = null }) {
   const iso = () => new Date(now()).toISOString();
 
   // o: a validated overview (v1 or v2) → { inserted, updated, kept }.
@@ -62,6 +62,7 @@ function createOverviewItems({ db, now = () => Date.now() }) {
       await dbRun(db, `UPDATE news_harvest_items SET overview_state='done', lease_until=CASE WHEN main_state='drafted' THEN lease_until ELSE NULL END
         WHERE url_key IN (${q}) OR canonical_key IN (${q})`, [...part, ...part]).catch(() => {});
     }
+    if (index && done.length) await index.refresh(done).catch(e => console.warn('[news-index] refresh failed:', e && e.message));
     return { inserted, updated, kept };
   }
 

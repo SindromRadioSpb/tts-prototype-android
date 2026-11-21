@@ -132,3 +132,15 @@ body.nw-dark .nw-ov-since{color:#0e1726}
 /* Findability W1: study badge and counts. */
 .nw-ov-learn{margin-inline-start:6px;padding:0 6px;border-radius:999px;font-size:.75rem;background:var(--nw-soft);color:var(--nw-accent);font-weight:600}
 .nw-ov-counts{margin:4px 0 8px;font-size:.85rem;color:var(--nw-muted)}
+/* Findability W2: one list screen for the overview and every outlet. */
+.nw-list-search{margin:8px 0}.nw-list-search input{width:100%;box-sizing:border-box;font-size:1rem;padding:10px 12px;border:1px solid var(--nw-line);border-radius:var(--nw-radius);background:var(--nw-paper);color:var(--nw-text)}
+.nw-list-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.nw-list-bar .nw-kinds{flex:1 1 auto;margin:0}
+.nw-filter-btn{flex:0 0 auto}
+.nw-sheet{display:grid;gap:10px;margin:6px 0 10px;padding:12px;border:1px solid var(--nw-line);border-radius:var(--nw-radius);background:var(--nw-paper)}.nw-sheet[hidden]{display:none}
+.nw-sheet-field{display:grid;gap:4px;font-size:.85rem;color:var(--nw-muted)}.nw-sheet-field select,.nw-sheet-field input{font-size:1rem;padding:8px;border:1px solid var(--nw-line);border-radius:8px;background:var(--nw-bg);color:var(--nw-text)}
+.nw-sheet-range{display:grid;grid-template-columns:1fr 1fr;gap:8px}.nw-sheet-actions{display:flex;gap:12px;align-items:center}
+.nw-link-btn{background:none;border:0;padding:4px 0;color:var(--nw-accent);text-decoration:underline;font:inherit;cursor:pointer}
+.nw-day-label{display:inline-flex;align-items:center;gap:6px;position:relative}.nw-day-pick{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.nw-snippet{margin:2px 0 6px;font-size:.88rem;color:var(--nw-muted);border-inline-start:2px solid var(--nw-accent);padding-inline-start:8px}
+.nw-list-row{margin-block:4px}.nw-story-link{font-size:.82rem}
+.nw-list-empty[hidden],.nw-list-learn[hidden],.nw-list-slice[hidden],.nw-list-more[hidden]{display:none}

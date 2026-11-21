@@ -47,20 +47,20 @@ test('overview url state: view, day and rubric group round-trip; an outlet page 
   const s = UI.parseState('?view=overview&day=2026-11-15&group=security');
   assert.equal(s.view, 'overview'); assert.equal(s.day, '2026-11-15'); assert.equal(s.group, 'security');
   assert.equal(UI.stateHref(s), '/news.html?view=overview&day=2026-11-15&group=security');
-  assert.equal(UI.parseState('?view=overview&outlet=ynet').view, null);
+  assert.equal(UI.parseState('?view=overview&outlet=ynet').view, 'outlet', 'an outlet in the address is the outlet screen');
   assert.equal(UI.parseState('?view=overview&group=bad&day=x').group, null);
 });
 test('url state round-trips and rejects junk', () => {
   const s = UI.parseState('?outlet=walla&section=sport&tier=archive&q=כנסת&from=2026-11-01&to=bad');
-  assert.deepEqual(s, { outlet: 'walla', section: 'sport', tier: 'archive', q: 'כנסת', from: '2026-11-01', to: null, view: null, day: null, group: null, ed: null });
-  assert.equal(UI.stateHref(s), '/news.html?outlet=walla&section=sport&tier=archive&q=' + encodeURIComponent('כנסת') + '&from=2026-11-01');
-  assert.deepEqual(UI.parseState('?outlet=cnn&section=x'), { outlet: null, section: null, tier: 'fresh', q: '', from: null, to: null, view: null, day: null, group: null, ed: null });
-  assert.equal(UI.feedUrl({ outlet: 'ynet', tier: 'fresh', section: null }, 'abc', true), '/api/news/feed?outlet=ynet&tier=fresh&limit=20&no_heavy=1&cursor=abc');
+  assert.deepEqual([s.view, s.outlet, s.section, s.q, s.from, s.to], ['outlet', 'walla', 'sport', 'כנסת', '2026-11-01', null]);
+  assert.equal(UI.stateHref(s), '/news.html?outlet=walla&from=2026-11-01&section=sport&q=' + encodeURIComponent('כנסת'));
+  const junk = UI.parseState('?outlet=cnn&section=x');
+  assert.deepEqual([junk.view, junk.outlet, junk.section], [null, null, null]);
 });
 test('every news.* key used by the News tab exists in ru, en and he', () => {
   const root = path.join(__dirname, '..');
   const used = new Set();
-  for (const f of ['public/js/news-ui.js', 'public/js/news-reader.js', 'public/js/library-ui.js', 'public/news.html'])
+  for (const f of ['public/js/news-ui.js', 'public/js/news-list-ui.js', 'public/js/news-reader.js', 'public/js/library-ui.js', 'public/news.html'])
     for (const m of fs.readFileSync(path.join(root, f), 'utf8').matchAll(/["'](news\.[a-zA-Z.]*[a-zA-Z])["']/g)) used.add(m[1]);
   for (const id of UI.SECTIONS) used.add('news.section.' + id);
   const sandbox = { window: {} };
@@ -232,4 +232,11 @@ test('ovItem: a study item has a Read link and badges', () => {
   assert.match(el.textContent, /учебная/); assert.match(el.textContent, /выбрано dot/);
   const plain = UI.renderOverviewItem(document, ovIt(2), {});
   assert.equal(plain.querySelector('a.nw-ov-read'), null);
+});
+test('list row: publication time in Israel time, with the date when it is another day', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const same = UI.renderOverviewItem(document, { ...ovIt(1), published_at: '2026-11-21T16:04:00.000Z', day: '2026-11-21' }, { showTime: true, day: '2026-11-21' });
+  assert.match(same.querySelector('.nw-ov-time').textContent, /18:04/);
+  const other = UI.renderOverviewItem(document, { ...ovIt(2), published_at: '2026-11-20T21:30:00.000Z' }, { showTime: true, day: '2026-11-21' });
+  assert.match(other.querySelector('.nw-ov-time').textContent, /20 ноября, 23:30/);
 });

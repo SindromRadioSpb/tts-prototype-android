@@ -166,3 +166,32 @@ test('GET /api/news/images serves a stored photo same-origin, immutable only at 
   assert.equal((await call('GET', '/api/news/images/' + r.items[0].article_id + '/img-9.jpg')).status, 404);
   assert.equal((await call('GET', '/api/news/images/na_x/..%2Fetc')).status, 404);
 });
+
+// Findability W2: one feed for the overview and every outlet.
+test('GET /api/news/list returns rows and counts; bad params → 400', async t => {
+  const calls = [];
+  const db = await new Promise((res, rej) => { const d = new sqlite3.Database(':memory:', e => e ? rej(e) : res(d)); });
+  const app = express();
+  mountNewsRoutes(app, { repo: {}, editorAuth: { resolve: async () => null }, resolveUser: async () => null,
+    list: { list: async p => { calls.push(p); return { day: '2026-11-21', prev: null, next: null, counts: { learn: 1, slice: 0 }, items: [{ item_key: 'na_x', kind: 'learn' }], next_cursor: null, body_search_from: null }; } } });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(() => db.close(r))));
+  const base = 'http://127.0.0.1:' + server.address().port;
+  const ok = await fetch(base + '/api/news/list?day=2026-11-21&outlet=ynet&group=politics&kind=learn&q=' + encodeURIComponent('בחירות') + '&sort=match');
+  assert.equal(ok.status, 200);
+  const body = await ok.json();
+  assert.equal(body.ok, true); assert.deepEqual(body.counts, { learn: 1, slice: 0 });
+  assert.deepEqual(calls[0], { day: '2026-11-21', outlet: 'ynet', group: 'politics', kind: 'learn', q: 'בחירות', sort: 'match' });
+  for (const bad of ['day=21-11-2026', 'outlet=cnn', 'section=junk', 'kind=x', 'sort=x', 'from=2026-1-1', 'q=' + 'א'.repeat(201)]) {
+    const r = await fetch(base + '/api/news/list?' + bad);
+    assert.equal(r.status, 400, bad); assert.equal((await r.json()).error, 'NEWS_PARAM_INVALID');
+  }
+});
+test('GET /api/news/list: from after to is refused', async t => {
+  const app = express();
+  mountNewsRoutes(app, { repo: {}, editorAuth: { resolve: async () => null }, resolveUser: async () => null, list: { list: async () => ({ items: [] }) } });
+  const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
+  t.after(() => new Promise(r => server.close(r)));
+  const r = await fetch('http://127.0.0.1:' + server.address().port + '/api/news/list?from=2026-11-21&to=2026-11-01');
+  assert.equal(r.status, 400); assert.equal((await r.json()).detail, 'range');
+});

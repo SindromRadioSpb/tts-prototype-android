@@ -6,11 +6,12 @@ const crypto = require('node:crypto');
 const express = require('express');
 const Outlets = require('../public/js/news-outlets');
 const { NewsError, LIMITS } = require('../db/newsRepo');
+const C = require('./newsPackCore');
 
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -59,6 +60,29 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       res.json({ ok: true, ...(await repo.listFeed({ outlet_id: String(q.outlet || ''), section: q.section ? String(q.section) : undefined, tier: q.tier ? String(q.tier) : 'fresh',
         q: q.q ? String(q.q) : undefined, from: q.from ? String(q.from) : undefined, to: q.to ? String(q.to) : undefined, cursor: q.cursor ? String(q.cursor) : undefined,
         limit: q.limit, no_heavy: q.no_heavy === '1' })) });
+    } catch (e) { send(res, e); }
+  });
+  // One feed for the day overview and every outlet (docs/superpowers/specs/2026-11-21-news-findability-design.md §7.2).
+  const LIST_DAY = /^\d{4}-\d{2}-\d{2}$/, LIST_ENUMS = { kind: ['learn', 'slice', 'all'], sort: ['fresh', 'time', 'match'],
+    group: ['politics', 'security', 'society', 'economy', 'world', 'culture', 'opinion'], edition: ['morning', 'midday', 'evening', 'late', 'extra'] };
+  function listParams(q) {
+    const p = {}, bad = detail => { throw new NewsError('NEWS_PARAM_INVALID', 400, detail); };
+    for (const k of ['day', 'from', 'to']) if (q[k] != null && q[k] !== '') { if (!LIST_DAY.test(String(q[k]))) bad(k); p[k] = String(q[k]); }
+    if (p.from && p.to && p.from > p.to) bad('range');
+    if (q.outlet) { if (!Outlets.byId(String(q.outlet))) bad('outlet'); p.outlet = String(q.outlet); }
+    if (q.section) { if (!C.SECTIONS.includes(String(q.section))) bad('section'); p.section = String(q.section); }
+    for (const k of Object.keys(LIST_ENUMS)) if (q[k]) { if (!LIST_ENUMS[k].includes(String(q[k]))) bad(k); p[k] = String(q[k]); }
+    if (q.story) { if (String(q.story).length > 120) bad('story'); p.story = String(q.story); }
+    if (q.q) { if (String(q.q).length > 200) bad('q'); p.q = String(q.q); }
+    if (q.cursor) { if (String(q.cursor).length > 200) bad('cursor'); p.cursor = String(q.cursor); }
+    return p;
+  }
+  if (list) app.get('/api/news/list', read, async (req, res) => {
+    try {
+      const p = listParams(req.query);
+      const out = await list.list(p);
+      res.set('Cache-Control', out.building ? 'no-store' : 'public, max-age=30');
+      res.json({ ok: true, ...out });
     } catch (e) { send(res, e); }
   });
   // «Обзор дня» (§17): all of a day's articles by story — titles, first paragraphs, links to originals.

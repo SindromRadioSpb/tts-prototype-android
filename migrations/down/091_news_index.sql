@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS news_search;
+DROP TABLE IF EXISTS news_index;
