@@ -92,6 +92,26 @@ test('the Studio row work prepares the row on screen and its neighbours before t
   assert.equal(work.state(), 'done');
 });
 
+test('scheduled Studio wrapping pauses for an editor, then resumes or cancels on navigation', async () => {
+  const f = morphFixture(20), prepared = [];
+  let editing = true;
+  const work = f.RM.createRowWork(f.mount, row => prepared.push(Number(row.getAttribute('data-row-idx'))),
+    { pauseWhile: () => editing });
+  f.show([f.rows[15]]);
+  await new Promise(resolve => setTimeout(resolve, 25));
+  assert.deepEqual(prepared, []);
+  assert.equal(work.ensure(f.rows[15]), true, 'explicit focused-row preparation still works');
+  assert.deepEqual(prepared, [15]);
+  editing = false;
+  assert.equal(await work.complete, true);
+  assert.equal(new Set(prepared).size, 20);
+  editing = true;
+  const discarded = f.RM.createRowWork(f.mount, () => assert.fail('stale work ran'), { pauseWhile: () => editing });
+  discarded.cancel();
+  assert.equal(await discarded.complete, false);
+  assert.equal(discarded.state(), 'stopped');
+});
+
 test('sliced dictionary builders give exactly the synchronous result', async () => {
   const NA = require('../public/js/notes-autogen.js');
   const PS = require('../public/js/proclitic-segment.js');

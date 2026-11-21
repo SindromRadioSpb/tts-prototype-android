@@ -116,6 +116,58 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
       console.log(surface + ': table mounted, derivation held');
       assert.ok(before.pending && before.renders === 1);
       assert.ok(await page.evaluate(() => __studioProbe.before.geometry.editorFullyVisible), 'fixture editor is visible before completion');
+      if (surface === 'classic' && !baseline && !remote) {
+        // Wait out the automatic render hook, then repeat the real injector
+        // from a known unadorned table while transliteration is still held.
+        await page.waitForFunction(n => __studioProbe.table.querySelectorAll('.row-bookmark-btn').length === n, count);
+        const bookmarksOnly = await page.evaluate(async () => {
+          const p = __studioProbe, editor = p.editor;
+          p.table.querySelectorAll('.col-action-row-bm').forEach(node => node.remove());
+          editor.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const prior = p.geometry(), started = performance.now();
+          await StudioBookmarks.inject();
+          const elapsedMs = performance.now() - started;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const after = p.geometry();
+          const buttons = p.table.querySelectorAll('.row-bookmark-btn').length;
+          // Scroll inside the nested viewport after the first actual insert batch.
+          // The following slices must respect this newer position, not restore the
+          // editor to where the first batch found it.
+          p.table.querySelectorAll('.col-action-row-bm').forEach(node => node.remove());
+          editor.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const scroller = p.table.closest('#tableContainer');
+          let jumped = null;
+          const movement = new MutationObserver(() => {
+            const added = p.table.querySelectorAll('.row-bookmark-btn').length;
+            if (!added) return;
+            movement.disconnect();
+            const oldTop = scroller.scrollTop;
+            scroller.scrollTo({ top: oldTop + 40, behavior: 'instant' });
+            jumped = { insertedBeforeJump: added, scrollDelta: scroller.scrollTop - oldTop, editorTop: p.geometry().editorTop };
+          });
+          movement.observe(p.table, { childList: true, subtree: true });
+          try { await StudioBookmarks.inject(); } finally { movement.disconnect(); }
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const final = p.geometry();
+          p.before.top = final.editorTop; p.before.geometry = final;
+          return { prior, after, buttons, elapsedMs, jumped, final,
+            editorPreserved: editor.isConnected && document.activeElement === editor && editor.value === 'UNFINISHED USER EDIT',
+            caret: [editor.selectionStart, editor.selectionEnd],
+            transliterationHeld: v3TranslitStore().isFilling() && !p.patchDone };
+        });
+        report.bookmarksOnly = bookmarksOnly;
+        assert.equal(bookmarksOnly.buttons, count);
+        assert.ok(bookmarksOnly.transliterationHeld && bookmarksOnly.editorPreserved);
+        assert.deepEqual(bookmarksOnly.caret, [4, 9]);
+        assert.ok(bookmarksOnly.prior.editorFullyVisible && bookmarksOnly.after.editorFullyVisible, 'bookmark injection alone keeps the focused editor visible');
+        assert.ok(Math.abs(bookmarksOnly.after.editorTop - bookmarksOnly.prior.editorTop) <= 2, 'bookmark injection alone preserves the visible row');
+        if (count > 400) {
+          assert.ok(bookmarksOnly.jumped && bookmarksOnly.jumped.insertedBeforeJump < count && bookmarksOnly.jumped.scrollDelta !== 0, 'the manual scroll happened between insert slices');
+          assert.ok(bookmarksOnly.final.editorFullyVisible && Math.abs(bookmarksOnly.final.editorTop - bookmarksOnly.jumped.editorTop) <= 2, 'following slices preserve the user’s newer position');
+        }
+      }
       await page.evaluate(() => {
         __studioProbe.longTasks.length = 0; __studioProbe.started = performance.now(); __studioProbe.released = true;
         __studioProbe.tasks.splice(0).forEach(fn => setTimeout(fn, 0));

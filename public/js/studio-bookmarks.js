@@ -94,10 +94,41 @@
     }
   }
 
-  // 3.11.907: a 2500-row Studio table is rebuilt whole by renderTable; adding a button to every row in
-  // the same task doubled the layout on a phone. Now: the table is shown first, the buttons go in at
-  // the browser's next idle moment in ONE batch (one relayout), already painted from the cached set —
-  // the bookmarks table is read once per text, not on every render.
+  // Keep the edit/reading viewport steady for one synchronous layout batch.
+  // Capture again after each idle yield: manual scroll or a new edit then owns
+  // the next position. Do not retain anchors across DB reads or idle tasks.
+  function captureBatchPosition(table, last) {
+    var mount = table.parentElement, doc = table.ownerDocument, view = doc.defaultView;
+    var editor = doc.activeElement;
+    if (mount && editor && table.contains(editor) && editor.matches('.cell-editor-wrap textarea, .cell-editor-wrap input, .cell-editor-wrap [contenteditable="true"]')) {
+      var page = doc.scrollingElement, scroller = mount;
+      while (scroller && scroller !== page &&
+        !(/auto|scroll|overlay/.test(view.getComputedStyle(scroller).overflowY) && scroller.scrollHeight > scroller.clientHeight)) scroller = scroller.parentElement;
+      scroller = scroller || page;
+      var pos = editor.getBoundingClientRect();
+      var clip = scroller === page ? { top: 0, bottom: view.innerHeight } : scroller && scroller.getBoundingClientRect();
+      if (clip && pos.bottom > Math.max(0, clip.top) && pos.top < Math.min(view.innerHeight, clip.bottom)) {
+        // scrollTop can round to an integer. Carry its residual while this
+        // exact editor and offset persist, rather than accumulating it.
+        var same = last.editor === editor && last.scroller === scroller &&
+          last.expected === scroller.scrollTop && Math.abs(pos.top - last.top) <= 1;
+        var top = same ? last.top : pos.top;
+        last.editor = editor; last.scroller = scroller; last.top = top;
+        return function () {
+          if (!table.isConnected || doc.activeElement !== editor || !table.contains(editor)) return;
+          var delta = editor.getBoundingClientRect().top - top;
+          if (Math.abs(delta) > 0.5) scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: 'instant' });
+          last.expected = scroller.scrollTop;
+        };
+      }
+    }
+    last.editor = null;
+    return window.ReaderMorph && window.ReaderMorph.captureReadingPosition
+      ? window.ReaderMorph.captureReadingPosition(mount) : function () {};
+  }
+
+  // A 2500-row table shows first. Bookmark controls use the cached set and
+  // remain in their original actionable row layout, inserted in idle slices.
   var SLICE = 400;
   var injectTimer = 0;
   function scheduleInject() {
@@ -112,7 +143,9 @@
     if (document.body && document.body.classList.contains('room-mode')) return;
     var h = host();
     if (!h || !h.getRow) return;
-    var cells = document.querySelectorAll('#tableContainer td.col-action-cell');
+    var table = document.querySelector('#tableContainer #proTable');
+    if (!table) return;
+    var cells = table.querySelectorAll('td.col-action-cell');
     var todo = [];
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
@@ -136,21 +169,29 @@
         else setTimeout(r, 16);
       });
     };
-    for (var j = 0; j < todo.length; j++) {
-      if (j && j % SLICE === 0) { await idle(); if (!todo[j].cell.isConnected) return; }
-      var p = todo[j];
-      if (!p.cell.isConnected || p.cell.querySelector('.row-bookmark-btn')) continue;
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'row-bookmark-btn';
-      btn.setAttribute('data-row-idx', String(p.idx));
-      btn.setAttribute('aria-label', tt('room.bookmark.add', 'Закладка'));
-      paint(btn, sets[p.textId].has(p.sid));
-      var wrap = document.createElement('div');
-      wrap.className = 'col-action-row col-action-row-bm';
-      wrap.appendChild(btn);
-      var edits = p.cell.querySelector('.row-edit-actions');
-      if (edits) p.cell.insertBefore(wrap, edits); else p.cell.appendChild(wrap);
+    var last = {};
+    for (var start = 0; start < todo.length; start += SLICE) {
+      if (start) await idle();
+      if (!table.isConnected) return;
+      var restore = null;
+      try {
+        for (var j = start; j < Math.min(start + SLICE, todo.length); j++) {
+          var p = todo[j];
+          if (!p.cell.isConnected || p.cell.querySelector('.row-bookmark-btn')) continue;
+          if (!restore) restore = captureBatchPosition(table, last);
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'row-bookmark-btn';
+          btn.setAttribute('data-row-idx', String(p.idx));
+          btn.setAttribute('aria-label', tt('room.bookmark.add', 'Закладка'));
+          paint(btn, sets[p.textId].has(p.sid));
+          var wrap = document.createElement('div');
+          wrap.className = 'col-action-row col-action-row-bm';
+          wrap.appendChild(btn);
+          var edits = p.cell.querySelector('.row-edit-actions');
+          if (edits) p.cell.insertBefore(wrap, edits); else p.cell.appendChild(wrap);
+        }
+      } finally { if (restore) restore(); }
     }
   }
   // the Room may have changed a text's bookmarks while this tab was away: re-read on return

@@ -3431,6 +3431,9 @@
       timer = null;
       if (cancelled) return;
       if (!isCurrent()) { stop(false); return; }
+      // A scheduled wrap may reflow the rows above an open Studio editor.
+      // Keep the job resumable; explicit ensure/finish requests still work.
+      if (options.pauseWhile && options.pauseWhile()) { timer = setTimeout(step, 100); return; }
       var urgent = priority.size > 0;
       if (!urgent && !scrollQuiet()) { schedule(); return; }
       var deadline = wordWorkNow() + sliceBudget(!urgent);
@@ -3483,7 +3486,9 @@
       rows.forEach(function (row) { observer.observe(row); });
     }
     var warm = wordWorkNow() + 8;
-    for (var w = 0; w < rows.length && w < 8; w++) { ensure(rows[w]); if (wordWorkNow() >= warm) break; }
+    if (!options.pauseWhile || !options.pauseWhile()) {
+      for (var w = 0; w < rows.length && w < 8; w++) { ensure(rows[w]); if (wordWorkNow() >= warm) break; }
+    }
     timer = setTimeout(step, 0);
     return {
       complete: complete, ensure: ensure, cancel: function () { stop(false); },
