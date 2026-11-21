@@ -206,3 +206,30 @@ test('card: an article dot chose says so, with its reason', () => {
   assert.match(el.querySelector('.nw-selected-note').textContent, /Владелец просил больше экономики/);
   assert.equal(UI.renderCard(document, card(), { now: NOW }).querySelector('.nw-selected-dot'), null);
 });
+
+// ---- Findability W1: every study article visible, study first --------------------------------------------
+test('splitLearn: every study article of a story is listed, not only the first', () => {
+  const s = ovStory('S', [{ ...ovIt(1), work_id: 'w1' }, { ...ovIt(2), work_id: 'w2' }, ovIt(3)]);
+  const r = UI.splitLearn([s]);
+  assert.equal(r.learn.length, 2);
+  assert.equal(r.slice.length, 1); assert.equal(r.slice[0].items.length, 1);
+  assert.equal(r.slice[0].items[0].item_key, ovIt(3).item_key);
+});
+test('splitLearn: learn sorted by freshness across stories', () => {
+  const a = { ...ovIt(1), work_id: 'w1', published_at: '2026-11-16T08:00:00.000Z' }, b = { ...ovIt(2), work_id: 'w2', published_at: '2026-11-16T15:00:00.000Z' };
+  const r = UI.splitLearn([ovStory('A', [a]), ovStory('B', [b])]);
+  assert.deepEqual(r.learn.map(x => x.work_id), ['w2', 'w1']);
+  assert.equal(r.slice.length, 0, 'a story of study articles only is not repeated below');
+});
+test('filterByEdition: main is recomputed after filtering', () => {
+  const s = ovStory('S', [{ ...ovIt(1, 'morning'), work_id: 'w1' }, ovIt(2, 'evening')], { main: true });
+  assert.equal(UI.filterByEdition([s], 'evening')[0].main, false);
+});
+test('ovItem: a study item has a Read link and badges', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderOverviewItem(document, { ...ovIt(1), work_id: 'na_' + 'a'.repeat(24) + '.b1', selected_by: 'dot' }, { returnTo: '/news.html?view=overview' });
+  assert.match(el.querySelector('a.nw-ov-read').getAttribute('href'), /^\/library\.html\?news=/);
+  assert.match(el.textContent, /учебная/); assert.match(el.textContent, /выбрано dot/);
+  const plain = UI.renderOverviewItem(document, ovIt(2), {});
+  assert.equal(plain.querySelector('a.nw-ov-read'), null);
+});

@@ -5777,3 +5777,4 @@ Object.assign(window.I18N_LOCALES.en.newsEditor.storage, {"freeDisk": "Free on d
 window.I18N_LOCALES.en.newsEditor.editions.extras = "dot's own articles per edition (up to 50)";
 Object.assign(window.I18N_LOCALES.en.newsEditor.editions, {"look": "Look at the archive", "take": "Download for dot", "takeHint": "Reserves the edition's articles for dot for 4 hours — when you pass the archive to dot by hand", "refused": "refused or skipped: {n}"});
 Object.assign(window.I18N_LOCALES.en.newsEditor.storage, {"photoCache": "Harvester photo cache: {size} (kept 3 days, at most 500 MB)"});
+Object.assign(window.I18N_LOCALES.en.news.overview, {"learnBadge":"study","counts":"Study {learn} · in the slice {slice}","learnSection":"Study materials · {n}","sliceSection":"Only in the slice · {n}"});

@@ -203,7 +203,20 @@
   // Only the rows that appeared in one edition (stories keep the rest out).
   function filterByEdition(stories, slot) {
     if (!slot) return stories;
-    return stories.map(function (s) { var items = s.items.filter(function (it) { return it.edition_slot === slot; }); return items.length ? Object.assign({}, s, { items: items }) : null; }).filter(Boolean);
+    return stories.map(function (s) { var items = s.items.filter(function (it) { return it.edition_slot === slot; }); return items.length ? Object.assign({}, s, { items: items, main: items.some(function (it) { return !!it.work_id; }) }) : null; }).filter(Boolean);
+  }
+  // Findability (docs/superpowers/specs/2026-11-21-news-findability-design.md §2): every study article on
+  // its own row, freshest first; below, the stories with what is left only in the slice.
+  function freshness(it) { var m = function (v) { return Date.parse(v || "") || 0; }; return Math.max(m(it.changed_at), m(it.edition_published_at), m(it.published_at)); }
+  function splitLearn(stories) {
+    var learn = [], slice = [];
+    (stories || []).forEach(function (s) {
+      var rest = [];
+      (s.items || []).forEach(function (it) { (it.work_id ? learn : rest).push(it); });
+      if (rest.length) slice.push(Object.assign({}, s, { items: rest, main: false }));
+    });
+    learn.sort(function (a, b) { return freshness(b) - freshness(a); });
+    return { learn: learn, slice: slice };
   }
   function originalLink(doc, it, t) {
     var href = safeHttps(it.url);
@@ -216,6 +229,8 @@
     var since = opts.lastVisit && it.edition_published_at && it.edition_published_at > opts.lastVisit;
     var box = h(doc, "div", { class: "nw-ov-item" + (big ? " nw-ov-item-lead" : "") + (since ? " nw-ov-item-since" : "") }, [
       h(doc, "p", { class: "nw-ov-meta" }, [tag, it.paywalled ? " · " + t("news.overview.paywalled", "платная") : "",
+        it.work_id ? h(doc, "span", { class: "nw-ov-learn", text: t("news.overview.learnBadge", "учебная") }) : null,
+        it.selected_by === "dot" ? h(doc, "span", { class: "nw-selected-dot", text: t("news.selectedByDot", "выбрано dot") }) : null,
         it.edition_slot && it.edition_slot !== "morning" && it.edition_published_at ? h(doc, "span", { class: "nw-ov-new-in", text: fill(t("news.overview.newIn", "новое в {time}"), { time: israelTime(it.edition_published_at, opts.locale) }) }) : null,
         since ? h(doc, "span", { class: "nw-ov-since", text: t("news.overview.sinceVisit", "с вашего прошлого визита") }) : null,
         it.changed_at ? h(doc, "span", { class: "nw-ov-changed", text: fill(t("news.overview.changed", "обновлено изданием в {time}"), { time: israelTime(it.changed_at, opts.locale) }) }) : null,
@@ -226,6 +241,14 @@
       box.appendChild(h(doc, "p", { class: "nw-ov-lead", lang: "he", dir: "rtl", text: it.lead_he }));
       if (it.lead_ru) box.appendChild(h(doc, "p", { class: "nw-ov-ru nw-ov-lead-ru", dir: "auto", text: it.lead_ru }));
     }
+    return box;
+  }
+  // A study article of the day: big, with its own Read button.
+  function renderOverviewItem(doc, it, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; };
+    var box = ovItem(doc, it, t, true, opts);
+    if (it.work_id) box.appendChild(h(doc, "a", { class: "nw-button nw-ov-read", href: readerHref({ work_id: it.work_id }, opts.returnTo), text: t("news.overview.read", "Читать с переводом и огласовкой") }));
     return box;
   }
   // One story: its main article big (the one with a full study article first), the other outlets folded.
@@ -534,15 +557,18 @@
         return b;
       })) : null;
       var shown = filterByEdition(ov.stories, state.ed).filter(function (s) { return !state.group || storyGroup(s) === state.group; });
-      var main = shown.filter(function (s) { return s.main; }), rest = shown.filter(function (s) { return !s.main; });
+      var split = splitLearn(shown), learn = split.learn, rest = split.slice;
+      var sliceCount = rest.reduce(function (n, s) { return n + s.items.length; }, 0);
       var parts = [head, statusHost(my), nav, edChips, chips].filter(Boolean);
-      if (main.length) parts.push(h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-ov-main" }, [h(doc, "h2", { id: "nw-ov-main", text: t("news.overview.main", "Главное за день") })]
-        .concat(main.map(function (s) { return renderStory(doc, s, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale() }); }))));
+      if (shown.length) parts.push(h(doc, "p", { class: "nw-ov-counts", role: "status", text: fill(t("news.overview.counts", "Учебных {learn} · в срезе {slice}"), { learn: learn.length, slice: sliceCount }) }));
+      var itemOpts = { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale() };
+      if (learn.length) parts.push(h(doc, "section", { class: "nw-group nw-ov-learn-list", "aria-labelledby": "nw-ov-main" }, [h(doc, "h2", { id: "nw-ov-main", text: fill(t("news.overview.learnSection", "Учебные материалы · {n}"), { n: learn.length }) })]
+        .concat(learn.map(function (it) { return h(doc, "article", { class: "nw-ov-story nw-ov-main" }, [renderOverviewItem(doc, it, itemOpts)]); }))));
       if (rest.length) {
-        var sec = h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-ov-rest" }, [h(doc, "h2", { id: "nw-ov-rest", text: t("news.overview.rest", "Все остальные сюжеты") })]);
+        var sec = h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-ov-rest" }, [h(doc, "h2", { id: "nw-ov-rest", text: fill(t("news.overview.sliceSection", "Только в срезе · {n}"), { n: sliceCount }) })]);
         // Long days: the first 60 stories at once, the rest on «Показать ещё».
         var shownCount = 0, more = h(doc, "button", { type: "button", class: "nw-button nw-more", text: t("news.more", "Показать ещё") });
-        var step = function () { rest.slice(shownCount, shownCount + 60).forEach(function (s) { sec.insertBefore(renderStory(doc, s, { t: t, returnTo: returnTo, lastVisit: lastVisit, locale: locale() }), more); }); shownCount += 60; more.hidden = shownCount >= rest.length; };
+        var step = function () { rest.slice(shownCount, shownCount + 60).forEach(function (s) { sec.insertBefore(renderStory(doc, s, itemOpts), more); }); shownCount += 60; more.hidden = shownCount >= rest.length; };
         sec.appendChild(more); more.addEventListener("click", step); step();
         parts.push(sec);
       }
@@ -571,5 +597,5 @@
     installUpdateGate(win, t);
     probeManage().then(render, render);
   }
-  return { renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
+  return { splitLearn: splitLearn, renderOverviewItem: renderOverviewItem, renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, feedUrl: feedUrl, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });

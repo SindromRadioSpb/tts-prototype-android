@@ -5792,3 +5792,4 @@ Object.assign(window.I18N_LOCALES.ru.newsEditor.storage, {"freeDisk": "Своб�
 window.I18N_LOCALES.ru.newsEditor.editions.extras = "Своих статей dot за выпуск (до 50)";
 Object.assign(window.I18N_LOCALES.ru.newsEditor.editions, {"look": "Посмотреть архив", "take": "Скачать для dot", "takeHint": "Закрепит статьи выпуска за dot на 4 часа — если передаёте архив dot вручную", "refused": "отказано или пропущено: {n}"});
 Object.assign(window.I18N_LOCALES.ru.newsEditor.storage, {"photoCache": "Кэш фото сборщика: {size} (хранится 3 дня, не больше 500 МБ)"});
+Object.assign(window.I18N_LOCALES.ru.news.overview, {"learnBadge":"учебная","counts":"Учебных {learn} · в срезе {slice}","learnSection":"Учебные материалы · {n}","sliceSection":"Только в срезе · {n}"});

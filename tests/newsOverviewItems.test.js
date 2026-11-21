@@ -111,3 +111,30 @@ test('review: a day with an old overview body and new rows shows both', async ()
   assert.deepEqual(titles, ['ישן', 'כותרת 1', 'כותרת 2'], 'the old body is merged, the row that is in both is shown once');
   db.close();
 });
+
+// Findability W1 (docs/superpowers/specs/2026-11-21-news-findability-design.md): study first, then freshness; rubric does not order.
+const { freshness, sortStories } = require('../db/newsOverviewItems');
+const at = h => '2026-11-16T' + h + ':00.000Z';
+test('overview day: stories with a study article come first, then by freshness, rubric ignored', () => {
+  const s = (key, section, h, work) => ({ story_key: key, items: [{ outlet_id: 'ynet', section, published_at: at(h), ...(work ? { work_id: 'w' } : {}) }] });
+  const out = sortStories([s('sec', 'security', '17:00', false), s('pol', 'politics', '08:00', true), s('cul', 'culture', '16:00', true)]);
+  assert.deepEqual(out.map(x => x.story_key), ['cul', 'pol', 'sec']);
+  assert.deepEqual(out.map(x => x.main), [true, true, false]);
+});
+test('overview day: items inside a story — study ones first, then freshness by changed_at/edition time', () => {
+  const a = { item_key: 'a', published_at: at('10:00') }, b = { item_key: 'b', published_at: at('09:00'), changed_at: at('12:00') },
+    c = { item_key: 'c', published_at: at('08:00'), edition_published_at: at('11:00') }, w = { item_key: 'w', published_at: at('07:00'), work_id: 'x' };
+  assert.equal(freshness(b), Date.parse(at('12:00')));
+  const [one] = sortStories([{ story_key: 'S', items: [a, b, c, w] }]);
+  assert.deepEqual(one.items.map(x => x.item_key), ['w', 'b', 'c', 'a']);
+});
+test('overview day: selected_by from the harvest row is on the item', async () => {
+  const { db, ov } = await setup();
+  const one = it(1);
+  await run(db, `INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status, selected_by) VALUES (?,?,?,?,'ready','dot')`, [one.item_key, 'ynet', one.url, '2026-11-16T07:00:00Z']);
+  await ov.upsert(v2('morning', [{ story_key: 'S1', items: [one, it(2)] }]), { packId: 'p1' });
+  const items = (await ov.day('2026-11-16')).stories[0].items;
+  assert.equal(items.find(x => x.item_key === one.item_key).selected_by, 'dot');
+  assert.equal(items.find(x => x.item_key !== one.item_key).selected_by, undefined);
+  db.close();
+});

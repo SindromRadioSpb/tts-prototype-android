@@ -3,15 +3,29 @@
 // edition's pack adds rows and fills translations, nothing is ever removed; a day is assembled from its
 // rows. Days before 3.11.894 are read from news_overviews (one body per day).
 const C = require('../news/newsPackCore');
-const { GROUPS } = require('../news/harvest/newsStories');
 
-const ORDER = ['politics', 'security', 'society', 'economy', 'world', 'culture', 'opinion'];
 const dbGet = (db, sql, p = []) => new Promise((res, rej) => db.get(sql, p, (e, r) => e ? rej(e) : res(r || null)));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
 const dbRun = (db, sql, p = []) => new Promise((res, rej) => db.run(sql, p, function (e) { e ? rej(e) : res(this); }));
 const keyOf = it => { try { return C.articleKey(it.outlet_id, C.canonicalizeUrl(it.url)); } catch (_) { return null; } };
 const filled = v => typeof v === 'string' && v.trim() ? v : null;
 const parse = s => { try { return JSON.parse(s || 'null'); } catch (_) { return null; } };
+
+// Freshness of an article (findability spec §6): its latest known time — changed by the outlet, its
+// edition, or its publication. A story is as fresh as its freshest article.
+const ms = v => Date.parse(v || '') || 0;
+function freshness(it) { return Math.max(ms(it.changed_at), ms(it.edition_published_at), ms(it.published_at)); }
+// Stories with a study article first, then freshness, then the number of outlets; inside a story the
+// study articles first, then freshness. The rubric is a filter, never an order.
+function sortStories(list) {
+  const outlets = s => new Set(s.items.map(x => x.outlet_id)).size;
+  const fresh = s => Math.max(0, ...s.items.map(freshness));
+  for (const s of list) {
+    s.items.sort((a, b) => (!!b.work_id - !!a.work_id) || (freshness(b) - freshness(a)));
+    s.main = s.items.some(x => x.work_id);
+  }
+  return list.sort((a, b) => (b.main - a.main) || (fresh(b) - fresh(a)) || (outlets(b) - outlets(a)));
+}
 
 function createOverviewItems({ db, now = () => Date.now() }) {
   const iso = () => new Date(now()).toISOString();
@@ -66,6 +80,14 @@ function createOverviewItems({ db, now = () => Date.now() }) {
     }
   }
 
+  async function linkSelected(byKey) {
+    const ids = [...byKey.keys()];
+    for (let i = 0; i < ids.length; i += 400) {
+      const part = ids.slice(i, i + 400), q = part.map(() => '?').join(',');
+      const rows = await dbAll(db, `SELECT url_key, canonical_key, selected_by FROM news_harvest_items WHERE selected_by IS NOT NULL AND (url_key IN (${q}) OR canonical_key IN (${q}))`, [...part, ...part]).catch(() => []);
+      for (const r of rows) for (const k of [r.url_key, r.canonical_key]) for (const it of byKey.get(k) || []) it.selected_by = r.selected_by;
+    }
+  }
   // → { day, prev, next, updated_at, editions:[{ edition_id, slot, published_at, target_ready_at }], stories:[{ story_key, main, continued?, items }] } | null
   async function day(wanted) {
     const valid = wanted && /^\d{4}-\d{2}-\d{2}$/.test(wanted);
@@ -82,8 +104,8 @@ function createOverviewItems({ db, now = () => Date.now() }) {
       if (!old) return null;
       const body = JSON.parse(old.body_json), byKey = new Map();
       for (const s of body.stories) for (const it of s.items) { const k = keyOf(it); if (k) { if (!byKey.has(k)) byKey.set(k, []); byKey.get(k).push(it); } }
-      await linkWorks(byKey);
-      return { day: d, ...(await days(d)), updated_at: old.updated_at, editions: [], stories: body.stories };
+      await linkWorks(byKey); await linkSelected(byKey);
+      return { day: d, ...(await days(d)), updated_at: old.updated_at, editions: [], stories: sortStories(body.stories) };
     }
     // The day of the release: its morning overview was stored the old way (one body) — merged, rows win.
     const old = await dbGet(db, 'SELECT body_json FROM news_overviews WHERE day=?', [d]);
@@ -110,25 +132,18 @@ function createOverviewItems({ db, now = () => Date.now() }) {
       if (!byKey.has(r.item_key)) byKey.set(r.item_key, []);
       byKey.get(r.item_key).push(it);
     }
-    await linkWorks(byKey);
+    await linkWorks(byKey); await linkSelected(byKey);
     const keys = [...stories.keys()];
     const firstDay = new Map();
     for (let i = 0; i < keys.length; i += 400) {
       const part = keys.slice(i, i + 400);
       for (const s of await dbAll(db, `SELECT story_key, first_day FROM news_stories WHERE story_key IN (${part.map(() => '?').join(',')})`, part)) firstDay.set(s.story_key, s.first_day);
     }
-    const at = it => Date.parse(it.published_at || '') || 0;
-    const list = keys.map(k => {
-      const items = stories.get(k).sort((a, b) => (!!b.work_id - !!a.work_id) || (at(b) - at(a)));
-      const main = items.some(x => x.work_id);
-      return { story_key: k, main, ...(firstDay.get(k) && firstDay.get(k) < d ? { continued: true } : {}), items };
-    });
-    const outlets = s => new Set(s.items.map(x => x.outlet_id)).size, group = s => ORDER.indexOf(GROUPS[s.items[0].section] || 'society');
-    list.sort((a, b) => (b.main - a.main) || (a.main && b.main ? group(a) - group(b) : 0) || (outlets(b) - outlets(a)) || (Math.max(...b.items.map(at)) - Math.max(...a.items.map(at))));
+    const list = sortStories(keys.map(k => ({ story_key: k, ...(firstDay.get(k) && firstDay.get(k) < d ? { continued: true } : {}), items: stories.get(k) })));
     const updated = rows.reduce((m, r) => r.updated_at > m ? r.updated_at : m, '');
     return { day: d, ...(await days(d)), updated_at: updated, editions, stories: list };
   }
   return { upsert, day };
 }
 
-module.exports = { createOverviewItems };
+module.exports = { createOverviewItems, freshness, sortStories };
