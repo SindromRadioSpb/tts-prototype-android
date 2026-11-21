@@ -67,6 +67,8 @@
     var ldb = await db();
     if (!ldb || typeof ldb.addBookmark !== 'function') return;
     var on = btn.classList.contains('bookmarked');
+    // Native disabling can blur a keyboard user's button during the DB write.
+    var doc = btn.ownerDocument, hadFocus = doc.activeElement === btn;
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
     paint(btn, !on);                       // answer the tap at once; roll back on failure
@@ -92,6 +94,10 @@
     } finally {
       btn.disabled = false;
       btn.removeAttribute('aria-busy');
+      // Do not take focus back if the user has moved to another control.
+      if (hadFocus && btn.isConnected && doc.activeElement === doc.body) {
+        btn.focus({ preventScroll: true });
+      }
     }
   }
 

@@ -226,6 +226,7 @@ const out = path.resolve(arg('out') || '.tmp/reader-performance/studio-translit-
           assert.deepEqual(controls, { savedEnabled: true, hiddenInEditMode: true, unsavedHasNoSlot: true });
           if (mobile) await button.tap(); else { await button.focus(); await page.keyboard.press('Space'); }
           await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-pressed') === 'true' && !document.querySelector(selector)?.disabled, pick);
+          if (!mobile) assert.equal(await button.evaluate(b => b.ownerDocument.activeElement === b), true, 'bookmark keyboard focus survives its asynchronous write');
           if (mobile) await button.tap(); else await page.keyboard.press('Space');
           await page.waitForFunction(selector => document.querySelector(selector)?.getAttribute('aria-pressed') === 'false' && !document.querySelector(selector)?.disabled, pick);
           report.bookmarkControls = await page.evaluate(async ({ pick }) => {
