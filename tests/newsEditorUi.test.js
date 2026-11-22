@@ -113,3 +113,23 @@ test('editor page lists the owner\x27s orders with status and reasons (findabili
   assert.match(rows[1].textContent, /#выборы/); assert.match(rows[1].textContent, /ждёт dot/);
   assert.match(UI.renderOrdersTable(document, [], { t: tFor(locales().ru) }).textContent, /Заказов нет/);
 });
+
+test('dot instruction card: full link, version and date, copy button, the text folded', async () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const copied = [];
+  const el = UI.renderDotTaskCard(document, { task: { version: 'abc123def456', updated: '2026-11-22', url: '/api/news/dot-task.md' }, text: '# Задание для dot\nЧасть 0.' },
+    { t: tFor(locales().ru), origin: 'https://linguistpro.kolosei.com', copy: async s => { copied.push(s); } });
+  assert.equal(el.querySelector('h2').textContent, 'Инструкция для dot');
+  const a = el.querySelector('a.ne-dot-task-link');
+  assert.equal(a.getAttribute('href'), 'https://linguistpro.kolosei.com/api/news/dot-task.md');
+  assert.equal(a.textContent, 'https://linguistpro.kolosei.com/api/news/dot-task.md');
+  assert.match(el.querySelector('.ne-dot-task-meta').textContent, /abc123def456/);
+  assert.match(el.querySelector('.ne-dot-task-meta').textContent, /2026-11-22/);
+  assert.equal(el.querySelector('details pre').textContent, '# Задание для dot\nЧасть 0.');
+  const btn = el.querySelector('button.ne-dot-task-copy');
+  btn.dispatchEvent(new document.defaultView.Event('click'));
+  await new Promise(r => setTimeout(r, 0));
+  assert.deepEqual(copied, ['https://linguistpro.kolosei.com/api/news/dot-task.md']);
+  assert.equal(el.querySelector('.ne-dot-task-status').textContent, 'Ссылка скопирована');
+  for (const lang of ['ru', 'en', 'he']) assert.equal(typeof locales()[lang].newsEditor.dotTask.title, 'string', lang + ' has the card strings');
+});

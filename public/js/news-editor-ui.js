@@ -457,7 +457,12 @@
         paintStorage();
       }
       renderInterestsCard(doc, { t: t, api: api, say: say, json: json, canSave: session.kind === "owner" }).then(function (b) { interestsHost.replaceChildren(b); }).catch(function () {});
-      var parts = [who, ordersCard(), editionsCard(), storageHost, interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var dotTaskHost = h(doc, "div");
+      api("GET", "/api/news/dot-task").then(function (data) {
+        dotTaskHost.replaceChildren(renderDotTaskCard(doc, data, { t: t, origin: (win.location && win.location.origin) || "",
+          copy: function (s) { return win.navigator.clipboard.writeText(s); } }));
+      }).catch(function () {});
+      var parts = [who, ordersCard(), dotTaskHost, editionsCard(), storageHost, interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }
@@ -468,6 +473,25 @@
     }
     doc.addEventListener("i18n:changed", function () { render(); });
     render();
+  }
+  // «Инструкция для dot» (2026-11-22): the stable link to hand dot once, the version it compares, the text.
+  function renderDotTaskCard(doc, data, opts) {
+    var t = opts.t || function (k, f) { return f; };
+    var task = (data && data.task) || {}, link = String(opts.origin || "") + String(task.url || "");
+    var status = h(doc, "p", { class: "ne-muted ne-dot-task-status", "aria-live": "polite" });
+    var copy = h(doc, "button", { type: "button", class: "ne-button ne-quiet ne-dot-task-copy", text: t("newsEditor.dotTask.copy", "Скопировать ссылку") });
+    copy.addEventListener("click", function () {
+      Promise.resolve().then(function () { return opts.copy(link); })
+        .then(function () { status.textContent = t("newsEditor.dotTask.copied", "Ссылка скопирована"); })
+        .catch(function () { status.textContent = t("newsEditor.dotTask.copyFailed", "Не удалось скопировать — выделите ссылку вручную"); });
+    });
+    return h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-dot-task-title" }, [
+      h(doc, "h2", { id: "ne-dot-task-title", text: t("newsEditor.dotTask.title", "Инструкция для dot") }),
+      h(doc, "p", { class: "ne-muted", text: t("newsEditor.dotTask.hint", "Дайте dot эту ссылку один раз. Когда инструкция меняется, у неё меняется версия — dot видит это в каждом ответе сервера и перечитывает текст сам.") }),
+      h(doc, "p", {}, [h(doc, "a", { class: "ne-dot-task-link", href: link, target: "_blank", rel: "noopener", text: link })]),
+      h(doc, "p", { class: "ne-muted ne-dot-task-meta", text: t("newsEditor.dotTask.meta", "Версия {v} · обновлено {d}").replace("{v}", task.version || "—").replace("{d}", task.updated || "—") }),
+      h(doc, "div", { class: "ne-inline" }, [copy]), status,
+      h(doc, "details", { class: "ne-dot-task-text" }, [h(doc, "summary", { text: t("newsEditor.dotTask.show", "Показать текст инструкции") }), h(doc, "pre", { text: String((data && data.text) || "") })])]);
   }
   // «Мои интересы в новостях» (spec §5.7): the owner writes, dot reads it before choosing its own articles.
   async function renderInterestsCard(doc, opts) {
@@ -493,5 +517,5 @@
     } else box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.ownerOnly", "Менять интересы может только владелец") }));
     return box;
   }
-  return { renderOrdersTable: renderOrdersTable, renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
+  return { renderDotTaskCard: renderDotTaskCard, renderOrdersTable: renderOrdersTable,renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
 });

@@ -8,11 +8,12 @@ const Outlets = require('../public/js/news-outlets');
 const { NewsError, LIMITS } = require('../db/newsRepo');
 const C = require('./newsPackCore');
 const { validTag, validKey } = require('../db/newsMarks');
+const { createDotTask, TASK_URL } = require('./newsDotTask');
 
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null, dotTask = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -42,6 +43,20 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     return editor;
   }
   const noStore = (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); };
+
+  // The instruction for dot (2026-11-22): public — it holds addresses and rules, no secrets.
+  const task = dotTask || createDotTask();
+  app.get(TASK_URL, read, (req, res) => {
+    try {
+      const t = task.get(), etag = '"' + t.version + '"';
+      res.set({ 'Content-Type': 'text/markdown; charset=utf-8', 'Cache-Control': 'no-cache', ETag: etag, 'X-Content-Type-Options': 'nosniff' });
+      if (req.get('if-none-match') === etag) return res.status(304).end();
+      res.send(t.text);
+    } catch (e) { send(res, e); }
+  });
+  app.get('/api/news/dot-task', read, (req, res) => {
+    try { res.set('Cache-Control', 'no-cache'); res.json({ ok: true, task: task.meta(), text: task.get().text }); } catch (e) { send(res, e); }
+  });
 
   app.get('/api/news/outlets', read, async (req, res) => {
     try {
@@ -91,7 +106,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     });
     app.get('/api/news/editor/orders', read, noStore, async (req, res) => {
       const actor = await actorFor(req, res); if (!actor) return;
-      try { res.json({ ok: true, orders: await orders.list({ status: ['open', 'taken', 'done', 'failed', 'expired'].includes(String(req.query.status)) ? String(req.query.status) : 'open' }) }); } catch (e) { send(res, e); }
+      try { res.json({ ok: true, orders: await orders.list({ status: ['open', 'taken', 'done', 'failed', 'expired'].includes(String(req.query.status)) ? String(req.query.status) : 'open' }), task: task.meta() }); } catch (e) { send(res, e); }
     });
     app.post('/api/news/editor/orders/:id/take', write, json, noStore, async (req, res) => {
       const actor = await actorFor(req, res, { mutating: true }); if (!actor) return;
@@ -363,7 +378,8 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       app.get('/api/news/editor/editions/next', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;
         // The owner's open orders come first for dot (findability W5, dotTask «Часть 0»).
-        try { res.json({ ok: true, edition: await harvester.nextEdition(), ...(orders ? { orders: await orders.list({ status: 'open' }) } : {}) }); } catch (e) { send(res, e); }
+        // `task`: the current instruction's version — dot re-reads it when the version changes.
+        try { res.json({ ok: true, edition: await harvester.nextEdition(), ...(orders ? { orders: await orders.list({ status: 'open' }) } : {}), task: task.meta() }); } catch (e) { send(res, e); }
       });
       app.get('/api/news/editor/editions/:id/download', read, noStore, async (req, res) => {
         const actor = await actorFor(req, res); if (!actor) return;
