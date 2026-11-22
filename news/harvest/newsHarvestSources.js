@@ -59,10 +59,11 @@ const SOURCES = [
 // never a URL supplied by the caller, a general article origin, or a redirected request.
 const ARCHIVE_IMAGE_HOSTS = {
   ynet: /^(?:ynet-pic[0-9]+\.yit\.co\.il|images1\.ynet\.co\.il)$/,
-  walla: /^(?:images\.wcdn\.co\.il|img\.wcdn\.co\.il)$/,
+  // image-resizer-walla.walla.cloud: Walla's resizer (2026-11-22: 70 slice photos were refused without it).
+  walla: /^(?:images\.wcdn\.co\.il|img\.wcdn\.co\.il|image-resizer-walla\.walla\.cloud)$/,
   maariv: /^images\.maariv\.co\.il$/,
   n12: /^(?:img\.mako\.co\.il|images\.mako\.co\.il|images\.n12\.co\.il)$/,
-  haaretz: /^(?:img\.haarets\.co\.il|images\.haaretz\.co\.il)$/,
+  haaretz: /^(?:img\.haarets\.co\.il|gif\.haarets\.co\.il|images\.haaretz\.co\.il)$/,
   c14: /^(?:cdn\.c14\.co\.il|static\.c14\.co\.il)$/,
 };
 function canFetchArchiveImage(outletId, src) {

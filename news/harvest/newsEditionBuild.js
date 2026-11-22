@@ -30,21 +30,24 @@ const memberOf = r => ({ id: r.url_key, row: r, outlet_id: r.outlet_id, section:
   full_ok: !!r.full_ok && hasBody(r), paywalled: r.paywalled ? 1 : 0, images: r.images, chars: r.chars });
 
 // One draft with its photos into the zip (used by the edition build and by dot's extra orders).
-async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle, strictPhotos = false, sleep = async () => {} }) {
-  const files = [], shas = {};
+// A photo that cannot be had never blocks the article (owner 2026-11-22): it is left out, and
+// `missing` says which one and why, so the reason is visible instead of a bare refusal.
+async function makeDraft({ zip, row, a, folder, storyKey, photo, draftOf, retrievedAt, imagesPerArticle, sleep = async () => {} }) {
+  const files = [], shas = {}, missing = [];
+  a.images.slice(imagesPerArticle).forEach(im => missing.push({ source_url: im.src, reason: 'TOO_MANY_PHOTOS' }));
   for (const im of a.images.slice(0, imagesPerArticle)) {
     try {
       const bytes = await photo(im.src), file = 'img-' + (files.length + 1) + '.jpg';
       zip.addFile(folder + '/' + file, bytes);
       files.push({ ...im, file, source_url: im.src }); shas[file] = sha(bytes);
-    } catch (err) { if (strictPhotos) throw err; /* ordinary editions can keep an article without a missing photo */ }
+    } catch (err) { missing.push({ source_url: im.src, reason: String((err && (err.code || err.message)) || 'PHOTO_FAILED').slice(0, 80) }); }
     await sleep();
   }
   if (files.length && !files.some(f => f.role === 'hero')) files[0] = { ...files[0], role: 'hero' };
   const draft = draftOf(a, { outletId: row.outlet_id, images: files, retrievedAt, storyKey });
   if (row.selected_by) Object.assign(draft.learning, { selected_by: row.selected_by, selection_note_ru: row.selection_note_ru || '' });
   zip.addFile(folder + '.draft.json', Buffer.from(JSON.stringify(draft, null, 1)));
-  return { draft, shas, files };
+  return { draft, shas, files, missing };
 }
 
 async function buildEdition({ db, stories, editionId, day, slot, schedule, nowMs, photo, dir, draftOf, readme, limits, log = () => {}, sleep = async () => {}, extraFiles = {} }) {

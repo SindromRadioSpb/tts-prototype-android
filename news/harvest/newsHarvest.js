@@ -656,19 +656,14 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   async function emitArchiveOrder({ row, a, itemKey, note, actor, storyKey, editionId, day, slot, firstSeen, old, when, t, mainStates = ['none'] }) {
     const id = 'nso_' + crypto.randomBytes(16).toString('hex');
     const folder = row.outlet_id + '-archive-01', zip = new AdmZip();
-    // Check limit before requesting images; do not make a shortened archive order.
-    if (a.images.length > C.MAX_IMAGES) throw extrasError('ARCHIVE_PHOTOS_UNAVAILABLE');
     if (draftOf(a, { outletId: row.outlet_id, storyKey: storyKey, images: [], retrievedAt: israelIso(t) }).quality.warnings.includes('TRUNCATED'))
       throw extrasError('NO_BODY');
     const sharp = a.images.length ? loadSharp() : null;
-    let built;
-    try {
-      built = await makeDraft({ zip, row: { ...row, selected_by: 'dot', selection_note_ru: note },
-        a, folder, storyKey: storyKey, photo: archivePhotoLoader(row.outlet_id, sharp), draftOf,
-        retrievedAt: israelIso(t), imagesPerArticle: C.MAX_IMAGES, strictPhotos: true, sleep: () => sleep(Math.round(delayMs / 3)) });
-    } catch (_) { throw extrasError('ARCHIVE_PHOTOS_UNAVAILABLE'); }
-    const { draft, shas, files } = built;
-    if (files.length !== a.images.length) throw extrasError('ARCHIVE_PHOTOS_UNAVAILABLE');
+    // The full text always ships; a photo that cannot be had is left out with its reason (owner 2026-11-22).
+    const { draft, shas, missing } = await makeDraft({ zip, row: { ...row, selected_by: 'dot', selection_note_ru: note },
+      a, folder, storyKey: storyKey, photo: archivePhotoLoader(row.outlet_id, sharp), draftOf,
+      retrievedAt: israelIso(t), imagesPerArticle: C.MAX_IMAGES, sleep: () => sleep(Math.round(delayMs / 3)) });
+    if (missing.length) try { console.warn('[news-order] ' + itemKey + ': photos left out ' + JSON.stringify(missing)); } catch (_) {}
     // Slow CDN work does not hold the scheduler. Join its critical section only to claim
     // the candidate after rechecking its state (a scheduled draft may have won meanwhile).
     while (busy) await busy.catch(() => {});
@@ -680,6 +675,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       zip.addFile('archive-order.json', Buffer.from(JSON.stringify({
         order_id: id, parent_edition_id: editionId, day: day, slot: slot, expires_at: expires,
         item_key: itemKey, draft: folder + '.draft.json', images: shas, draft_sha256: draftSha,
+        ...(missing.length ? { photos_missing: missing } : {}),
       }, null, 1)));
       const buffer = zip.toBuffer(), name = `news-archive-order-${id}.zip`, file = path.join(dir, name);
       fs.mkdirSync(dir, { recursive: true });

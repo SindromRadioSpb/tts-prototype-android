@@ -194,39 +194,50 @@ test('closed archive: exact actor retries, expiry, and a source without photos n
   assert.equal(s.fetches(), 0);
 });
 
-test('closed archive: all twelve captured CDN photos are required and the article page is never refetched', async t => {
+test('closed archive: a photo that cannot be fetched is left out with its reason; the text and the other photos ship and publish (2026-11-22)', async t => {
   const images = Array.from({ length: 12 }, (_, i) => ({ src: 'https://images.maariv.co.il/image/upload/example-' + i + '.jpg',
     role: i ? 'inline' : 'hero', ...(i ? { after_p: 1 } : {}), credit_he: 'דוגמה' }));
-  let missing = true;
   const s = await harness(t, { photo: false, images, outletId: 'maariv', sourceUrl: 'https://www.maariv.co.il/culture/music/article-1000000',
     servePhoto: async (url, jpeg) => {
     if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nAllow: /image/upload/', { status: 200 });
     assert.ok(images.some(x => x.src === url));
-    if (missing && url === images[3].src) return new Response(null, { status: 404 });
+    if (url === images[3].src) return new Response(null, { status: 404 });
     return new Response(jpeg, { headers: { 'content-type': 'image/jpeg' } });
   } });
-  const unavailable = await s.order();
-  assert.equal(unavailable.status, 409); assert.equal((await unavailable.json()).error, 'ARCHIVE_PHOTOS_UNAVAILABLE');
-  assert.equal((await s.all('SELECT COUNT(*) AS n FROM news_archive_orders'))[0].n, 0);
-  assert.equal(fs.readdirSync(s.dir).filter(f => f.startsWith('news-archive-order-')).length, 0);
-  missing = false;
-  const { m, draft, packed, z } = await s.prep(await s.order());
-  assert.equal(Object.keys(m.images).length, 12);
-  assert.deepEqual(draft.images.map(x => x.source_url), images.map(x => x.src));
+  const res = await s.order();
+  assert.equal(res.status, 200, 'a missing photo does not block the order');
+  const { m, draft, packed, z } = await s.prep(res);
+  assert.equal(Object.keys(m.images).length, 11);
+  assert.deepEqual(draft.images.map(x => x.source_url), images.filter((_, i) => i !== 3).map(x => x.src));
   for (const im of draft.images) assert.equal(C.sha256(z.getEntry('maariv-archive-01/' + im.file).getData()), m.images[im.file]);
+  assert.deepEqual(m.photos_missing, [{ source_url: images[3].src, reason: 'HTTP_404' }]);
+  assert.ok(draft.learning.versions[0].rows.length > 0, 'the full text is in the draft');
   assert.equal((await s.ingest(packed)).receipt.totals.published, 1);
 });
 
-test('closed archive: do not reach a captured URL outside the specific image CDN or when robots forbids it', async t => {
+test('closed archive: a captured URL outside the image CDN or forbidden by robots is never fetched; the order ships without it and publishes', async t => {
   const bad = await harness(t, { photo: false, images: [{ src: URL, role: 'hero' }] });
   const res = await bad.order();
-  assert.equal((await res.json()).error, 'ARCHIVE_PHOTOS_UNAVAILABLE'); assert.equal(bad.fetches(), 0);
+  assert.equal(res.status, 200); assert.equal(bad.fetches(), 0);
+  const a = await bad.prep(res);
+  assert.deepEqual(a.m.images, {}); assert.deepEqual(a.draft.images, []);
+  assert.deepEqual(a.m.photos_missing, [{ source_url: URL, reason: 'ARCHIVE_IMAGE_HOST' }]);
+  assert.equal((await bad.ingest(a.packed)).receipt.totals.published, 1);
   const blocked = await harness(t, { photo: false, servePhoto: url => {
     assert.ok(url.endsWith('/robots.txt'));
     return new Response('User-agent: *\nDisallow: /picserver5/');
   } });
-  assert.equal((await (await blocked.order()).json()).error, 'ARCHIVE_PHOTOS_UNAVAILABLE');
-  assert.equal(blocked.fetches(), 1);
+  const r2 = await blocked.order();
+  assert.equal(r2.status, 200); assert.equal(blocked.fetches(), 1);
+  assert.equal((await blocked.prep(r2)).m.photos_missing[0].reason, 'ROBOTS');
+});
+
+test('walla: photos on image-resizer-walla.walla.cloud are an allowed archive image host (bug 2026-11-22)', () => {
+  const { canFetchArchiveImage } = require('../news/harvest/newsHarvestSources');
+  assert.equal(canFetchArchiveImage('walla', 'https://image-resizer-walla.walla.cloud/image/2026/11/3/images/1795277288099_walla-media-picture_601x457.webp'), true);
+  assert.equal(canFetchArchiveImage('walla', 'http://image-resizer-walla.walla.cloud/x.webp'), false);
+  assert.equal(canFetchArchiveImage('walla', 'https://evil.walla.cloud.example.com/x.webp'), false);
+  assert.equal(canFetchArchiveImage('ynet', 'https://image-resizer-walla.walla.cloud/x.webp'), false);
 });
 
 test('closed archive: a reserved candidate does not get drafted in a later collection or re-leased', async t => {
