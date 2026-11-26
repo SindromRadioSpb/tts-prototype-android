@@ -55,3 +55,22 @@ test('harvestable skips disabled and home_pc', async () => {
   const ids = (await st.harvestable(SOURCES)).map(s => s.outlet_id).sort();
   assert.deepEqual(ids, ['haaretz', 'n12', 'walla', 'ynet']);
 });
+
+// ---- W3: a new outlet is switched on after a passed probe, or forced by the owner (spec §5.2) -------------
+test('enable needs a passed probe unless forced; forced enable is journaled with the probe score', async () => {
+  const db = await openDb();
+  // A catalog outlet with an adapter but outside the six harvested before the probe existed.
+  const st = createOutletState({ db, legacy: ['ynet'] });
+  await st.setEnabled('walla', false, 'owner:1');
+  await assert.rejects(st.setEnabled('walla', true, 'owner:1'), e => e.code === 'PROBE_REQUIRED' && e.status === 409);
+  await st.setProbe('walla', { at: '2026-11-26T08:00:00.000Z', sampled: 20, full: 12, pass: false });
+  await assert.rejects(st.setEnabled('walla', true, 'owner:1'), e => e.code === 'PROBE_REQUIRED');
+  const on = await st.setEnabled('walla', true, 'owner:1', { force: true });
+  assert.equal(on.enabled, true);
+  const j = await dbAll(db, "SELECT action, detail_json FROM news_outlet_journal WHERE outlet_id='walla' ORDER BY id DESC LIMIT 1");
+  assert.equal(j[0].action, 'enable_forced'); assert.deepEqual(JSON.parse(j[0].detail_json), { full: 12, sampled: 20 });
+  await st.setProbe('maariv', { at: '2026-11-26T08:00:00.000Z', sampled: 20, full: 19, pass: true });
+  await st.setEnabled('maariv', false, 'owner:1');
+  assert.equal((await st.setEnabled('maariv', true, 'owner:1')).enabled, true, 'a passed probe is enough');
+  assert.equal((await st.setEnabled('ynet', true, 'owner:1')).enabled, true, 'a legacy outlet needs no probe');
+});

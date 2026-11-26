@@ -9,6 +9,7 @@
 // User-Agent, nothing behind a paywall or a bot challenge is worked around.
 const crypto = require('node:crypto');
 const fs = require('node:fs');
+const zlib = require('node:zlib');
 const path = require('node:path');
 const AdmZip = require('adm-zip');
 const C = require('../newsPackCore');
@@ -17,6 +18,8 @@ const { SOURCES, canFetchArchiveImage } = require('./newsHarvestSources');
 const { extractArticle, israelIso } = require('./newsExtract');
 const { splitSentences } = require('./newsText');
 const { refineSection } = require('./newsStories');
+const Probe = require('./newsProbe');
+const REPROBE_MS = 7 * 86400e3, HOSTS = 4;
 const { createStoryStore } = require('./newsStoryStore');
 const { normalizeSchedule, dayOf, dueSlot, slotTimes } = require('./newsEditions');
 const { buildEdition, makeDraft } = require('./newsEditionBuild');
@@ -25,7 +28,7 @@ const { ARTICLE_ID, ORDER_TTL_MS, ARCHIVE_WINDOW_MS, archiveDraftHash } = requir
 
 const USER_AGENT = 'LinguistProNewsReader/1.0 (+https://linguistpro.kolosei.com)';
 const LIMITS = { mainStories: 22, imagesPerArticle: 8, rows: 400, page: 4 * 1024 * 1024, feed: 2 * 1024 * 1024, image: 15 * 1024 * 1024,
-  imageOut: 600 * 1024, minChars: 400, minParagraphs: 2, maxAgeMs: 36 * 3600 * 1000, pagesPerPoll: 120, pollEveryMs: 55 * 60 * 1000,
+  imageOut: 600 * 1024, minChars: 400, minParagraphs: 2, maxAgeMs: 36 * 3600 * 1000, pagesPerPoll: 120, pagesPerOutlet: 30, pollEveryMs: 55 * 60 * 1000,
   keepRunsDays: 7, keepItemsDays: 45, keepBodyDays: 45, plainBodyDays: 3, staleRunMs: 3600 * 1000, leadChars: 450 };
 const DIGEST = /^חדשות היום|כותרות השבת|כותרות הבוקר|סיכום חדשות|סיכום השבוע|עדכונים שוטפים|מתעדכן|LIVE|לייב|^מבזק/;
 
@@ -54,6 +57,24 @@ function parseFeed(xml) {
   }
   return items;
 }
+
+// A news sitemap (Google News) as a feed (spec 2026-11-26 §5.1): links with their date and title; a sitemap
+// index lists the sitemaps to read. A link without a date is left out — its freshness is unknown.
+function parseNewsSitemap(xml) {
+  const s = String(xml || ''), tag = (body, name) => { const t = body.match(new RegExp('<' + name + '\\b[^>]*>([\\s\\S]*?)</' + name + '>')); return t ? decodeXml(t[1]) : ''; };
+  const sitemaps = [];
+  const children = [];
+  for (const m of s.matchAll(/<sitemap\b[^>]*>([\s\S]*?)<\/sitemap>/g)) { const loc = tag(m[1], 'loc'); if (/^https:\/\//.test(loc)) children.push({ loc, at: Date.parse(tag(m[1], 'lastmod')) || 0 }); }
+  children.sort((x, y) => y.at - x.at).forEach(c => sitemaps.push(c.loc));
+  const newsNs = /sitemap-news/.test(s);
+  const items = [];
+  for (const m of s.matchAll(/<url\b[^>]*>([\s\S]*?)<\/url>/g)) {
+    const loc = tag(m[1], 'loc'), at = tag(m[1], '(?:n|news):publication_date') || (newsNs ? '' : tag(m[1], 'lastmod'));
+    if (/^https?:\/\//.test(loc) && at) items.push({ link: loc.replace(/^http:/, 'https:'), title: tag(m[1], '(?:n|news):title'), pubDate: at, image: null });
+  }
+  return { items, sitemaps };
+}
+const gunzipped = buf => buf.length > 2 && buf[0] === 0x1f && buf[1] === 0x8b ? zlib.gunzipSync(buf, { maxOutputLength: 32 * 1024 * 1024 }) : buf;
 
 // ---- robots.txt --------------------------------------------------------------------------------------
 // Rules of the group for our agent, else of "*". Longest matching rule wins; Allow wins a tie.
@@ -133,6 +154,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     try {
       const r = await fetchImpl(url, { headers: { 'user-agent': USER_AGENT, accept: accept || '*/*', 'accept-language': 'he,en;q=0.5' }, redirect, signal: ctl.signal });
       if (!r.ok) { const e = new Error('HTTP_' + r.status); e.status = r.status; e.challenge = r.status === 403 || r.status === 503; throw e; }
+      // A bot check by redirect (mako → validate.perfdrive.com, 2026-11-26): a closed route, never an empty article.
+      if (r.redirected && r.url) { let host = ''; try { host = new URL(r.url).host; } catch (_) {}
+        if (/perfdrive|captcha|challenge|shieldsquare|^validate\./i.test(host) || /[?&]__cf_chl|cf-chl/i.test(r.url)) { const e = new Error('BOT_REDIRECT'); e.challenge = true; throw e; } }
       const len = Number(r.headers.get('content-length') || 0);
       if (len && len > max) throw new Error('TOO_LARGE');
       let buf;
@@ -209,6 +233,50 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
   const keyOf = (outletId, url) => { try { return C.articleKey(outletId, C.canonicalizeUrl(url)); } catch (_) { return null; } };
   const iso = ms => new Date(ms).toISOString();
 
+  // A feed: RSS, or a news sitemap (an index is followed to its newest 3 sitemaps; .gz is unpacked).
+  async function readFeed(feed) {
+    const accept = 'application/rss+xml,application/xml,text/xml';
+    const text = async url => gunzipped((await get(url, { max: L.feed, accept })).buf).toString('utf8');
+    if (feed.kind !== 'sitemap') return parseFeed(await text(feed.url));
+    const top = parseNewsSitemap(await text(feed.url));
+    const items = top.items.slice();
+    for (const loc of top.sitemaps.slice(0, 3)) { try { items.push(...parseNewsSitemap(await text(loc)).items); } catch (e) { log('[news-harvest] sitemap failed: ' + loc + ' ' + e.message); } await sleep(delayMs); }
+    return items;
+  }
+  // ---- the outlet probe (spec 2026-11-26 §5.2): up to 20 free articles across its feeds --------------------
+  let probing = null;
+  async function probeOutlet(outletId) {
+    if (probing) throw Object.assign(new Error('PROBE_RUNNING'), { code: 'PROBE_RUNNING' });
+    const src = sources.find(s => s.outlet_id === outletId);
+    if (!src) throw Object.assign(new Error('NO_ADAPTER'), { code: 'NO_ADAPTER' });
+    probing = outletId;
+    try {
+      const score = Probe.emptyScore(iso(now()));
+      const lists = [];
+      for (const feed of src.feeds) {
+        try { lists.push((await readFeed(feed)).map(it => it.link).filter(l => src.article.test(l) && Outlets.outletForUrl(l) === src.outlet_id)); }
+        catch (e) { if (e.challenge) score.challenged++; score.errors.push((e.challenge ? 'BOT_CHALLENGE' : 'FEED_FAILED') + ':' + e.message); }
+        await sleep(delayMs);
+      }
+      for (const link of Probe.interleave(lists)) {
+        if (score.sampled >= Probe.SAMPLE || score.challenged) break;
+        if (!(await allowed(link))) { score.errors.length < 5 && score.errors.push('ROBOTS'); continue; }
+        let page;
+        try { page = await get(link, { max: L.page, accept: 'text/html' }); }
+        catch (e) { if (e.challenge) { score.challenged++; score.errors.push('BOT_CHALLENGE:' + e.message); break; } Probe.add(score, { kind: 'failed', reason: 'PAGE_FAILED' }); await sleep(delayMs); continue; }
+        Probe.add(score, Probe.judge(extractArticle(page.buf.toString('utf8'), { url: link, source: src }), { minChars: L.minChars, minParagraphs: L.minParagraphs }));
+        await sleep(delayMs);
+      }
+      score.pass = Probe.decide(score);
+      if (outletState) await outletState.setProbe(outletId, score);
+      return score;
+    } catch (e) {
+      // A probe that breaks is a failed probe with its time: the weekly re-probe does not retry it every tick.
+      if (outletState) await outletState.setProbe(outletId, { ...Probe.emptyScore(iso(now())), errors: ['PROBE_ERROR:' + (e && e.message)] }).catch(() => {});
+      throw e;
+    } finally { probing = null; }
+  }
+
   // ---- hourly: feeds → queue → pages ----------------------------------------------------------------
   async function pollNow() {
     const started = now(), report = { at: iso(started), outlets: {}, pages: 0 }, touched = new Set();
@@ -222,7 +290,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       let feedsOk = 0, lastFeedError = null;
       for (const feed of src.feeds) {
         let items = [];
-        try { items = parseFeed((await get(feed.url, { max: L.feed, accept: 'application/rss+xml,application/xml,text/xml' })).buf.toString('utf8')); feedsOk++; }
+        try { items = await readFeed(feed); feedsOk++; }
         catch (e) { lastFeedError = (e.challenge ? 'BOT_CHALLENGE' : 'FEED_FAILED') + ':' + e.message; rep.errors.push(lastFeedError); }
         rep.feed_items += items.length;
         for (const it of items) {
@@ -243,32 +311,40 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     }
     // Pages, oldest first; a page that fails is retried on the next polls, three times at most.
     // Pages of outlets switched off or harvested by the home PC wait out of the window: they never take its slots.
+    // The page budget grows with the outlets in the slice (spec §5.5: 30–40 outlets, 2500–3500 articles a day).
+    const polledCount = Object.values(report.outlets).filter(o => !o.errors.includes('DISABLED') && !o.errors.includes('HOME_PC')).length;
+    const pageLimit = Math.max(L.pagesPerPoll, (L.pagesPerOutlet || 0) * polledCount);
     const stopped = new Set(Object.entries(report.outlets).filter(([, o]) => o.errors.includes('DISABLED') || o.errors.includes('HOME_PC')).map(([id]) => id));
-    const queue = await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='queued' AND outlet_id NOT IN (${[...stopped].map(() => '?').join(',') || "''"}) ORDER BY first_seen_at LIMIT ?`, [...stopped, L.pagesPerPoll]);
+    const queue = await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='queued' AND outlet_id NOT IN (${[...stopped].map(() => '?').join(',') || "''"}) ORDER BY first_seen_at LIMIT ?`, [...stopped, pageLimit]);
     const challenged = new Set();
-    for (const row of queue) {
+    // One worker per site, up to HOSTS at once; inside a site one page at a time with the pause (spec 2026-11-26 §5.5).
+    const byHost = new Map();
+    for (const row of queue) { let host = ''; try { host = new URL(row.url).host; } catch (_) {} if (!byHost.has(host)) byHost.set(host, []); byHost.get(host).push(row); }
+    const readOne = async row => { try { await readPage(row); } catch (e) { log('[news-harvest] page failed: ' + row.url + ' ' + (e && e.message)); } };
+    const readPage = async row => {
       const src = sources.find(s => s.outlet_id === row.outlet_id);
-      if (!src || challenged.has(row.outlet_id) || stopped.has(row.outlet_id)) continue;
+      if (!src || challenged.has(row.outlet_id) || stopped.has(row.outlet_id)) return;
       touched.add(row.url_key);
       const fail = (reason, final) => dbRun(db, `UPDATE news_harvest_items SET status=?, reason=?, attempts=attempts+1 WHERE url_key=?`, [final ? 'failed' : 'queued', reason, row.url_key]);
-      if (!(await allowed(row.url))) { await fail('ROBOTS', true); continue; }
+      if (!(await allowed(row.url))) { await fail('ROBOTS', true); return; }
       let page;
       try { page = await get(row.url, { max: L.page, accept: 'text/html' }); report.pages++; }
-      catch (e) { if (e.challenge) { challenged.add(row.outlet_id); report.outlets[row.outlet_id].errors.push('BOT_CHALLENGE'); } await fail('PAGE_FAILED:' + e.message, row.attempts >= 2); await sleep(delayMs); continue; }
+      catch (e) { if (e.challenge) { challenged.add(row.outlet_id); report.outlets[row.outlet_id].errors.push('BOT_CHALLENGE'); } await fail('PAGE_FAILED:' + e.message, row.attempts >= 2); await sleep(delayMs); return; }
       await sleep(delayMs);
       const r = extractArticle(page.buf.toString('utf8'), { url: row.url, source: src, feed: { pubDate: row.feed_pub_at, section_he: row.feed_section, image: row.feed_image } });
+      if (!r.ok && r.reason === 'PROMOTED') { await dbRun(db, `UPDATE news_harvest_items SET status='failed', reason='PROMOTED' WHERE url_key=?`, [row.url_key]); return; }
       if (!r.ok) {
         // Not an article page we can read (a video, a gallery): still a headline of the day.
         await dbRun(db, `UPDATE news_harvest_items SET status='ready', reason=?, title_he=?, published_at=?, section=?, content_type='news', full_ok=0 WHERE url_key=?`,
           [r.reason, row.feed_title, row.feed_pub_at, 'news', row.url_key]);
-        continue;
+        return;
       }
       const a = r.article, chars = a.paragraphs.join(' ').length;
       a.section = refineSection(a.section, a.title_he, [a.subtitle_he, a.paragraphs[0]].join(' '));
       const canonicalKey = keyOf(row.outlet_id, a.canonical_url);
       if (canonicalKey && canonicalKey !== row.url_key && (await dbGet(db, `SELECT 1 FROM news_harvest_items WHERE (url_key=? OR canonical_key=?) AND url_key<>?`, [canonicalKey, canonicalKey, row.url_key]))) {
         await dbRun(db, `UPDATE news_harvest_items SET status='failed', reason='DUPLICATE', canonical_key=? WHERE url_key=?`, [canonicalKey, row.url_key]);
-        continue;
+        return;
       }
       // Digests and live pages («חדשות היום», «כותרות השבת») stay in the overview, not in the full treatment.
       const digest = DIGEST.test(a.title_he || '');
@@ -278,7 +354,11 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
         paywalled=?, full_ok=?, chars=?, images=?, data_json=? WHERE url_key=?`,
         [reason, canonicalKey, a.published_at || row.feed_pub_at, a.section, a.content_type, a.title_he, a.subtitle_he || null, leadOf(a.paragraphs, L.leadChars) || null,
           a.paywalled ? 1 : 0, fullOk ? 1 : 0, chars, a.images.length, JSON.stringify(a), row.url_key]);
-    }
+    };
+    const groups = [...byHost.values()];
+    await Promise.all(Array.from({ length: Math.min(HOSTS, groups.length) }, async () => {
+      for (let g = groups.shift(); g; g = groups.shift()) for (const row of g) await readOne(row);
+    }));
     await reindex([...touched]);
     lastPollAt = started; lastPollReport = report;
     log(`[news-harvest] poll: ${Object.entries(report.outlets).map(([k, o]) => k + '+' + o.new).join(' ')} · pages ${report.pages}`);
@@ -499,6 +579,13 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       return startEdition({ day, slot: due.slot, trigger: 'schedule', schedule, cutoffMs: due.cutoffMs, readyMs: due.readyMs });
     });
     if (t - lastPollAt >= L.pollEveryMs) return poll();
+    // Between polls: one switched-on outlet whose probe is a week old is probed again (spec §5.2). A drop is
+    // shown in the owner's list; the outlet is not switched off by itself.
+    if (outletState && !probing) {
+      const stale = (await outletState.list()).find(o => o.enabled && o.route === 'server' && sources.some(s => s.outlet_id === o.outlet_id)
+        && (!o.probe_at || t - Date.parse(o.probe_at) > REPROBE_MS));
+      if (stale) return exclusive(async () => { await probeOutlet(stale.outlet_id); return { probed: stale.outlet_id }; });
+    }
     return null;
   }
 
@@ -982,7 +1069,9 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     }
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
-  return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
+  // The owner's «Проверить»: never beside a poll or an edition (one request per site at a time).
+  const probeNow = outletId => exclusive(() => probeOutlet(outletId));
+  return { probeOutlet, probeNow, isProbing: () => probing, runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
     closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup, rawWork, rawImage, orderForOwner, cachedPhotoBytes: src => { try { return cachedPhoto(src); } catch (_) { return null; } },
     // A photo the home PC fetched (spec 2026-11-26 §6.2): into the same 3-day cache the edition build reads first.
     // The home PC sends the photos of its cards (spec 2026-11-26 §6.2): fetched and resized as for an edition, cached 3 days.
@@ -990,4 +1079,4 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     storeCachedPhoto: (src, bytes) => { const p = cachedPhotoPath(src); fs.mkdirSync(photoCache, { recursive: true }); fs.writeFileSync(p + '.part', bytes); fs.renameSync(p + '.part', p); } };
 }
 
-module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };
+module.exports = { createNewsHarvester, parseFeed, parseNewsSitemap, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

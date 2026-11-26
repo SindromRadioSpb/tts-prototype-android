@@ -103,15 +103,78 @@ function sectionFor(sectionHe, url) {
   return 'news';
 }
 
+// ---- the generic reader (spec 2026-11-26 §5.1): an outlet with no selectors of its own ----------------
+// Blocks that are never the article: related links, comments, sharing, newsletters, ads, page chrome.
+const NOISE = /related|recommend|comment|newsletter|share|social|(^|[-_ ])tags?([-_ ]|$)|promo|sponsor|advert|(^|[-_ ])ads?([-_ ]|$)|banner|outbrain|taboola|footer|breadcrumb|author-?box|most-?read|popular|subscribe/i;
+const PROMOTED_LABEL = /^(תוכן מקודם|תוכן שיווקי|כתבה פרסומית|כתבת תדמית|sponsored|promoted content)$/i;
+// Marked as advertising: a sponsored tag, a sponsored class on the article itself, or a short label in the
+// article around its headline — never a widget in the footer, a sidebar or the menu (live pages carry
+// «בשיתוף …» and «תוכן מקודם» teasers there on ordinary articles: Haaretz, Walla, N12, 2026-11-26).
+function isPromoted(document, meta) {
+  if (/sponsor|promoted/i.test(String(meta('article:tag') || ''))) return true;
+  const h1 = document.querySelector('h1');
+  if (!h1) return false;
+  const area = h1.closest('article') || h1.parentElement;
+  if (!area) return false;
+  for (let el = h1; el && el !== area.parentElement; el = el.parentElement)
+    if (/(^|[-_ ])(sponsored|promoted)([-_ ]|$)|sponsored-post/i.test(el.getAttribute && el.getAttribute('class') || '')) return true;
+  for (const el of area.querySelectorAll('span, div, p, a, strong, small, label'))
+    if (el.children.length === 0 && PROMOTED_LABEL.test(clean(el.textContent)) && !el.closest('footer, aside, nav, [class*="sidebar"], [class*="widget"], [class*="menu"]')) return true;
+  return false;
+}
+// The densest block of Hebrew paragraphs, link text not counted: the article body.
+function densestBlock(document) {
+  const score = new Map();
+  for (const p of document.querySelectorAll('p')) {
+    let text = clean(p.textContent);
+    for (const a of p.querySelectorAll('a')) text = text.replace(clean(a.textContent), '');
+    if (!HEBREW.test(text) || text.length < 25) continue;
+    const parent = p.parentElement, grand = parent && parent.parentElement;
+    if (parent) score.set(parent, (score.get(parent) || 0) + text.length);
+    if (grand) score.set(grand, (score.get(grand) || 0) + text.length / 2);
+  }
+  let best = null, bestScore = 0;
+  for (const [el, s] of score) if (s > bestScore) { best = el; bestScore = s; }
+  return bestScore >= 200 ? best : null;
+}
+// JSON-LD articleBody as paragraphs: its own line breaks, else sentences grouped up to ~600 characters.
+function ldParagraphs(body) {
+  const lines = String(body || '').split(/\n+/).map(clean).filter(t => HEBREW.test(t));
+  if (lines.length >= 2) return lines;
+  const out = [];
+  for (const s of (lines[0] || '').split(/(?<=[.!?])\s+/)) {
+    if (out.length && (out[out.length - 1] + ' ' + s).length <= 600) out[out.length - 1] += ' ' + s; else out.push(s);
+  }
+  return out.filter(Boolean);
+}
+
 // → { ok:true, article:{…} } | { ok:false, reason }
 function extractArticle(html, { url, source, feed = {} }) {
   const { document } = parseHTML(String(html || ''));
   const ld = readLd(document);
   const meta = n => { const e = document.querySelector(`meta[property="${n}"], meta[name="${n}"]`); return e ? e.getAttribute('content') : null; };
   const title = clean((document.querySelector('h1') || {}).textContent) || clean(ld.headline) || clean(String(meta('og:title') || '').replace(/\s*[|–-]\s*[^|–-]+$/, ''));
+  // Advertising is not an article of the slice (spec 2026-11-26 §3: no «תוכן מקודם»).
+  if (isPromoted(document, meta)) return { ok: false, reason: 'PROMOTED' };
+  const promoted = false;
   for (const j of document.querySelectorAll(JUNK)) j.remove();
   if (source.hydrate) source.hydrate(document, html);
-  const picked = [...document.querySelectorAll(source.text)].filter(el => HEBREW.test(el.textContent)
+  let selector = source.text, ldBody = null;
+  if (!selector) {
+    const pText = el => [...el.querySelectorAll('p')].reduce((n, p) => n + (HEBREW.test(p.textContent) ? p.textContent.length : 0), 0);
+    const total = pText(document);
+    for (const el of [...document.querySelectorAll('header, footer, [class], [id]')].filter(el => !total || pText(el) < total / 2))
+      if (el.isConnected !== false && el.tagName !== 'BODY' && el.tagName !== 'HTML' && el.tagName !== 'MAIN' && el.tagName !== 'ARTICLE'
+        && (/^(HEADER|FOOTER)$/.test(el.tagName) || NOISE.test((el.getAttribute('class') || '') + ' ' + (el.getAttribute('id') || '')))) el.remove();
+    const block = densestBlock(document);
+    const blockText = block ? clean(block.textContent).length : 0;
+    if (String(ld.articleBody || '').length >= 400 && String(ld.articleBody).length > blockText) ldBody = ldParagraphs(ld.articleBody);
+    else if (block) { block.setAttribute('data-lp-body', ''); selector = '[data-lp-body] p, [data-lp-body] h2, [data-lp-body] h3, [data-lp-body] li'; }
+    // A paid article's short teaser: closed, not empty.
+    else return { ok: false, reason: ld.isAccessibleForFree === false || String(ld.isAccessibleForFree) === 'false' ? 'PAYWALL' : 'NO_BODY' };
+  }
+  if (ldBody) return finish({ document, ld, meta, url, source, feed, title, promoted, paragraphs: ldBody, images: [], hero: null });
+  const picked = [...document.querySelectorAll(selector)].filter(el => HEBREW.test(el.textContent)
     && !(source.skipText && el.closest(source.skipText)) && !el.closest('figure, figcaption'));
   const set = new Set(picked);
   const blocks = picked.filter(el => { for (let a = el.parentElement; a; a = a.parentElement) if (set.has(a)) return false; return true; });
@@ -146,6 +209,13 @@ function extractArticle(html, { url, source, feed = {} }) {
     else images.push({ ...f, role: 'inline', after_p: paragraphs.length });
   }
   if (!paragraphs.length) return { ok: false, reason: 'NO_BODY' };
+  return finish({ document, ld, meta, url, source, feed, title, promoted, paragraphs, images, hero });
+}
+
+// Photos, subtitle, author, dates, rubric and the canonical address — for both readers.
+function finish({ document, ld, meta, url, source, feed, title, promoted, paragraphs, images, hero }) {
+  if (!HEBREW.test(title)) return { ok: false, reason: 'NO_TITLE' };
+  if (!paragraphs.length) return { ok: false, reason: 'NO_BODY' };
   if (!hero) {
     // No photo above the body: the page's main image (og:image) is usually one of the body photos —
     // then that photo, with its caption, becomes the main one; so does a photo right after paragraph 1.
@@ -175,7 +245,7 @@ function extractArticle(html, { url, source, feed = {} }) {
     published_at: published ? israelIso(published) : null, updated_at: modified && modified !== published ? israelIso(modified) : null,
     section_original_he: sectionHe, section, content_type: section === 'opinion' ? 'opinion' : 'news',
     paywalled: free === false || String(free) === 'false' || /\/\.premium\//.test(url),
-    paragraphs, images: images.slice(0, 12),
+    paragraphs, images: images.slice(0, 12), promoted,
   } };
 }
 

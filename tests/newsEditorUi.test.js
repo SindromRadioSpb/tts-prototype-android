@@ -184,3 +184,27 @@ test('error codes are translated, never raw', () => {
   for (const lang of ['ru', 'en', 'he']) for (const g of UI.OUTLET_GROUPS) assert.equal(typeof tFor(locales()[lang])('news.outletGroup.' + g, undefined), 'string', lang + ' ' + g);
   for (const lang of ['ru', 'en', 'he']) for (const r of ['north', 'jerusalem', 'center', 'south']) assert.equal(typeof tFor(locales()[lang])('news.region.' + r, undefined), 'string', lang + ' ' + r);
 });
+
+// ---- W3: the probe's score and the «Проверить» button (spec 2026-11-26 §5.2) ---------------------------------
+test('probe score is shown, translated; the owner can start a probe', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const probed = [];
+  const rows = [{ ...OUTLETS_FIXTURE[0], probe: { at: '2026-11-26T07:00:00.000Z', sampled: 20, full: 18, date: 20, author: 14, photo: 19, paywalled: 3, promoted: 1, failed: 2, challenged: 0, pass: true } },
+    { ...OUTLETS_FIXTURE[3], probe: { at: '2026-11-26T07:00:00.000Z', sampled: 20, full: 9, date: 20, author: 5, photo: 10, paywalled: 0, promoted: 0, failed: 11, challenged: 0, pass: false } },
+    { ...OUTLETS_FIXTURE[2] }, { ...OUTLETS_FIXTURE[1], probing: true }];
+  for (const lang of ['ru', 'en', 'he']) {
+    const el = UI.renderOutletsTable(document, rows, { t: tFor(locales()[lang]), canSwitch: true, onProbe: id => probed.push(id) });
+    const line = el.querySelector('tr[data-outlet=ynet] .ne-probe');
+    assert.ok(line && /18\/20/.test(line.textContent) && !/newsEditor\./.test(line.textContent), lang + ': ' + (line && line.textContent));
+    assert.equal(line.getAttribute('data-pass'), 'true');
+    assert.equal(el.querySelector('tr[data-outlet=walla] .ne-probe').getAttribute('data-pass'), 'false');
+  }
+  const el = UI.renderOutletsTable(document, rows, { t: tFor(locales().ru), canSwitch: true, onProbe: id => probed.push(id) });
+  assert.match(el.querySelector('tr[data-outlet=ynet] .ne-probe').textContent, /18\/20 полных текстов · дата 20 · автор 14 · фото 19 · платных 3/);
+  assert.equal(el.querySelector('tr[data-outlet=mako] button[data-probe]'), null, 'no adapter, no probe');
+  assert.match(el.querySelector('tr[data-outlet=c14]').textContent, /проверяется/);
+  el.querySelector('tr[data-outlet=walla] button[data-probe]').dispatchEvent(new document.defaultView.Event('click'));
+  assert.deepEqual(probed, ['walla']);
+  const ro = UI.renderOutletsTable(document, rows, { t: tFor(locales().ru), canSwitch: false });
+  assert.equal(ro.querySelector('button[data-probe]'), null, 'an editor only reads');
+});

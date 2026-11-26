@@ -14,14 +14,14 @@ const ownerHeaders = { cookie: OWNER_COOKIE, 'x-lp-csrf': OWNER_CSRF };
 const dbRun = (db, sql, p = []) => new Promise((res, rej) => db.run(sql, p, e => e ? rej(e) : res()));
 const dbAll = (db, sql, p = []) => new Promise((res, rej) => db.all(sql, p, (e, r) => e ? rej(e) : res(r || [])));
 
-async function setup(t, { freshMako = 0 } = {}) {
+async function setup(t, { freshMako = 0, harvester = null, legacy } = {}) {
   const db = await openDb();
   const repo = createNewsRepo({ db, now: () => NOW }), auth = createNewsEditorAuth({ db, now: () => NOW });
-  const outletState = createOutletState({ db, now: () => NOW });
+  const outletState = createOutletState({ db, now: () => NOW, ...(legacy ? { legacy } : {}) });
   if (freshMako) { const orig = repo.listOutlets; repo.listOutlets = async () => (await orig()).map(o => o.outlet_id === 'mako' ? { ...o, fresh_count: freshMako } : o); }
   const app = express(), audits = [];
   const resolveUser = async req => String(req.headers.cookie || '').includes(OWNER_COOKIE) ? { user: { id: 'owner', role: 'owner' }, session: { csrf: OWNER_CSRF } } : null;
-  mountNewsRoutes(app, { repo, editorAuth: auth, resolveUser, audit: (...a) => audits.push(a), outletState });
+  mountNewsRoutes(app, { repo, editorAuth: auth, resolveUser, audit: (...a) => audits.push(a), outletState, ...(harvester ? { harvester } : {}) });
   const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
   t.after(() => new Promise(r => server.close(() => db.close(r))));
   const base = 'http://127.0.0.1:' + server.address().port;
@@ -78,4 +78,35 @@ test('an outlet without a harvester still shows while it has fresh published art
   const r = await call('GET', '/api/news/outlets');
   const m = r.body.outlets.find(o => o.outlet_id === 'mako');
   assert.ok(m, 'mako stays on the home page'); assert.equal(m.fresh_count, 2);
+});
+
+// ---- W3: the probe from the owner's list; switching on below the bar is forced knowingly -------------------
+test('owner starts a probe; the list carries its score; an editor cannot start one', async t => {
+  const runs = [];
+  const harvester = { isProbing: () => null, probeOutlet: async id => { runs.push(id); return { pass: true }; } };
+  const { call, auth, outletState } = await setup(t, { harvester });
+  const { key } = await auth.createEditor('owner', 'dot');
+  assert.equal((await call('POST', '/api/news/editor/outlets/walla/probe', { json: {}, headers: { authorization: 'Bearer ' + key } })).status, 403);
+  const r = await call('POST', '/api/news/editor/outlets/walla/probe', { json: {}, headers: ownerHeaders });
+  assert.equal(r.status, 202); assert.deepEqual(runs, ['walla']);
+  await outletState.setProbe('walla', { at: '2026-11-26T08:00:00.000Z', sampled: 20, full: 18, pass: true });
+  const list = await call('GET', '/api/news/editor/outlets', { headers: ownerHeaders });
+  assert.equal(list.body.outlets.find(o => o.outlet_id === 'walla').probe.full, 18);
+  assert.equal((await call('POST', '/api/news/editor/outlets/mako/probe', { json: {}, headers: ownerHeaders })).status, 409, 'no adapter, nothing to probe');
+});
+test('switching on below the bar answers PROBE_REQUIRED; force switches it on', async t => {
+  const { call, outletState } = await setup(t, { legacy: ['ynet'] });
+  // haaretz stands in for a new outlet: switched off, its probe failed.
+  await call('POST', '/api/news/editor/outlets/haaretz', { json: { enabled: false }, headers: ownerHeaders });
+  await outletState.setProbe('haaretz', { at: '2026-11-26T08:00:00.000Z', sampled: 20, full: 10, pass: false });
+  const r = await call('POST', '/api/news/editor/outlets/haaretz', { json: { enabled: true }, headers: ownerHeaders });
+  assert.equal(r.status, 409); assert.equal(r.body.error, 'PROBE_REQUIRED'); assert.deepEqual(r.body.detail, { full: 10, sampled: 20 });
+  const f = await call('POST', '/api/news/editor/outlets/haaretz', { json: { enabled: true, force: true }, headers: ownerHeaders });
+  assert.equal(f.status, 200); assert.equal(f.body.outlet.enabled, true);
+});
+test('a probe is refused while a harvest runs', async t => {
+  const harvester = { isProbing: () => null, isRunning: () => true, probeNow: async () => { throw new Error('must not start'); } };
+  const { call } = await setup(t, { harvester });
+  const r = await call('POST', '/api/news/editor/outlets/walla/probe', { json: {}, headers: ownerHeaders });
+  assert.equal(r.status, 409); assert.equal(r.body.error, 'HARVEST_RUNNING');
 });

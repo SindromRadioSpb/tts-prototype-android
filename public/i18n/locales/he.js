@@ -5807,3 +5807,5 @@ window.I18N_LOCALES.he.news.region = {"north":"צפון","jerusalem":"ירושל
 window.I18N_LOCALES.he.news.relay = {"line":"נאסף מהמחשב הביתי · איסוף אחרון {time}","stale":"נאסף מהמחשב הביתי · המחשב לא שלח איסוף מאז {time}","never":"נאסף מהמחשב הביתי · המחשב עדיין לא שלח איסוף"};
 Object.assign(window.I18N_LOCALES.he.newsEditor.outlets, {"pcSilent":"המחשב לא שלח איסוף מאז {time}","pcNever":"המחשב עדיין לא שלח איסוף"});
 window.I18N_LOCALES.he.newsEditor.relay = {"title":"איסוף מהמחשב","hint":"המפתח של המחשב הביתי רק מעביר כתבות שנאספו מכלי תקשורת החסומים לשרת (C14). הוא מוצג פעם אחת; שמרו אותו בקובץ עבור מתזמן המשימות של Windows.","create":"הנפקת מפתח למחשב","label":"מחשב ביתי","used":"שימוש אחרון {time}"};
+// News sources W3 (spec 2026-11-26 §5.2): the outlet probe in the owner's list.
+Object.assign(window.I18N_LOCALES.he.newsEditor.outlets, {"probe":{"full":"{n}/{of} טקסטים מלאים","date":"תאריך {n}","author":"כותב {n}","photo":"תמונה {n}","paywalled":"בתשלום {n}","promoted":"פרסומות {n}","challenged":"האתר חסום לאיסוף","running":"נבדק…","run":"בדיקה","started":"הבדיקה התחילה — כדקה","busy":"בדיקה אחרת כבר רצה"},"force":"הבדיקה לא עברה — להפעיל בכל זאת"});

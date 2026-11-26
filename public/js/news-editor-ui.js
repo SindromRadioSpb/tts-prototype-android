@@ -30,6 +30,27 @@
   var RELAY_STALE_MS = 3 * 3600 * 1000; // the home PC is silent: spec 2026-11-26 §6.4
   function ilDateTime(iso) { try { return new Date(iso).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jerusalem" }); } catch (_) { return iso; } }
   function outletCodeText(err, t) { var code = String(err || "").split(":")[0]; return t("newsEditor.outlets.code." + code, t("newsEditor.outlets.code.FEED_FAILED", "ошибка ленты")); }
+  // The probe's score under the state (spec 2026-11-26 §5.2), and «Проверить» for the owner.
+  function probeText(p, t) {
+    var parts = [t("newsEditor.outlets.probe.full", "{n}/{of} полных текстов").replace("{n}", p.full).replace("{of}", p.sampled),
+      t("newsEditor.outlets.probe.date", "дата {n}").replace("{n}", p.date), t("newsEditor.outlets.probe.author", "автор {n}").replace("{n}", p.author),
+      t("newsEditor.outlets.probe.photo", "фото {n}").replace("{n}", p.photo)];
+    if (p.paywalled) parts.push(t("newsEditor.outlets.probe.paywalled", "платных {n}").replace("{n}", p.paywalled));
+    if (p.promoted) parts.push(t("newsEditor.outlets.probe.promoted", "реклама {n}").replace("{n}", p.promoted));
+    if (p.challenged) parts.push(t("newsEditor.outlets.probe.challenged", "сайт закрыт для сбора"));
+    return parts.join(" · ");
+  }
+  function probeCell(doc, o, opts, t) {
+    var box = h(doc, "div", { class: "ne-probe-cell" });
+    if (o.probing) box.appendChild(h(doc, "span", { class: "ne-probe ne-muted", text: t("newsEditor.outlets.probe.running", "проверяется…") }));
+    else if (o.probe) box.appendChild(h(doc, "span", { class: "ne-probe", "data-pass": o.probe.pass ? "true" : "false", text: probeText(o.probe, t) }));
+    if (opts.canSwitch && o.has_adapter && !o.probing && opts.onProbe) {
+      var b = h(doc, "button", { type: "button", class: "ne-button ne-quiet ne-probe-run", "data-probe": o.outlet_id, text: t("newsEditor.outlets.probe.run", "Проверить") });
+      b.addEventListener("click", function () { opts.onProbe(o.outlet_id, b); });
+      box.appendChild(b);
+    }
+    return box;
+  }
   // outlets: GET /api/news/editor/outlets rows; opts.onSwitch(id, enabled) when the owner flips a switch.
   function renderOutletsTable(doc, outlets, opts) {
     opts = opts || {};
@@ -63,7 +84,7 @@
         var route = o.route === "home_pc" ? t("newsEditor.outlets.code.HOME_PC", "с ПК") : t("newsEditor.outlets.routeServer", "сервер");
         body.appendChild(h(doc, "tr", { "data-outlet": o.outlet_id, "data-route": o.route, class: connectable ? (o.enabled ? "" : "ne-outlet-disabled") : "ne-outlet-off" }, [
           h(doc, "td", {}, [box]), h(doc, "th", { scope: "row" }, [h(doc, "span", { text: o.name_latin }), o.name_he !== o.name_latin ? h(doc, "div", { class: "ne-outlet-he" }, [h(doc, "bdi", { dir: "rtl", lang: "he", text: o.name_he })]) : null]),
-          h(doc, "td", { text: route }), h(doc, "td", { text: String(o.day_count || 0) }), h(doc, "td", { class: o.last_error ? "ne-outlet-error" : "", text: state })]));
+          h(doc, "td", { text: route }), h(doc, "td", { text: String(o.day_count || 0) }), h(doc, "td", {}, [h(doc, "span", { class: o.last_error ? "ne-outlet-error" : "", text: state }), probeCell(doc, o, opts, t)])]));
       });
     });
     table.appendChild(body);
@@ -379,16 +400,37 @@
     function outletsCard() {
       var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-outlets-title" }, [h(doc, "h2", { id: "ne-outlets-title", text: t("newsEditor.outlets.title", "Издания") }),
         h(doc, "p", { class: "ne-muted", text: t("newsEditor.outlets.hint", "Галочка «в срезе» включает сбор издания с ближайшего часа; снятая останавливает его. Собранное остаётся в архиве и поиске.") })]);
-      var host = h(doc, "div", { "aria-live": "polite" });
+      var host = h(doc, "div", { "aria-live": "polite" }), timer = null;
+      // Below the bar (no probe, or a failed one): the owner switches it on knowingly, with one more press.
+      function askForce(id, input) {
+        var row = input.closest("tr"), cell = row && row.lastElementChild;
+        if (!cell) return;
+        var b = confirmButton(doc, t("newsEditor.outlets.force", "Проверка не пройдена — включить всё равно"), t("newsEditor.confirm", "Точно? Нажмите ещё раз"), async function () {
+          try { await api("POST", "/api/news/editor/outlets/" + encodeURIComponent(id), json({ enabled: true, force: true }), "application/json"); say(t("newsEditor.outlets.on", "Издание включено в срез")); }
+          catch (e) { say(errorText(e)); }
+          refresh();
+        });
+        cell.appendChild(b);
+      }
       async function refresh() {
         try {
           var data = await api("GET", "/api/news/editor/outlets");
           host.replaceChildren(renderOutletsTable(doc, data.outlets, { t: t, canSwitch: !!data.can_switch, onSwitch: async function (id, on, input) {
             input.disabled = true;
             try { await api("POST", "/api/news/editor/outlets/" + encodeURIComponent(id), json({ enabled: on }), "application/json"); say(on ? t("newsEditor.outlets.on", "Издание включено в срез") : t("newsEditor.outlets.off", "Издание выключено из среза")); }
-            catch (e) { input.checked = !on; say(e.message === "NO_ADAPTER" ? t("newsEditor.outlets.code.NO_ADAPTER", "нет подключения") : errorText(e)); }
+            catch (e) {
+              input.checked = !on;
+              if (e.message === "PROBE_REQUIRED") return askForce(id, input);
+              say(e.message === "NO_ADAPTER" ? t("newsEditor.outlets.code.NO_ADAPTER", "нет подключения") : errorText(e));
+            }
             refresh();
+          }, onProbe: async function (id, button) {
+            button.disabled = true;
+            try { await api("POST", "/api/news/editor/outlets/" + encodeURIComponent(id) + "/probe", json({}), "application/json"); say(t("newsEditor.outlets.probe.started", "Проверка начата — около минуты")); }
+            catch (e) { say(e.message === "PROBE_RUNNING" ? t("newsEditor.outlets.probe.busy", "Уже идёт другая проверка") : errorText(e)); }
+            refresh(); clearTimeout(timer); timer = setTimeout(refresh, 15000);
           } }));
+          if (data.outlets.some(function (o) { return o.probing; })) { clearTimeout(timer); timer = setTimeout(refresh, 10000); }
         } catch (e) { host.replaceChildren(h(doc, "p", { text: errorText(e) })); }
       }
       box.appendChild(host);

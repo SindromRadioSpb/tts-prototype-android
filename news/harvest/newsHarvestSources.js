@@ -40,7 +40,8 @@ const SOURCES = [
     skipImage: /h_250,w_250/,
     hydrate: (document, html) => hydrateSections(document, document.querySelector('section.article-body-container'), html),
     image: u => u.replace(/\/image\/upload\/[^/]+\/[^/]+\/(\d+)$/, '/image/upload/f_jpg,q_85,w_1600/$1') },
-  { outlet_id: 'n12', feeds: [{ url: 'https://rcs.mako.co.il/rss/31750a2610f26110VgnVCM1000005201000aRCRD.xml', section_he: 'חדשות' }],
+  // N12: the RSS feed lagged by days (2026-11-26: newest item 6 days old); mako's news sitemap is fresh (W3).
+  { outlet_id: 'n12', feeds: [{ kind: 'sitemap', url: 'https://www.mako.co.il/SiteMap/Mako-News-SitemapIndex.xml', section_he: 'חדשות' }],
     article: /^https:\/\/www\.mako\.co\.il\/news-[^/]+\/.+Article-[0-9a-f]+\.htm/,
     text: '[class*="ArticleBodyWrapper"] p, [class*="ArticleBodyWrapper"] h2, [class*="ArticleBodyWrapper"] h3, [class*="ArticleBodyWrapper"] li',
     subtitle: '[class*="ArticleSubtitle"]', image: u => u },

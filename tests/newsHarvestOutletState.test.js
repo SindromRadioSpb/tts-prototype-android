@@ -66,7 +66,7 @@ test('queued pages of a switched-off outlet do not take the poll\'s page slots',
   const outletState = createOutletState({ db, now: () => Date.parse('2026-11-26T08:00:00Z') });
   const asked = [];
   const fetchImpl = async url => { asked.push(url); return url.endsWith('/robots.txt') ? new Response('User-agent: *\nAllow: /') : new Response('<rss><channel></channel></rss>'); };
-  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources: [sourceFor('ynet'), sourceFor('walla')], delayMs: 0, now: () => Date.parse('2026-11-26T08:00:00Z'), outletState, limits: { pagesPerPoll: 2 } });
+  const harvester = createNewsHarvester({ db, dataDir, fetchImpl, sources: [sourceFor('ynet'), sourceFor('walla')], delayMs: 0, now: () => Date.parse('2026-11-26T08:00:00Z'), outletState, limits: { pagesPerPoll: 2, pagesPerOutlet: 0 } });
   const ins = (k, outlet, url, at) => new Promise((res, rej) => db.run(`INSERT INTO news_harvest_items(url_key, outlet_id, url, first_seen_at, status) VALUES (?,?,?,?,'queued')`, ['na_' + k.repeat(24), outlet, url, at], e => e ? rej(e) : res()));
   await ins('1', 'walla', 'https://news.walla.co.il/item/3700011', '2026-11-26T06:00:00.000Z');
   await ins('2', 'walla', 'https://news.walla.co.il/item/3700012', '2026-11-26T06:01:00.000Z');

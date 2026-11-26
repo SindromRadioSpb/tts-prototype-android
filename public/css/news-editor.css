@@ -61,3 +61,7 @@
 .ne-outlets input[type=checkbox]{width:20px;height:20px}
 @media (max-width:640px){.ne-outlets thead{display:none}.ne-outlets td:nth-child(4){display:none}}
 .ne-outlets .ne-outlet-he{font-weight:400;font-size:.82rem;color:var(--nw-muted)}
+.ne-probe-cell{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-block-start:4px}
+.ne-probe{font-size:.8rem;color:var(--nw-muted)}
+.ne-probe[data-pass=false]{color:#a3461a}
+.ne-probe-run{font-size:.8rem;padding:2px 8px}

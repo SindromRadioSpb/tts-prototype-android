@@ -481,7 +481,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         res.json({ ok: true, can_switch: actor.kind === 'owner', outlets: Outlets.OUTLETS.map(o => {
           const st = states.get(o.id);
           return { outlet_id: o.id, name_he: o.name_he, name_latin: o.name_latin, color: o.color, group: o.group, region: o.region || null, priority: o.priority,
-            enabled: st.enabled, route: st.route, has_adapter: !!sourceFor(o.id), last_ok_at: st.last_ok_at, last_error: st.last_error, last_error_at: st.last_error_at,
+            enabled: st.enabled, route: st.route, has_adapter: !!sourceFor(o.id), probe: st.probe, probe_at: st.probe_at, probing: !!(harvester && harvester.isProbing && harvester.isProbing() === o.id), last_ok_at: st.last_ok_at, last_error: st.last_error, last_error_at: st.last_error_at,
             day_count: day.get(o.id) || 0 };
         }) });
       } catch (e) { send(res, e); }
@@ -491,10 +491,22 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       try {
         const enabled = req.body && req.body.enabled;
         if (typeof enabled !== 'boolean') throw new NewsError('BAD_ENABLED', 400);
-        const outlet = await outletState.setEnabled(String(req.params.id), enabled, actor.id);
-        audit(enabled ? 'news_outlet_enabled' : 'news_outlet_disabled', actor.id, { outlet_id: outlet.outlet_id }, req.ip);
+        const outlet = await outletState.setEnabled(String(req.params.id), enabled, actor.id, { force: req.body.force === true });
+        audit(enabled ? 'news_outlet_enabled' : 'news_outlet_disabled', actor.id, { outlet_id: outlet.outlet_id, ...(req.body.force === true ? { force: true } : {}) }, req.ip);
         res.json({ ok: true, outlet });
       } catch (e) { send(res, e); }
+    });
+    // The probe (spec §5.2): 20 articles, read politely in the background; the list shows it running, then the score.
+    app.post('/api/news/editor/outlets/:id/probe', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+      const id = String(req.params.id);
+      if (!harvester || !(harvester.probeNow || harvester.probeOutlet)) return res.status(503).json({ ok: false, error: 'PROBE_UNAVAILABLE' });
+      if (!sourceFor(id)) return res.status(409).json({ ok: false, error: 'NO_ADAPTER' });
+      if (harvester.isProbing && harvester.isProbing()) return res.status(409).json({ ok: false, error: 'PROBE_RUNNING' });
+      if (harvester.isRunning && harvester.isRunning()) return res.status(409).json({ ok: false, error: 'HARVEST_RUNNING' });
+      (harvester.probeNow || harvester.probeOutlet)(id).catch(e => { try { console.warn('[news-probe]', id, e && e.message); } catch (_) {} });
+      audit('news_outlet_probe', actor.id, { outlet_id: id }, req.ip);
+      res.status(202).json({ ok: true, started: id });
     });
   }
   // Keys of the home PC (spec 2026-11-26 §6.1): the owner issues and revokes them; a key is shown once.
