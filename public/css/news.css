@@ -160,3 +160,18 @@ body.nw-dark .nw-ov-since{color:#0e1726}
 /* Findability W5: orders for dot. */
 .nw-order{margin:2px 0 6px}.nw-order-status{font-size:.82rem;color:var(--nw-accent);font-weight:600}.nw-order-status[data-status="failed"],.nw-order-status[data-status="expired"]{color:var(--nw-muted)}
 .nw-sheet-order{display:grid;gap:6px;padding-top:6px;border-top:1px solid var(--nw-line)}.nw-order-tag-result{margin:0;font-size:.85rem;color:var(--nw-muted)}
+/* W5 (spec 2026-11-26 §7.2): a reader's outlets by group, «Настроить». */
+.nw-group-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nw-group-head h2,.nw-group-head h3{margin:0;flex:1 1 auto}
+.nw-group-count{font-size:.8rem;color:var(--nw-muted)}
+.nw-group-toggle,.nw-prefs-open,.nw-prefs-all,.nw-prefs-done,.nw-prefs-mine button{font:inherit;border:1px solid color-mix(in srgb,var(--nw-muted) 40%,transparent);background:transparent;color:inherit;border-radius:8px;padding:4px 10px;min-height:36px;cursor:pointer}
+.nw-group-toggle{min-width:36px}
+.nw-prefs-hint{color:var(--nw-muted);font-size:.9rem;margin:6px 0}
+.nw-tile-wrap{position:relative}
+.nw-tile-new{position:absolute;inset-block-end:8px;inset-inline-end:8px;font-size:.72rem;font-weight:700;padding:1px 6px;border-radius:999px;background:#1d5c7a;color:#fff}
+.nw-prefs{display:grid;gap:12px}
+.nw-prefs ul,.nw-prefs ol{margin:4px 0;padding-inline-start:0;list-style:none;display:grid;gap:4px}
+.nw-prefs-row,.nw-prefs-mine li{display:flex;align-items:center;gap:8px;padding:4px 0;border-block-end:1px solid color-mix(in srgb,var(--nw-muted) 18%,transparent)}
+.nw-prefs-row>span:first-child,.nw-prefs-mine li>span{flex:1 1 auto}
+.nw-prefs-he{color:var(--nw-muted);font-size:.85rem}
+.nw-prefs select{font:inherit;min-height:36px;border-radius:8px}

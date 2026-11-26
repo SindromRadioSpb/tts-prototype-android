@@ -126,3 +126,15 @@ test('list reports the day text search starts from when the disk guard shortened
   assert.equal((await L.list({})).body_search_from, '2026-11-11');
   db.close();
 });
+test('list: a reader\'s outlets (W5) — only those, and the day neighbours of those', async () => {
+  const { db, L } = await setup();
+  await row(db, { outlet_id: 'walla' }); await row(db, { outlet_id: 'ynet' }); await row(db, { outlet_id: 'haipo' });
+  await row(db, { outlet_id: 'walla', day: '2026-11-19', fresh_at: '2026-11-19T08:00:00.000Z' });
+  const r = await L.list({ day: '2026-11-21', outlets: ['ynet', 'haipo'] });
+  assert.deepEqual(r.items.map(x => x.outlet_id).sort(), ['haipo', 'ynet']);
+  assert.equal(r.counts.slice, 2);
+  assert.equal(r.prev, null, 'only walla had 19.11: no previous day for these outlets');
+  const latest = await L.list({ outlets: ['walla'] });
+  assert.equal(latest.day, '2026-11-21');
+  db.close();
+});

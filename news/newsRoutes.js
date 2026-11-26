@@ -14,7 +14,7 @@ const { sourceFor } = require('./harvest/newsHarvestSources');
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null, dotTask = null, outletState = null, relayAuth = null, relayIntake = null, relayLimiter = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null, dotTask = null, outletState = null, relayAuth = null, relayIntake = null, relayLimiter = null, prefs = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -71,7 +71,7 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
       res.json({ ok: true, outlets: shown.map(o => {
         const st = states ? states.get(o.id) : null;
         return { outlet_id: o.id, name_he: o.name_he, name_latin: o.name_latin, color: o.color, group: o.group, region: o.region || null,
-          ...(st ? { route: st.route, last_ok_at: st.last_ok_at } : {}), ...counts.get(o.id) };
+          ...(st ? { route: st.route, last_ok_at: st.last_ok_at, enabled_at: st.enabled_at } : {}), ...counts.get(o.id) };
       }) });
     } catch (e) { send(res, e); }
   });
@@ -144,6 +144,18 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     if (!auth || !auth.user || auth.user.id == null) return null;
     return { id: String(auth.user.id), kind: String(auth.user.role || '').toLowerCase() === 'owner' ? 'owner' : 'user', csrf: auth.session && auth.session.csrf || '' };
   }
+  // W5: a signed-in reader's outlets follow the account (spec 2026-11-26 §7.4); a visitor keeps them in the browser.
+  if (prefs) {
+    app.get('/api/news/prefs', read, noStore, async (req, res) => {
+      const user = await userOf(req); if (!user) return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
+      try { res.json({ ok: true, prefs: await prefs.get(user.id) }); } catch (e) { send(res, e); }
+    });
+    app.put('/api/news/prefs', write, express.json({ limit: '8kb' }), noStore, async (req, res) => {
+      const user = await userOf(req); if (!user) return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
+      if (!safeEqual(req.get('x-lp-csrf') || '', user.csrf || '')) return res.status(403).json({ ok: false, error: 'BAD_CSRF' });
+      try { res.json({ ok: true, prefs: await prefs.put(user.id, req.body && req.body.prefs) }); } catch (e) { send(res, e); }
+    });
+  }
   if (marks) {
     const markRoute = method => app[method]('/api/news/marks', write, json, noStore, async (req, res) => {
       try {
@@ -179,6 +191,8 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
     for (const k of ['day', 'from', 'to']) if (q[k] != null && q[k] !== '') { if (!LIST_DAY.test(String(q[k]))) bad(k); p[k] = String(q[k]); }
     if (p.from && p.to && p.from > p.to) bad('range');
     if (q.outlet) { if (!Outlets.byId(String(q.outlet))) bad('outlet'); p.outlet = String(q.outlet); }
+    // W5: a reader's outlets («Мои», or «Все» without the hidden ones), from the catalog only.
+    if (q.outlets !== undefined) { const ids = String(q.outlets).split(',').filter(Boolean); if (ids.length > 60 || ids.some(id => !Outlets.byId(id))) bad('outlets'); p.outlets = [...new Set(ids)]; }
     if (q.section) { if (!C.SECTIONS.includes(String(q.section))) bad('section'); p.section = String(q.section); }
     for (const k of Object.keys(LIST_ENUMS)) if (q[k]) { if (!LIST_ENUMS[k].includes(String(q[k]))) bad(k); p[k] = String(q[k]); }
     if (q.story) { if (String(q.story).length > 120) bad('story'); p.story = String(q.story); }

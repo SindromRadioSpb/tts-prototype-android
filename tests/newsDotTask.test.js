@@ -22,7 +22,8 @@ test('dot task: version follows the text, the date comes from the «Обновл
 test('dot task: the real dotTask.md names its own address, the version rule and an «Обновлено» date', () => {
   const text = fs.readFileSync(path.join(__dirname, '..', 'news', 'harvest', 'dotTask.md'), 'utf8');
   const t = createDotTask().get();
-  assert.equal(t.text, text);
+  assert.ok(t.text.startsWith(text.replace(/\s*$/, String.fromCharCode(10))), 'the file first');
+  assert.match(t.text, /## Издания каталога/, 'then the outlet catalog (W6)');
   assert.match(t.updated || '', /^\d{4}-\d{2}-\d{2}$/);
   assert.ok(text.includes('https://linguistpro.kolosei.com' + TASK_URL), 'the instruction tells dot where it lives');
   assert.ok(text.includes('task.version'), 'the instruction tells dot to compare the version');

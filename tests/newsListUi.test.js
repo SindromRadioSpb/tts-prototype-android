@@ -217,3 +217,38 @@ test('review W5 I3: order reasons are words, not codes; a local skip is not «о
   const second = [...root.querySelectorAll('.nw-order-status')][1].textContent;
   assert.match(second, /не заказано: уже заказана/); assert.doesNotMatch(second, /отказ/);
 });
+
+// ---- W5: «Все издания | Мои (N)» in the day overview (spec 2026-11-26 §7.3) -----------------------------------
+const dataOf = () => ({ ok: true, day: '2026-11-26', prev: null, next: null, counts: { learn: 0, slice: 1 }, items: [sliceRow(1)], next_cursor: null });
+test('overview «Мои» asks the server for the reader\'s outlets; «Все» for all but the hidden ones', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  let mode = 'all';
+  const ro = { mode: () => mode, count: () => 2, param: () => mode === 'mine' ? ['haipo', 'ynet'] : ['ynet', 'walla'], setMode: m => { mode = m; } };
+  const { ctx, calls } = ctxFor(document, [dataOf(), dataOf()], { readerOutlets: ro });
+  const api = LU.render(document.getElementById('r'), { view: 'overview', day: '2026-11-26' }, ctx);
+  await api.ready;
+  assert.equal(new URLSearchParams(calls[0].url.split('?')[1]).get('outlets'), 'ynet,walla');
+  const mineBtn = document.querySelector('[data-scope=mine]');
+  assert.match(mineBtn.textContent, /2/);
+  mineBtn.dispatchEvent(new document.defaultView.Event('click'));
+  await api.ready;
+  assert.equal(new URLSearchParams(calls[1].url.split('?')[1]).get('outlets'), 'haipo,ynet');
+  assert.equal(document.querySelector('[data-scope=mine]').getAttribute('aria-pressed'), 'true');
+});
+test('overview «Мои» with no outlets says how to add them, asks nothing', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const ro = { mode: () => 'mine', count: () => 0, param: () => [], setMode: () => {} };
+  const { ctx, calls } = ctxFor(document, [], { readerOutlets: ro });
+  const api = LU.render(document.getElementById('r'), { view: 'overview', day: '2026-11-26' }, ctx);
+  await api.ready;
+  assert.equal(calls.length, 0);
+  assert.match(document.querySelector('.nw-list-empty').textContent, /Настроить/);
+});
+test('an outlet page has no «Все | Мои»', async () => {
+  const { document } = parseHTML('<html><body><main id="r"></main></body></html>');
+  const ro = { mode: () => 'mine', count: () => 2, param: () => ['haipo'], setMode: () => {} };
+  const { ctx, calls } = ctxFor(document, [dataOf()], { readerOutlets: ro });
+  await LU.render(document.getElementById('r'), { view: 'outlet', outlet: 'ynet', day: '2026-11-26' }, ctx).ready;
+  assert.equal(document.querySelector('[data-scope]'), null);
+  assert.equal(new URLSearchParams(calls[0].url.split('?')[1]).get('outlets'), null);
+});

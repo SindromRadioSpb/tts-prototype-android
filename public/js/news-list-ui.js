@@ -25,9 +25,10 @@
     try { return new Date(day + "T12:00:00Z").toLocaleDateString(loc === "he" ? "he-IL" : loc === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "long", weekday: "short" }); } catch (_) { return day; }
   }
   // keys: a visitor's marked articles from the browser (W4) — then no star/tag goes to the server.
-  function listUrl(s, cursor, keys) {
+  function listUrl(s, cursor, keys, outlets) {
     var q = new URLSearchParams();
     if (s.outlet) q.set("outlet", s.outlet);
+    else if (outlets) q.set("outlets", outlets.join(","));
     if (s.from || s.to) { if (s.from) q.set("from", s.from); if (s.to) q.set("to", s.to); }
     else if (s.day) q.set("day", s.day);
     if (s.section) q.set("section", s.section);
@@ -81,8 +82,21 @@
     var empty = h(doc, "div", { class: "nw-state nw-list-empty", role: "status", hidden: true });
     var more = h(doc, "button", { type: "button", class: "nw-button nw-more nw-list-more", hidden: true, text: t("news.more", "Показать ещё") });
     more.addEventListener("click", function () { api.more(); });
+    // W5 (spec 2026-11-26 §7.3): the overview for all outlets (but the hidden ones) or only the reader's.
+    var RO = s.view === "overview" && !s.outlet ? ctx.readerOutlets || null : null, scope = null;
+    function paintScope() {
+      if (!RO) return;
+      var mode = RO.mode();
+      var b = function (m, text) {
+        var el = h(doc, "button", { type: "button", class: "nw-chip", "data-scope": m, "aria-pressed": mode === m ? "true" : "false", text: text });
+        el.addEventListener("click", function () { if (RO.mode() !== m) { RO.setMode(m); paintScope(); load(true); } });
+        return el;
+      };
+      scope.replaceChildren(b("all", t("news.prefs.all", "Все издания")), b("mine", fill(t("news.prefs.mine", "Мои ({n})"), { n: RO.count() })));
+    }
+    if (RO) { scope = h(doc, "div", { class: "nw-chips nw-scope", role: "group", "aria-label": t("news.myOutlets", "Мои издания") }); paintScope(); }
 
-    root.replaceChildren.apply(root, [ctx.heading, ctx.statusHost || null, nav, form, note, marksNote, h(doc, "div", { class: "nw-list-bar" }, [kinds, filterBtn]), sheet, storyChip, counts, learnSec, sliceSec, empty, more].filter(Boolean));
+    root.replaceChildren.apply(root, [ctx.heading, ctx.statusHost || null, scope, nav, form, note, marksNote, h(doc, "div", { class: "nw-list-bar" }, [kinds, filterBtn]), sheet, storyChip, counts, learnSec, sliceSec, empty, more].filter(Boolean));
 
     function setState(next, replace) { s = next; ctx.replaceUrl(s, replace); }
     // The range on screen: the one chosen, or the 45 days a search looks through (the server says which).
@@ -280,7 +294,15 @@
       if (reset) cursor = null;
       more.hidden = true;
       var keys = M && !M.signedIn && (s.star || s.tag) ? (function () { var a = s.star ? M.keysWith("★") : null, b = s.tag ? M.keysWith(s.tag) : null; return a && b ? a.filter(function (k) { return b.indexOf(k) >= 0; }) : (a || b); })() : null;
-      var p = ctx.getJson(listUrl(s, reset ? null : cursor, keys), { signal: mine.signal }).then(function (data) {
+      var outlets = RO ? RO.param() : null;
+      if (RO && RO.mode() === "mine" && outlets && !outlets.length) {
+        Array.prototype.slice.call(learnSec.children, 1).forEach(function (n) { n.remove(); });
+        Array.prototype.slice.call(sliceSec.children, 1).forEach(function (n) { n.remove(); });
+        nav.replaceChildren(); counts.textContent = ""; more.hidden = true;
+        empty.hidden = false; empty.textContent = t("news.prefs.mineEmpty", "В «Моих изданиях» пока пусто. Добавьте издания — кнопка «Настроить» на главной новостей.");
+        api.ready = Promise.resolve(); return api.ready;
+      }
+      var p = ctx.getJson(listUrl(s, reset ? null : cursor, keys, outlets), { signal: mine.signal }).then(function (data) {
         if (mine !== ctrl || mine.signal.aborted || !ctx.isCurrent()) return;
         if (reset) {
           lastData = data;

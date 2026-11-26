@@ -60,12 +60,15 @@ function createNewsList({ db, now = () => Date.now(), bodyOf = slicePara(db), ca
     const r = await dbGet(db, "SELECT value_json FROM news_settings WHERE key='search_horizon'").catch(() => null);
     try { return r ? JSON.parse(r.value_json).from_day || null : null; } catch (_) { return null; }
   }
+  // An outlet, or a reader's set of outlets (W5): the same condition for the day, its neighbours and the rows.
+  const outletCond = outlet => Array.isArray(outlet) ? { sql: `outlet_id IN (${outlet.map(() => '?').join(',') || "''"})`, p: outlet } : outlet ? { sql: 'outlet_id=?', p: [outlet] } : null;
   async function latestDay(outlet) {
-    const r = await dbGet(db, `SELECT MAX(day) d FROM news_index${outlet ? ' WHERE outlet_id=?' : ''}`, outlet ? [outlet] : []);
+    const c = outletCond(outlet);
+    const r = await dbGet(db, `SELECT MAX(day) d FROM news_index${c ? ' WHERE ' + c.sql : ''}`, c ? c.p : []);
     return r && r.d;
   }
   async function neighbours(day, outlet) {
-    const extra = outlet ? ' AND outlet_id=?' : '', p = outlet ? [outlet] : [];
+    const c = outletCond(outlet), extra = c ? ' AND ' + c.sql : '', p = c ? c.p : [];
     const prev = await dbGet(db, `SELECT day FROM news_index WHERE day < ?${extra} ORDER BY day DESC LIMIT 1`, [day, ...p]);
     const next = await dbGet(db, `SELECT day FROM news_index WHERE day > ?${extra} ORDER BY day ASC LIMIT 1`, [day, ...p]);
     return { prev: prev ? prev.day : null, next: next ? next.day : null };
@@ -82,10 +85,12 @@ function createNewsList({ db, now = () => Date.now(), bodyOf = slicePara(db), ca
       if (p.from) { where.push('i.day >= ?'); params.push(p.from); }
       if (p.to) { where.push('i.day <= ?'); params.push(p.to); }
     } else {
-      day = p.day && DAY.test(p.day) ? p.day : await latestDay(p.outlet);
-      if (day) { where.push('i.day = ?'); params.push(day); ({ prev, next } = await neighbours(day, p.outlet)); }
+      const scope = p.outlet || (Array.isArray(p.outlets) ? p.outlets : null);
+      day = p.day && DAY.test(p.day) ? p.day : await latestDay(scope);
+      if (day) { where.push('i.day = ?'); params.push(day); ({ prev, next } = await neighbours(day, scope)); }
     }
     if (p.outlet) { where.push('i.outlet_id = ?'); params.push(p.outlet); }
+    else if (Array.isArray(p.outlets)) { where.push(`i.outlet_id IN (${p.outlets.map(() => '?').join(',') || "''"})`); params.push(...p.outlets); }
     if (p.section) { where.push('i.section = ?'); params.push(p.section); }
     if (p.group) {
       const secs = Object.keys(GROUPS).filter(s => GROUPS[s] === p.group);

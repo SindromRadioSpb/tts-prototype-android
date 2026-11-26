@@ -1453,6 +1453,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/library-ui.js?v=908",
   // News section (3.11.885)
   "/js/news-outlets.js?v=918",
+  "/js/news-prefs.js?v=919",
   "/js/news-reader.js?v=912",
   "/js/news-local-sweep.js?v=885",
   "/css/news-reader.css?v=895",
@@ -1541,9 +1542,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=918",
-  "/i18n/locales/en.js?v=918",
-  "/i18n/locales/he.js?v=918",
+  "/i18n/locales/ru.js?v=919",
+  "/i18n/locales/en.js?v=919",
+  "/i18n/locales/he.js?v=919",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4615,7 +4616,9 @@ function newsStore() {
     // The owner's outlet switches and each outlet's harvest state (docs/superpowers/specs/2026-11-26-news-sources-expansion-design.md §4, §8).
     const outletState = require("./db/newsOutletState").createOutletState({ db });
     // A published article closes the owner's order for it (findability W5).
-    _newsStore = { index, outletState, repo: require("./db/newsRepo").createNewsRepo({ db, index, onPublished: ids => _newsStore.orders.onPublished(ids) }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
+    // A signed-in reader's outlets follow the account (news sources W5).
+    const prefs = require("./db/newsReaderPrefs").createReaderPrefs({ db });
+    _newsStore = { index, outletState, prefs, repo: require("./db/newsRepo").createNewsRepo({ db, index, onPublished: ids => _newsStore.orders.onPublished(ids) }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
       harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m), index, outletState, tagsForDot: () => _newsStore.marks.ownerTags() }),
       list: require("./db/newsList").createNewsList({ db, cardsFor: ids => _newsStore.repo.cardsFor(ids) }),
       // Tags, ★ and reads per user; the owner's marks keep articles and their photos (findability W4).
@@ -4635,7 +4638,7 @@ function newsStore() {
 }
 const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
 require("./news/newsRoutes").mountNewsRoutes(app, {
-  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list), marks: lazyMember(s => s.marks), orders: lazyMember(s => s.orders), outletState: lazyMember(s => s.outletState), relayAuth: lazyMember(s => s.relayAuth), relayIntake: lazyMember(s => s.relayIntake),
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list), marks: lazyMember(s => s.marks), orders: lazyMember(s => s.orders), outletState: lazyMember(s => s.outletState), prefs: lazyMember(s => s.prefs), relayAuth: lazyMember(s => s.relayAuth), relayIntake: lazyMember(s => s.relayIntake),
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
   // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
   audit: (type, actorId, detail, ip) => {

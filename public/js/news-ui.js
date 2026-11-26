@@ -164,6 +164,101 @@
       "aria-label": fill(pinned ? t("news.unpinNamed", "Открепить {outlet}") : t("news.pinNamed", "Закрепить {outlet}"), { outlet: o.name_latin }), text: pinned ? "★" : "☆" });
     return h(doc, "div", { class: "nw-tile-wrap" }, [link, pin]);
   }
+  // ---- W5: a reader's outlets on the home page (spec 2026-11-26 §7.2) -----------------------------------
+  var OUTLET_GROUPS = ["national", "local", "religious", "haredi", "economy_tech", "science_env", "society", "radio"];
+  var OUTLET_REGIONS = ["north", "jerusalem", "center", "south"];
+  function groupKeyOf(o) {
+    var c = outletOf(o.outlet_id), g = o.group || c.group || "national", r = o.region || c.region;
+    return g === "local" && r ? "local:" + r : g;
+  }
+  function groupOrder() {
+    var keys = [];
+    OUTLET_GROUPS.forEach(function (g) { if (g === "local") OUTLET_REGIONS.forEach(function (r) { keys.push("local:" + r); }); keys.push(g); });
+    return keys;
+  }
+  function groupLabel(key, t) {
+    var g = key.split(":")[0], r = key.split(":")[1];
+    return t("news.outletGroup." + g, g) + (r ? ": " + t("news.region." + r, r).toLowerCase() : "");
+  }
+  // shown: outlets of GET /api/news/outlets; prefs: NewsPrefs shape. → a container of sections.
+  function renderHomeGroups(doc, shown, prefs, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; }, now = opts.now || Date.now();
+    var box = h(doc, "div", { class: "nw-home-groups" });
+    var tile = function (o) {
+      var el = renderOutletTile(doc, o, { t: t, now: now, locale: opts.locale, pinned: prefs.mine.indexOf(o.outlet_id) >= 0 });
+      var isNew = (function () { var at = Date.parse(o.enabled_at || ""); return isFinite(at) && now - at < 7 * 86400000; })();
+      if (isNew) el.appendChild(h(doc, "span", { class: "nw-tile-new", text: t("news.prefs.new", "новое") }));
+      return el;
+    };
+    var settings = h(doc, "button", { type: "button", class: "nw-prefs-open", text: t("news.prefs.open", "Настроить") });
+    settings.addEventListener("click", function () { if (opts.onSettings) opts.onSettings(); });
+    var byId = {}; shown.forEach(function (o) { byId[o.outlet_id] = o; });
+    var mine = prefs.mine.map(function (id) { return byId[id]; }).filter(Boolean);
+    box.appendChild(h(doc, "section", { class: "nw-group nw-group-mine", "data-group": "mine", "aria-labelledby": "nw-my" }, [
+      h(doc, "div", { class: "nw-group-head" }, [h(doc, "h2", { id: "nw-my", text: t("news.myOutlets", "Мои издания") }), settings]),
+      mine.length ? h(doc, "div", { class: "nw-tiles" }, mine.map(tile))
+        : h(doc, "p", { class: "nw-prefs-hint", text: t("news.prefs.emptyMine", "Нажмите ☆ на плитке издания или «Настроить» — ваши издания встанут сюда, в вашем порядке.") })]));
+    groupOrder().forEach(function (key) {
+      var list = shown.filter(function (o) { return groupKeyOf(o) === key && prefs.mine.indexOf(o.outlet_id) < 0 && prefs.hidden.indexOf(o.outlet_id) < 0; });
+      if (!list.length) return;
+      var folded = prefs.collapsed.indexOf(key) >= 0, id = "nw-g-" + key.replace(":", "-");
+      var toggle = h(doc, "button", { type: "button", class: "nw-group-toggle", "aria-expanded": folded ? "false" : "true", "aria-controls": id + "-tiles",
+        "aria-label": groupLabel(key, t), text: folded ? "▸" : "▾" });
+      var tiles = h(doc, "div", { class: "nw-tiles", id: id + "-tiles" }, list.map(tile));
+      tiles.hidden = folded;
+      toggle.addEventListener("click", function () { if (opts.onToggleGroup) opts.onToggleGroup(key); });
+      box.appendChild(h(doc, "section", { class: "nw-group", "data-group": key, "aria-labelledby": id }, [
+        h(doc, "div", { class: "nw-group-head" }, [h(doc, "h2", { id: id, text: groupLabel(key, t) }), h(doc, "span", { class: "nw-group-count", text: String(list.length) }), toggle]), tiles]));
+    });
+    return box;
+  }
+  // «Настроить»: every outlet by group — «в мои» / «показывать» / «скрыть»; arrows in «Мои»; a whole group at once.
+  function renderPrefsPanel(doc, shown, prefs, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; }, P = (typeof self !== "undefined" && self.NewsPrefs) || (typeof require === "function" ? require("./news-prefs") : null);
+    var change = function (next) { if (opts.onChange) opts.onChange(next); };
+    var panel = h(doc, "section", { class: "nw-prefs", "aria-labelledby": "nw-prefs-title" }, [
+      h(doc, "div", { class: "nw-group-head" }, [h(doc, "h2", { id: "nw-prefs-title", text: t("news.prefs.title", "Мои издания: настройка") })]),
+      h(doc, "p", { class: "nw-prefs-hint", text: t("news.prefs.hint", "«В мои» — наверх главной и в «Обзор дня · Мои»; «скрыть» — издание не показывается. Настройка сохраняется на этом устройстве, а при входе — в вашем аккаунте.") })]);
+    var byId = {}; shown.forEach(function (o) { byId[o.outlet_id] = o; });
+    if (prefs.mine.length) {
+      var ol = h(doc, "ol", { class: "nw-prefs-mine" });
+      var mineShown = prefs.mine.filter(function (id) { return byId[id]; });
+      mineShown.forEach(function (id, i) {
+        var name = outletOf(id).name_latin;
+        var up = h(doc, "button", { type: "button", "data-move": id, "data-dir": "-1", "aria-label": t("news.prefs.up", "Выше") + ": " + name, text: "↑", disabled: i === 0 });
+        var down = h(doc, "button", { type: "button", "data-move": id, "data-dir": "1", "aria-label": t("news.prefs.down", "Ниже") + ": " + name, text: "↓", disabled: i === mineShown.length - 1 });
+        [up, down].forEach(function (b) { b.addEventListener("click", function () { change(P.move(prefs, id, Number(b.getAttribute("data-dir")))); }); });
+        ol.appendChild(h(doc, "li", {}, [h(doc, "span", { text: outletOf(id).name_latin }), up, down]));
+      });
+      panel.appendChild(ol);
+    }
+    groupOrder().forEach(function (key) {
+      var list = shown.filter(function (o) { return groupKeyOf(o) === key; });
+      if (!list.length) return;
+      var g = key;
+      var show = h(doc, "button", { type: "button", class: "nw-prefs-all", "data-group-show": g, text: t("news.prefs.showAll", "Показать все") });
+      var hide = h(doc, "button", { type: "button", class: "nw-prefs-all", "data-group-hide": g, text: t("news.prefs.hideAll", "Скрыть все") });
+      var whole = function (state) { var ids = shown.filter(function (o) { return groupKeyOf(o) === g; }).map(function (o) { return o.outlet_id; });
+        var p = prefs; ids.forEach(function (id) { if (P.stateOf(p, id) !== "mine") p = P.setState(p, id, state); }); change(p); };
+      show.addEventListener("click", function () { whole("shown"); });
+      hide.addEventListener("click", function () { whole("hidden"); });
+      var rows = list.map(function (o) {
+        var cur = P.stateOf(prefs, o.outlet_id);
+        var sel = h(doc, "select", { "data-outlet": o.outlet_id, "aria-label": outletOf(o.outlet_id).name_latin }, [["mine", "news.prefs.stateMine", "в мои"], ["shown", "news.prefs.stateShown", "показывать"], ["hidden", "news.prefs.stateHidden", "скрыть"]]
+          .map(function (x) { return h(doc, "option", { value: x[0], selected: x[0] === cur, text: t(x[1], x[2]) }); }));
+        sel.addEventListener("change", function () { change(P.setState(prefs, o.outlet_id, sel.value)); });
+        var c = outletOf(o.outlet_id);
+        return h(doc, "li", { class: "nw-prefs-row" }, [h(doc, "span", { text: c.name_latin }), c.name_he !== c.name_latin ? h(doc, "bdi", { lang: "he", dir: "rtl", class: "nw-prefs-he", text: c.name_he }) : null, sel]);
+      });
+      panel.appendChild(h(doc, "div", { class: "nw-prefs-group" }, [h(doc, "div", { class: "nw-group-head" }, [h(doc, "h3", { text: groupLabel(key, t) }), show, hide]), h(doc, "ul", {}, rows)]));
+    });
+    var done = h(doc, "button", { type: "button", class: "nw-prefs-done", text: t("news.prefs.done", "Готово") });
+    done.addEventListener("click", function () { if (opts.onClose) opts.onClose(); });
+    panel.appendChild(done);
+    return panel;
+  }
   // «Обзор дня» (§17): rubric groups of the overview filter (the same groups as the server's quota).
   var GROUPS = { politics: "politics", security: "security", economy: "economy", consumer: "economy", world: "world", news: "society", local: "society",
     health: "society", science: "society", tech: "society", other: "society", culture: "culture", sport: "culture", lifestyle: "culture", opinion: "opinion" };
@@ -371,8 +466,52 @@
     var doc = win.document, root = doc.getElementById("nw-root");
     var t = function (k, f) { try { var v = typeof win.t === "function" ? win.t(k) : ""; return v && v !== k ? v : f; } catch (_) { return f; } };
     var store = { get: function (k) { try { return win.localStorage.getItem(k); } catch (_) { return null; } }, set: function (k, v) { try { win.localStorage.setItem(k, v); } catch (_) {} } };
-    var pinned = function () { try { var v = JSON.parse(store.get(PIN_KEY) || "[]"); return Array.isArray(v) ? v.filter(function (id) { return Outlets.byId(id); }) : []; } catch (_) { return []; } };
     var noHeavy = function () { return store.get(HEAVY_KEY) === "1"; };
+    // W5: a reader's outlets — in the browser; for a signed-in reader also in the account (the account wins on load;
+    // an empty account takes what this browser had).
+    var knownIds = (Outlets ? Outlets.OUTLETS : []).map(function (o) { return o.id; });
+    var prefs = win.NewsPrefs ? win.NewsPrefs.load(store, knownIds) : { v: 1, mine: [], hidden: [], collapsed: [], overview: "all" }, prefsOpen = false, prefsCsrf = null;
+    // Review W5: a change made before the account answered is the newest — it is sent, never overwritten; the account
+    // is written only after a successful read (a failed read never wipes it); one PUT at a time, the latest after 600 ms.
+    var syncing = false, dirty = false, putTimer = null, putting = false, putAgain = false;
+    function pushPrefs() {
+      if (!prefsCsrf) return;
+      clearTimeout(putTimer);
+      putTimer = setTimeout(function send() {
+        if (putting) { putAgain = true; return; }
+        putting = true;
+        win.fetch("/api/news/prefs", { method: "PUT", credentials: "same-origin", headers: { "content-type": "application/json", "x-lp-csrf": prefsCsrf }, body: JSON.stringify({ prefs: prefs }) })
+          .catch(function () {}).then(function () { putting = false; if (putAgain) { putAgain = false; send(); } });
+      }, 600);
+    }
+    function setPrefs(next) {
+      prefs = next; if (win.NewsPrefs) win.NewsPrefs.save(store, prefs);
+      if (syncing) dirty = true; else pushPrefs();
+    }
+    function onHome() { var st = parseState(win.location.search); return !st.view || st.view === "home"; }
+    function syncPrefs() {
+      if (!win.NewsPrefs || !win.fetch) return;
+      syncing = true;
+      var done = function () { syncing = false; };
+      win.fetch("/api/auth/me", { cache: "no-store", credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (me) {
+        var csrf = me && me.user && me.csrf;
+        if (!csrf) return done();
+        return win.fetch("/api/news/prefs", { cache: "no-store", credentials: "same-origin" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+          done();
+          if (!j || !j.ok) return;                       // the account could not be read: leave it as it is
+          prefsCsrf = csrf;
+          var localSet = prefs.mine.length || prefs.hidden.length || prefs.collapsed.length || prefs.overview !== "all";
+          if (dirty || (!j.prefs && localSet)) { dirty = false; pushPrefs(); return; }
+          if (j.prefs) {
+            var before = prefs.overview;
+            prefs = win.NewsPrefs.normalize(j.prefs, knownIds); win.NewsPrefs.save(store, prefs);
+            if (onHome() || prefs.overview !== before) render();   // an open overview is not reset by the sync
+          }
+        });
+      }).catch(done);
+    }
+    // After a change the control the reader used keeps the focus.
+    function refocus(selector) { if (!selector) return; var el = root.querySelector(selector); if (el && el.focus) el.focus(); }
     var outletsCache = null, token = 0;
     // «С вашего прошлого визита»: the time of the previous visit, read once; this visit is stored after 10 s or on leaving.
     var VISIT_KEY = "lp.news.lastVisit", lastVisit = store.get(VISIT_KEY), visitSaved = false;
@@ -479,9 +618,6 @@
       var outlets;
       try { outlets = await loadOutlets(); } catch (_) { if (my === token) root.replaceChildren(head, status("news.error", "Не удалось загрузить новости", render)); return; }
       if (my !== token) return;
-      var pins = pinned(), byId = {};
-      outlets.forEach(function (o) { byId[o.outlet_id] = o; });
-      var tile = function (o) { return renderOutletTile(doc, o, { t: t, pinned: pins.indexOf(o.outlet_id) >= 0, locale: locale() }); };
       var parts = [head, statusHost(my)];
       if (manage && manage.kind === "owner") {
         var bannerHost = h(doc, "div", { class: "nw-storage-host" });
@@ -499,16 +635,15 @@
         link.addEventListener("click", function (e) { e.preventDefault(); go({ view: "overview", day: ov.day }); });
         teaser.replaceChildren(link);
       }).catch(function () {});
-      if (pins.length) parts.push(h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-my" }, [h(doc, "h2", { id: "nw-my", text: t("news.myOutlets", "Мои издания") }),
-        h(doc, "div", { class: "nw-tiles" }, pins.map(function (id) { return byId[id]; }).filter(Boolean).map(tile))]));
-      parts.push(h(doc, "section", { class: "nw-group", "aria-labelledby": "nw-all" }, [h(doc, "h2", { id: "nw-all", text: t("news.allOutlets", "Все издания") }),
-        h(doc, "div", { class: "nw-tiles" }, outlets.map(tile))]));
+      // W5 (spec 2026-11-26 §7.2): «Мои издания» in the reader's order, then the groups; «Настроить» opens the panel.
+      parts.push(prefsOpen ? renderPrefsPanel(doc, outlets, prefs, { t: t, onChange: function (next) { var a = doc.activeElement, sel = a && (a.getAttribute("data-outlet") ? 'select[data-outlet="' + a.getAttribute("data-outlet") + '"]' : a.getAttribute("data-move") ? 'button[data-move="' + a.getAttribute("data-move") + '"][data-dir="' + a.getAttribute("data-dir") + '"]' : a.getAttribute("data-group-show") ? 'button[data-group-show="' + a.getAttribute("data-group-show") + '"]' : a.getAttribute("data-group-hide") ? 'button[data-group-hide="' + a.getAttribute("data-group-hide") + '"]' : null); setPrefs(next); render(); refocus(sel); }, onClose: function () { prefsOpen = false; render(); refocus("button.nw-prefs-open"); } })
+        : renderHomeGroups(doc, outlets, prefs, { t: t, locale: locale(), onSettings: function () { prefsOpen = true; render(); var hd = root.querySelector("#nw-prefs-title"); if (hd) { hd.setAttribute("tabindex", "-1"); hd.focus(); } },
+          onToggleGroup: function (key) { setPrefs(win.NewsPrefs.toggleCollapsed(prefs, key)); render(); refocus('[data-group="' + key + '"] button.nw-group-toggle'); } }));
       root.replaceChildren.apply(root, parts);
       root.querySelectorAll(".nw-pin").forEach(function (b) {
         b.addEventListener("click", function () {
-          var id = b.getAttribute("data-pin"), list = pinned(), i = list.indexOf(id);
-          if (i >= 0) list.splice(i, 1); else list.push(id);
-          store.set(PIN_KEY, JSON.stringify(list)); render();
+          var id = b.getAttribute("data-pin");
+          setPrefs(win.NewsPrefs.setState(prefs, id, win.NewsPrefs.stateOf(prefs, id) === "mine" ? "shown" : "mine")); render();
           var again = root.querySelector('.nw-pin[data-pin="' + id + '"]'); if (again) again.focus();
         });
       });
@@ -530,10 +665,15 @@
           h(doc, "p", { class: "nw-lead nw-lead-small", text: t("news.list.overviewLead", "Все статьи изданий за день: сначала учебные материалы, затем остальные из среза. Поиск — по заголовкам и тексту.") })]);
       }
       var returnTo = stateHref(state);
-      return marksFor().then(function (marks) {
+      return Promise.all([marksFor(), loadOutlets().catch(function () { return []; })]).then(function (got) {
+      var marks = got[0], shown = got[1] || [], NP = win.NewsPrefs;
       if (my !== token) return null;
       listApi = win.NewsListUi.render(root, state, {
         marks: marks,
+        // W5: «Все издания | Мои (N)» of the overview, from the reader's outlets.
+        readerOutlets: NP ? { mode: function () { return prefs.overview; }, count: function () { return NP.visible(prefs, shown, "mine").length; },
+          param: function () { return NP.outletsParam(prefs, shown, prefs.overview); },
+          setMode: function (m) { setPrefs(Object.assign({}, prefs, { overview: m === "mine" ? "mine" : "all" })); } } : null,
         // The owner's (or an editor's) orders for dot (findability W5).
         orders: manage ? {
           order: function (r) { return orderPost({ item_key: r.item_key, note_ru: t("news.list.orderNote", "Выбор владельца из ленты") }); },
@@ -572,10 +712,11 @@
     var lang = doc.getElementById("nw-language");
     if (lang && typeof win.appGetLocale === "function") { lang.value = win.appGetLocale(); lang.addEventListener("change", function () { win.appSetLocale(lang.value); }); }
     doc.addEventListener("i18n:changed", function () { if (lang && win.appGetLocale) lang.value = win.appGetLocale(); render(); });
-    win.addEventListener("popstate", render);
+    win.addEventListener("popstate", function () { prefsOpen = false; render(); });
     applyTheme();
     installUpdateGate(win, t);
     probeManage().then(render, render);
+    syncPrefs();
   }
-  return { splitLearn: splitLearn, renderOverviewItem: renderOverviewItem, renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, parseState: parseState, stateHref: stateHref, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
+  return { splitLearn: splitLearn, renderOverviewItem: renderOverviewItem, renderStorageBanner: renderStorageBanner, renderStatusLine: renderStatusLine, filterByEdition: filterByEdition, installUpdateGate: installUpdateGate, renderStory: renderStory, storyGroup: storyGroup, renderCard: renderCard, renderOutletTile: renderOutletTile, renderHomeGroups: renderHomeGroups, renderPrefsPanel: renderPrefsPanel, parseState: parseState, stateHref: stateHref, timeAgo: timeAgo, readerHref: readerHref, SECTIONS: SECTIONS, boot: boot };
 });

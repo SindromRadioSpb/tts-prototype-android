@@ -401,7 +401,7 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
       // The owner's tags with their articles (findability W5): a signal for dot; an order is «Часть 0» of README-dot.
       extraFiles: { ...(tagsForDot ? { 'tags.json': JSON.stringify({ schema: 'linguistpro-news-owner-tags', tags: await tagsForDot().catch(() => ({})) }, null, 1) } : {}),
         'interests.md': interests || 'Интересы не записаны.\n', 'reading.json': JSON.stringify(reading || { days: 14, by_section: {}, by_outlet: {}, by_selected: {}, recent: [] }, null, 1) },
-      readme: fs.readFileSync(path.join(__dirname, 'dotTask.md'), 'utf8'), sleep: () => sleep(Math.round(delayMs / 3)) });
+      readme: require('../newsDotTask').createDotTask().get().text /* the site's text with the outlet catalog (W6) */, sleep: () => sleep(Math.round(delayMs / 3)) });
     for (const [id, o] of Object.entries((lastPollReport && lastPollReport.outlets) || {})) if (o.errors.length) (r.report.outlets[id] = r.report.outlets[id] || { items: 0, main: 0 }).errors = o.errors;
     r.report.recheck = recheck;
     // Stories were assigned to the day's rows: the index takes their story keys.

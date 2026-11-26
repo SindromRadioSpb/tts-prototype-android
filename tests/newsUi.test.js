@@ -289,3 +289,48 @@ test('never harvested says so, not «0»', () => {
   const ynet = UI.renderOutletTile(document, { outlet_id: 'ynet', route: 'server' }, { now: AT });
   assert.equal(ynet.querySelector('.nw-tile-relay'), null);
 });
+
+// ---- W5: the home page by groups, «Мои издания», the settings panel (spec 2026-11-26 §7.2) ------------------
+const Prefs = require('../public/js/news-prefs');
+const KNOWN_IDS = require('../public/js/news-outlets').OUTLETS.map(o => o.id);
+const SHOWN = [
+  { outlet_id: 'ynet', group: 'national' }, { outlet_id: 'walla', group: 'national' }, { outlet_id: 'haipo', group: 'local', region: 'north', enabled_at: '2026-11-26T05:30:00.000Z' },
+  { outlet_id: 'kolhair', group: 'local', region: 'jerusalem' }, { outlet_id: 'kikar', group: 'haredi' }, { outlet_id: 'geektime', group: 'economy_tech' }];
+test('home: «Мои» first in the reader\'s order, then groups (local by region) without mine and hidden; «new» badge', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const prefs = Prefs.normalize({ mine: ['geektime', 'ynet'], hidden: ['kikar'], collapsed: ['local:jerusalem'] }, KNOWN_IDS);
+  const el = UI.renderHomeGroups(document, SHOWN, prefs, { t: tOf(uiLocales().ru), now: Date.parse('2026-11-27T08:00:00Z') });
+  const sections = [...el.querySelectorAll('[data-group]')].map(s => s.getAttribute('data-group'));
+  assert.deepEqual(sections, ['mine', 'national', 'local:north', 'local:jerusalem']);
+  assert.deepEqual([...el.querySelectorAll('[data-group=mine] [data-pin]')].map(b => b.getAttribute('data-pin')), ['geektime', 'ynet']);
+  assert.deepEqual([...el.querySelectorAll('[data-group=national] [data-pin]')].map(b => b.getAttribute('data-pin')), ['walla']);
+  assert.equal(el.querySelector('[data-pin=kikar]'), null, 'hidden');
+  assert.match(el.querySelector('[data-group="local:north"] h2').textContent, /Местные: север/);
+  assert.equal(el.querySelector('[data-group="local:jerusalem"] .nw-tiles').hidden, true, 'folded');
+  assert.equal(el.querySelector('[data-group="local:jerusalem"] button.nw-group-toggle').getAttribute('aria-expanded'), 'false');
+  assert.ok(el.querySelector('[data-pin=haipo]').closest('.nw-tile-wrap').querySelector('.nw-tile-new'), '«новое»');
+  assert.ok(el.querySelector('button.nw-prefs-open'));
+});
+test('mine with no outlets says how to add', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderHomeGroups(document, SHOWN, Prefs.normalize({}, KNOWN_IDS), { t: tOf(uiLocales().ru) });
+  assert.match(el.querySelector('[data-group=mine]').textContent, /☆/);
+});
+test('settings panel: three states per outlet, arrows in «Мои», whole group at once — every change goes out', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const changes = [];
+  const prefs = Prefs.normalize({ mine: ['ynet', 'geektime'] }, KNOWN_IDS);
+  const el = UI.renderPrefsPanel(document, SHOWN, prefs, { t: tOf(uiLocales().ru), onChange: p => changes.push(p) });
+  const sel = el.querySelector('select[data-outlet=kikar]');
+  for (const o of sel.querySelectorAll('option')) o.toggleAttribute('selected', o.value === 'hidden');
+  sel.dispatchEvent(new document.defaultView.Event('change'));
+  assert.deepEqual(changes.pop().hidden, ['kikar']);
+  el.querySelector('button[data-move="geektime"][data-dir="-1"]').dispatchEvent(new document.defaultView.Event('click'));
+  assert.deepEqual(changes.pop().mine, ['geektime', 'ynet']);
+  el.querySelector('button[data-group-hide="local:north"]').dispatchEvent(new document.defaultView.Event('click'));
+  assert.deepEqual(changes.pop().hidden, ['haipo'], 'one region, not every local outlet');
+  const arrows = UI.renderPrefsPanel(document, SHOWN, Prefs.normalize({ mine: ['nope-off', 'ynet', 'geektime'] }, KNOWN_IDS.concat(['nope-off'])), { t: tOf(uiLocales().ru) });
+  assert.equal(arrows.querySelector('button[data-move="ynet"][data-dir="-1"]').hasAttribute('disabled'), true, 'first visible: no «up»');
+  assert.match(arrows.querySelector('button[data-move="ynet"][data-dir="1"]').getAttribute('aria-label'), /ynet/);
+  for (const lang of ['ru', 'en', 'he']) assert.doesNotMatch(UI.renderPrefsPanel(document, SHOWN, prefs, { t: tOf(uiLocales()[lang]) }).textContent, /news\./, lang);
+});
