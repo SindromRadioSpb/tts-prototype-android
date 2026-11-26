@@ -13,7 +13,7 @@ test('unknown outlet in table reads as disabled', async () => {
   await dbRun(db, "DELETE FROM news_outlet_state WHERE outlet_id='haaretz'");
   const st = createOutletState({ db });
   const all = await st.list();
-  assert.deepEqual(all.map(o => o.outlet_id).sort(), ['c14', 'haaretz', 'maariv', 'mako', 'n12', 'walla', 'ynet']);
+  assert.equal(all.length, require('../public/js/news-outlets').OUTLETS.length); assert.ok(['c14', 'haaretz', 'maariv', 'mako', 'n12', 'walla', 'ynet'].every(id => all.some(o => o.outlet_id === id)));
   const h = await st.get('haaretz');
   assert.equal(h.enabled, false); assert.equal(h.route, 'server');
   assert.equal((await st.get('ynet')).enabled, true);
@@ -53,7 +53,7 @@ test('harvestable skips disabled and home_pc', async () => {
   const st = createOutletState({ db: await openDb() });
   await st.setEnabled('maariv', false, 'owner:1');
   const ids = (await st.harvestable(SOURCES)).map(s => s.outlet_id).sort();
-  assert.deepEqual(ids, ['haaretz', 'n12', 'walla', 'ynet']);
+  assert.deepEqual(ids.filter(id => ['ynet', 'walla', 'maariv', 'n12', 'haaretz', 'c14'].includes(id)), ['haaretz', 'n12', 'walla', 'ynet']);
 });
 
 // ---- W3: a new outlet is switched on after a passed probe, or forced by the owner (spec §5.2) -------------

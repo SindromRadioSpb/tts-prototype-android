@@ -11,7 +11,7 @@ test('outletForUrl routes mako news to n12 and rejects foreign hosts', () => {
   assert.equal(O.outletForUrl('https://news.walla.co.il/item/3700000'), 'walla');
   assert.equal(O.outletForUrl('https://ynet.co.il.evil.com/a'), null);
   assert.equal(O.outletForUrl('https://notynet.co.il/a'), null);
-  assert.equal(O.OUTLETS.length, 7);
+  assert.ok(O.OUTLETS.length >= 7); assert.ok(['ynet', 'mako', 'walla', 'maariv', 'c14', 'n12', 'haaretz'].every(id => O.byId(id)));
 });
 test('canonicalizeUrl strips tracking and is stable', () => {
   assert.equal(C.canonicalizeUrl('http://WWW.Ynet.co.il/news/article/abc/?utm_source=x&fbclid=y#top'), 'https://www.ynet.co.il/news/article/abc');

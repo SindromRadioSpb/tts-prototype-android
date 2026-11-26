@@ -105,7 +105,7 @@ test('news work served in public work shape; feed and outlets are public', async
   assert.equal((await call('GET', '/api/news/feed?work=na_' + '0'.repeat(24) + '.b1')).status, 404);
   assert.equal((await call('GET', '/api/news/feed?outlet=cnn')).status, 404);
   const outlets = await call('GET', '/api/news/outlets');
-  assert.equal(outlets.body.outlets.length, 7); assert.equal(outlets.body.outlets[0].name_he, 'ynet');
+  assert.equal(outlets.body.outlets.length, require('../public/js/news-outlets').OUTLETS.length); assert.equal(outlets.body.outlets[0].name_he, 'ynet');
 });
 test('withdraw article and pack through the editor routes', async t => {
   const { call, repo, auth } = await setup(t);

@@ -42,7 +42,7 @@ test('editor reads outlets with state', async t => {
   assert.deepEqual([y.enabled, y.route, y.group, y.has_adapter, y.day_count, y.last_ok_at], [true, 'server', 'national', true, 2, '2026-11-26T07:55:00.000Z']);
   assert.deepEqual([m.enabled, m.has_adapter], [false, false]);
   assert.equal(c.route, 'home_pc');
-  assert.equal(r.body.outlets.length, 7);
+  assert.equal(r.body.outlets.length, require('../public/js/news-outlets').OUTLETS.length);
 });
 test('editor key cannot switch an outlet (OWNER_ONLY)', async t => {
   const { auth, call } = await setup(t);

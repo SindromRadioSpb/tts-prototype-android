@@ -66,7 +66,7 @@ test('filters: section, outlet, no heavy topics', async t => {
   assert.equal((await repo.listFeed({ outlet_id: 'ynet', tier: 'fresh', section: 'sport' })).items.length, 1);
   assert.equal((await repo.listFeed({ outlet_id: 'ynet', tier: 'fresh', no_heavy: true })).items.length, 2);
   const outlets = await repo.listOutlets();
-  assert.equal(outlets.length, 7);
+  assert.equal(outlets.length, require('../public/js/news-outlets').OUTLETS.length);
   const ynet = outlets.find(o => o.outlet_id === 'ynet');
   assert.equal(ynet.fresh_count, 3); assert.deepEqual(ynet.sections.map(s => s.section).sort(), ['politics', 'sport']);
   assert.equal(outlets.find(o => o.outlet_id === 'haaretz').fresh_count, 0);

@@ -1452,7 +1452,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/library.html",
   "/js/library-ui.js?v=908",
   // News section (3.11.885)
-  "/js/news-outlets.js?v=916",
+  "/js/news-outlets.js?v=918",
   "/js/news-reader.js?v=912",
   "/js/news-local-sweep.js?v=885",
   "/css/news-reader.css?v=895",
@@ -1541,9 +1541,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=917",
-  "/i18n/locales/en.js?v=917",
-  "/i18n/locales/he.js?v=917",
+  "/i18n/locales/ru.js?v=918",
+  "/i18n/locales/en.js?v=918",
+  "/i18n/locales/he.js?v=918",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
