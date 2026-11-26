@@ -98,7 +98,8 @@ test("late bookmark reads after Back cannot decorate another reader or dereferen
 });
 
 test("Room update targets the registration's waiting worker and reloads once after its activation", async () => {
-  const applyStart=ui.indexOf('async function applyRoomUpdate('), applyEnd=ui.indexOf('function showRoomUpdateToast(',applyStart);
+  // O-122: the helpers the press uses (waiting for the install, the worker's version) come with it.
+  const applyStart=ui.indexOf('async function waitForRoomReleaseWorker('), applyEnd=ui.indexOf('function showRoomUpdateToast(',applyStart);
   const registerStart=ui.indexOf('function registerRoomServiceWorker('), registerEnd=ui.indexOf('async function loadRoomVersion(',registerStart);
   const context=vm.createContext({ WeakSet, setTimeout:()=>0 });
   vm.runInContext(`const old={state:'activated',postMessage:()=>{throw new Error('Stale active worker was targeted');}};
@@ -110,13 +111,18 @@ test("Room update targets the registration's waiting worker and reloads once aft
       getRegistration:async()=>registration,register:()=>({then:()=>({catch(){}})})}};
     const location={reload:()=>reloads++};
     const prepareRoomUpdateSafePoint=async()=>({ok:true,readerOpen:false});
-    function dismissRoomUpdateToast(){} function roomDiagPush(){}
+    function dismissRoomUpdateToast(){} function roomDiagPush(){} function refreshAboutUpdateStatus(){} function showRoomUpdateToast(){}
+    let roomUpdateBusy=false, roomAppVersion='3.11.2', roomUpdateToastEl=null; const roomShellVersion='3.11.1';
+    function markRoomUpdateIntent(){} function clearRoomUpdateIntent(){} function roomUpdateIntentFresh(){ return false; }
+    function tt(k,f){ return f; }
     ${ui.slice(applyStart,applyEnd)}
     ${ui.slice(registerStart,registerEnd)}
     globalThis.run=async()=>{
       registerRoomServiceWorker(); await applyRoomUpdate(); listener();
       if(reloads!==0) throw new Error('Prior controller notification reloaded its old shell');
       navigator.serviceWorker.controller=target; listener(); listener();
+      // The reload waits for the worker's version answer (none here, so it reloads).
+      for(let i=0;i<5;i++) await Promise.resolve();
       return {reloads,messages};
     };`,context);
   const result=await context.run();assert.equal(result.reloads,1);assert.deepEqual(Array.from(result.messages),['SKIP_WAITING']);

@@ -42,7 +42,8 @@ function cleanBody(raw, outletId, url) {
 
 function createRelayIntake({ db, outletState, index = { refresh: async () => {} }, storePhoto, now = () => Date.now(), quotaBytes = QUOTA_BYTES }) {
   const iso = () => new Date(now()).toISOString();
-  const used = new Map(); // key_id → { day, bytes } (a restart forgets it: the cap is per running day)
+  // key_id + outlet → { day, bytes }: one PC harvests several outlets, each has its own day (a restart forgets it).
+  const used = new Map();
   function charge(keyId, bytes) {
     const day = iso().slice(0, 10), u = used.get(keyId);
     const cur = u && u.day === day ? u : { day, bytes: 0 };
@@ -64,7 +65,7 @@ function createRelayIntake({ db, outletState, index = { refresh: async () => {} 
     await homeOutlet(b.outlet_id);
     const harvestedAt = isoOf(b.harvested_at);
     if (!harvestedAt || Date.parse(harvestedAt) > now() + FUTURE_SLACK_MS) throw new NewsError('BAD_HARVESTED_AT', 400);
-    charge(String(keyId), Buffer.byteLength(JSON.stringify(b.items)));
+    charge(String(keyId) + '|' + b.outlet_id, Buffer.byteLength(JSON.stringify(b.items)));
 
     const result = { batch_id: b.batch_id, accepted: 0, updated: 0, kept: 0, rejected: [] }, touched = [];
     const nowIso = iso();
@@ -118,7 +119,7 @@ function createRelayIntake({ db, outletState, index = { refresh: async () => {} 
   async function putPhoto(keyId, outletId, src, bytes) {
     await homeOutlet(outletId);
     if (typeof src !== 'string' || src.length > 1000 || !canFetchArchiveImage(outletId, src) || !wholeJpeg(bytes)) throw new NewsError('PHOTO_REJECTED', 400);
-    charge(String(keyId), bytes.length);
+    charge(String(keyId) + '|' + outletId, bytes.length);
     const since = new Date(now() - PHOTO_DAYS * 86400e3).toISOString();
     const rows = await new Promise((res, rej) => db.all("SELECT data_json FROM news_harvest_items WHERE outlet_id=? AND first_seen_at>=? AND data_json LIKE ? ESCAPE '\\' LIMIT 50",
       [outletId, since, '%' + likeEscape(src) + '%'], (e, r) => e ? rej(e) : res(r || [])));

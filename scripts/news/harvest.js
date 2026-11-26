@@ -5,7 +5,7 @@
 // which answers servers with a bot challenge. Seen articles are remembered in <out>/.harvest.sqlite.
 //   node scripts/news/harvest.js [--out folder] [--only c14,ynet] [--main 22] [--pages 400]
 // With --push the PC hands its harvest to the server instead of making a local archive (spec 2026-11-26 §6):
-//   node scripts/news/harvest.js --only c14 --out <folder> --push https://linguistpro.kolosei.com --key-file <file with the lpr_ key>
+//   node scripts/news/harvest.js --only c14,haipo --out <folder> --push https://linguistpro.kolosei.com --key-file <file with the lpr_ key>
 // It reads the feeds and pages (one poll), then sends every ready card — with the text and without — and the photos.
 const fs = require('node:fs'), path = require('node:path');
 const sqlite3 = require('sqlite3');
@@ -34,20 +34,29 @@ async function main() {
   const push = opt('--push');
   if (push) {
     const keyFile = opt('--key-file');
-    if (!keyFile || only.length !== 1) throw new Error('--push needs --key-file and exactly one outlet in --only');
+    if (!keyFile || !only.length) throw new Error('--push needs --key-file and the outlets in --only');
     const key = fs.readFileSync(path.resolve(keyFile), 'utf8').trim();
     const origin = new URL(push).origin, harvestedAt = new Date().toISOString();
+    // One poll reads every listed outlet; each outlet is then handed over on its own (the server
+    // takes a batch only for an outlet switched to «с ПК», so one refusal never stops the others).
     const poll = await harvester.poll();
-    const o = poll.outlets[only[0]] || {};
-    console.log(`${only[0]}: новых в лентах ${o.new || 0}, страниц прочитано ${poll.pages}` + ((o.errors || []).length ? ', ошибки ' + o.errors.join(' ') : ''));
-    // Every feed of the outlet failed on the PC too: the server records an error, not a harvest (spec §6.4).
-    const src = SOURCES.find(x => x.outlet_id === only[0]);
-    const feedErrors = (o.errors || []).filter(e => /^(FEED_FAILED|BOT_CHALLENGE):/.test(e));
-    const pollOk = !(src && feedErrors.length >= src.feeds.length);
-    const sent = await pushPending({ db, origin, key, outletId: only[0], harvestedAt, photoOf: src2 => harvester.photoFor(src2), log: m => console.log(m),
-      pollOk, pollError: pollOk ? null : feedErrors[0] });
-    console.log(`Отправлено на сервер: новых ${sent.accepted}, дополнено текстом ${sent.updated}, уже были ${sent.kept}, отклонено ${sent.rejected}; фото ${sent.photos_sent}, не удалось ${sent.photos_failed}`);
+    let failed = 0;
+    for (const outletId of only) {
+      const o = poll.outlets[outletId] || {};
+      console.log(`${outletId}: новых в лентах ${o.new || 0}` + ((o.errors || []).length ? ', ошибки ' + o.errors.join(' ') : ''));
+      // Every feed of the outlet failed on the PC too: the server records an error, not a harvest (spec §6.4).
+      const src = SOURCES.find(x => x.outlet_id === outletId);
+      const feedErrors = (o.errors || []).filter(e => /^(FEED_FAILED|BOT_CHALLENGE):/.test(e));
+      const pollOk = !(src && feedErrors.length >= src.feeds.length);
+      try {
+        const sent = await pushPending({ db, origin, key, outletId, harvestedAt, photoOf: src2 => harvester.photoFor(src2), log: m => console.log(m),
+          pollOk, pollError: pollOk ? null : feedErrors[0] });
+        console.log(`${outletId} → сервер: новых ${sent.accepted}, дополнено текстом ${sent.updated}, уже были ${sent.kept}, отклонено ${sent.rejected}; фото ${sent.photos_sent}, не удалось ${sent.photos_failed}`);
+      } catch (e) { failed++; console.log(`${outletId} → сервер: не принято (${e && e.message})`); }
+    }
+    console.log(`Страниц прочитано ${poll.pages}`);
     db.close();
+    if (failed) process.exitCode = 1;
     return;
   }
   const r = await harvester.runOnce({ trigger: 'manual' });

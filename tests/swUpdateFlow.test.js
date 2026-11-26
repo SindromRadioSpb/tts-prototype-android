@@ -56,3 +56,30 @@ test("O-016: the Mediatheque never offers a first install as an update", () => {
   assert.match(mediatheque, /if \(!hadController && !updateRequested\) \{ hadController = true;/,
     "the first claim is absorbed once; a later controller change marks the release");
 });
+
+test("O-122: the Room's Update press waits for the installing release instead of reloading into the old shell", () => {
+  const apply = libraryUi.slice(libraryUi.indexOf("async function applyRoomUpdate("), libraryUi.indexOf("function offerRoomUpdate("));
+  assert.match(apply, /if \(!w && roomVersionMismatch\) \{[\s\S]{0,80}waitForRoomReleaseWorker\(/, "mismatch without a waiting worker waits for the install");
+  assert.ok(apply.indexOf("waitForRoomReleaseWorker(") < apply.indexOf("reloadRoomShellFromNetwork()"), "the network reload is only the fallback");
+  assert.match(apply, /if \(resumed\) \{ clearRoomUpdateIntent\(\); showRoomUpdateToast\(null\); return; \}/, "a resumed press never reloads again on its own");
+  const wait = libraryUi.slice(libraryUi.indexOf("async function waitForRoomReleaseWorker("), libraryUi.indexOf("function roomWorkerVersion("));
+  assert.match(wait, /setTimeout\(\(\) => done\(null\), timeoutMs\)/, "the wait is bounded");
+  assert.match(wait, /worker\.state !== 'installing'\) done\(null\)/, "a failed (redundant) install ends the wait");
+});
+
+test("O-122: a worker that installs after the tab's own Update press is applied, not offered again", () => {
+  const offer = libraryUi.slice(libraryUi.indexOf("function offerRoomUpdate("), libraryUi.indexOf("function showRoomUpdateToast("));
+  assert.match(offer, /roomUpdateIntentFresh\(\)[\s\S]{0,160}applyRoomUpdate\(\{ resumed: true \}\)/);
+  assert.ok(offer.indexOf("if (roomUpdateBusy) return;") < offer.indexOf("showRoomUpdateToast(worker)"), "no offer flashes up while a press waits for the install");
+  const register = libraryUi.slice(libraryUi.indexOf("function registerRoomServiceWorker("), libraryUi.indexOf("async function loadRoomVersion("));
+  assert.doesNotMatch(register, /showRoomUpdateToast\(/, "worker discovery always goes through offerRoomUpdate");
+  assert.match(register, /roomWorkerVersion\(navigator\.serviceWorker\.controller[\s\S]{0,200}served === roomShellVersion/,
+    "no second reload when the shell already is the release the new worker serves");
+  assert.match(libraryUi, /ROOM_UPDATE_INTENT_MS = 2 \* 60 \* 1000/, "the press is remembered briefly, per tab");
+});
+
+test("O-122: the worker serves the Room's ?room_update= navigation from the network", () => {
+  const sw = read("public/sw.js");
+  assert.match(sw, /req\.mode === "navigate" && url\.pathname === "\/library\.html" && url\.searchParams\.has\("room_update"\)\) \{\s*event\.respondWith\(fetch\(req\)/);
+  assert.ok(sw.indexOf('url.searchParams.has("room_update")') < sw.indexOf("event.respondWith(staleWhileRevalidate(req))"));
+});

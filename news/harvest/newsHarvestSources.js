@@ -1,5 +1,6 @@
 'use strict';
 const { hydrateSections } = require('./newsFlight');
+const Outlets = require('../../public/js/news-outlets');
 // Where the harvester reads (docs/planning/NEWS_PACK_FORMAT_V1_2026_11_12.md §16–§17): the RSS feeds of
 // each outlet, polled every hour, and how its article page is laid out. Flash feeds («מבזקים») are left
 // out on purpose: two-line items are not articles. `section_he` is the feed's rubric — the page's own
@@ -95,11 +96,19 @@ const ARCHIVE_IMAGE_HOSTS = {
   // C14 serves article photos from its own site (www…/wp-content/uploads/, home-PC pilot 2026-11-26).
   c14: /^(?:cdn\.c14\.co\.il|static\.c14\.co\.il|www\.c14\.co\.il)$/,
 };
+// An outlet read generically (wave 4) keeps its photos on its own site or its own subdomains
+// (…/wp-content/uploads/, cdn.geektime.co.il): only those, by the catalog's domains of that outlet.
+function genericPhotoHost(outletId, u) {
+  const src = bySource.get(outletId);
+  return !!(src && src.generic) && Outlets.outletForUrl(u.href) === outletId;
+}
 function canFetchArchiveImage(outletId, src) {
   const hosts = Object.hasOwn(ARCHIVE_IMAGE_HOSTS, outletId) && ARCHIVE_IMAGE_HOSTS[outletId];
   try {
     const u = new URL(src);
-    if (!hosts || u.protocol !== 'https:' || u.username || u.password || u.port || !hosts.test(u.hostname)) return false;
+    if (u.protocol !== 'https:' || u.username || u.password || u.port) return false;
+    if (!hosts) return genericPhotoHost(outletId, u);
+    if (!hosts.test(u.hostname)) return false;
     if (outletId === 'c14' && u.hostname === 'www.c14.co.il') return u.pathname.startsWith('/wp-content/uploads/');
     return outletId !== 'maariv' || u.pathname.startsWith('/image/upload/');
   } catch (_) { return false; }

@@ -189,6 +189,7 @@ window.I18N_LOCALES.ru = {
     updateAvailable: "Доступно обновление приложения",
     updateNow: "Обновить",
     updateLater: "Позже",
+    updateLoading: "Загружается обновление…",
     offlineReady: "Приложение готово к офлайн-работе",
   },
   classic: {

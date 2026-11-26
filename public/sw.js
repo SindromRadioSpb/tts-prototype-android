@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.919";
+const CACHE_VERSION = "v3.11.920";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -150,7 +150,7 @@ const PRECACHE_URLS = [
   "/css/pronunciation.css",
   "/js/pronunciation-lab.js",
   "/js/pronunciation-entry.js",
-  "/js/library-ui.js?v=908",
+  "/js/library-ui.js?v=920",
   // News section (3.11.885)
   "/js/news-outlets.js?v=918",
   "/js/news-reader.js?v=912",
@@ -158,10 +158,10 @@ const PRECACHE_URLS = [
   "/css/news-reader.css?v=895",
   "/news.html",
   "/js/news-marks-local.js?v=913",
-  "/js/news-list-ui.js?v=919",
-  "/js/news-prefs.js?v=919",
-  "/js/news-ui.js?v=919",
-  "/css/news.css?v=919",
+  "/js/news-list-ui.js?v=920",
+  "/js/news-prefs.js?v=920",
+  "/js/news-ui.js?v=920",
+  "/css/news.css?v=920",
   "/js/atlas-progress-export.js?v=876",
   "/js/atlas-edition.js?v=880",
   "/js/corpus-registry.js?v=876",
@@ -397,9 +397,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=919",
-  "/i18n/locales/en.js?v=919",
-  "/i18n/locales/he.js?v=919",
+  "/i18n/locales/ru.js?v=920",
+  "/i18n/locales/en.js?v=920",
+  "/i18n/locales/he.js?v=920",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
@@ -588,6 +588,13 @@ self.addEventListener("fetch", (event) => {
   // whose shell the refresh then loads. Another open tab keeps the toast path.
   if (req.mode === "navigate" && self.registration.waiting && !url.pathname.startsWith("/api/")) {
     event.respondWith(reloadIntoWaitingRelease(req, url));
+    return;
+  }
+
+  // O-122: the Room's Update fallback asks for its shell from the network (?room_update=). A
+  // precached shell matched by pathname would bring the old release back and offer it again.
+  if (req.mode === "navigate" && url.pathname === "/library.html" && url.searchParams.has("room_update")) {
+    event.respondWith(fetch(req).catch(async () => (await caches.open(PRECACHE)).match("/library.html")));
     return;
   }
 

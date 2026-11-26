@@ -319,3 +319,35 @@ test('relay key required (401) on the intake routes', async t => {
   assert.equal(put.status, 200);
   assert.equal((await call('PUT', '/api/news/relay/photos?outlet=c14&src=' + encodeURIComponent(src), { body: jpeg, headers: { 'content-type': 'image/jpeg' } })).status, 401);
 });
+
+// ---- O-175: outlets whose Cloudflare closes the server's address go through the home PC too -------------
+test('migration 098 moves the five 403-to-server outlets to the home PC, nothing else', async () => {
+  const db = await openDb();
+  const rows = await all(db, "SELECT outlet_id, route, enabled FROM news_outlet_state WHERE route='home_pc' ORDER BY outlet_id");
+  assert.deepEqual(rows.map(r => r.outlet_id), ['c14', 'colbo', 'geektime', 'haipo', 'hayadan', 'kolhair']);
+  assert.ok(rows.every(r => r.enabled === 1));
+  const srv = await all(db, "SELECT outlet_id FROM news_outlet_state WHERE outlet_id IN ('kikar','news08','hkn') AND route='server'");
+  assert.equal(srv.length, 3);
+});
+test('a generic outlet relayed by the PC keeps photos from its own domains only', () => {
+  const { canFetchArchiveImage } = require('../news/harvest/newsHarvestSources');
+  assert.equal(canFetchArchiveImage('haipo', 'https://haipo.co.il/wp-content/uploads/2026/11/a.jpg'), true);
+  assert.equal(canFetchArchiveImage('geektime', 'https://cdn.geektime.co.il/wp-content/uploads/2026/11/a.jpg'), true);
+  assert.equal(canFetchArchiveImage('haipo', 'https://cdn.geektime.co.il/wp-content/uploads/a.jpg'), false, 'another outlet');
+  assert.equal(canFetchArchiveImage('haipo', 'http://haipo.co.il/wp-content/uploads/a.jpg'), false);
+  assert.equal(canFetchArchiveImage('haipo', 'https://haipo.co.il.evil.example/a.jpg'), false);
+  assert.equal(canFetchArchiveImage('haipo', 'https://u:p@haipo.co.il/a.jpg'), false);
+  assert.equal(canFetchArchiveImage('ynet', 'https://www.ynet.co.il/a.jpg'), false, 'a curated outlet keeps its list');
+});
+test('the daily quota is per key and outlet: one PC can hand in several outlets', async () => {
+  const s2 = await intakeSetup();
+  const size = Buffer.byteLength(JSON.stringify(pilotBatch().items));
+  const small = createRelayIntake({ db: s2.db, outletState: s2.outletState, storePhoto: () => {}, quotaBytes: size + 100, now: () => Date.parse('2026-11-26T04:00:00Z') });
+  await small.accept('nrk_1', pilotBatch());
+  const other = pilotBatch(); other.outlet_id = 'haipo'; other.batch_id = 'e'.repeat(64);
+  other.items = other.items.map(it => ({ ...it, url: it.url.replace('https://www.c14.co.il/article/', 'https://haipo.co.il/') }));
+  const r = await small.accept('nrk_1', other);
+  assert.equal(r.accepted + r.rejected.length, 10, 'the second outlet has its own day');
+  const third = pilotBatch({ harvestedAt: '2026-11-26T03:40:00.000Z' }); third.batch_id = 'f'.repeat(64);
+  await assert.rejects(small.accept('nrk_1', third), e => e.code === 'RELAY_QUOTA');
+});

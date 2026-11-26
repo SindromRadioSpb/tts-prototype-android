@@ -189,6 +189,7 @@ window.I18N_LOCALES.he = {
     updateAvailable: "זמין עדכון לאפליקציה",
     updateNow: "עדכן",
     updateLater: "אחר כך",
+    updateLoading: "העדכון נטען…",
     offlineReady: "האפליקציה מוכנה לעבודה לא מקוונת",
   },
   classic: {

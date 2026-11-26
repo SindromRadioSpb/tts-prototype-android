@@ -28,10 +28,11 @@ const CURRENT = (fs.readFileSync(path.join(ROOT, "public", "sw.js"), "utf8").mat
 if (!CURRENT) throw new Error("CACHE_VERSION not found in public/sw.js");
 const NEXT = CURRENT.replace(/(\d+)$/, (n) => String(Number(n) + 1));
 const only = (process.argv.find((a) => a.startsWith("--only=")) || "").slice(7).split(",").filter(Boolean);
-const caseIds = new Set(["A", "D", "E", "F", "G", "H", "I", ...["A", "E", "F", "I"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
+const caseIds = new Set(["A", "D", "E", "F", "G", "H", "I", "J", "K", ...["A", "E", "F", "I", "J"].flatMap(prefix => ["studio", "room", "mediatheque"].map(surface => prefix + ":" + surface))]);
 if (only.some(id => !caseIds.has(id))) throw new Error("SW_SMOKE_UNKNOWN_CASE");
 
 let phase = "N"; // "N" | "N+1" | "mixed"
+let holdInstall = false; // K: the new worker's install check still sees release N (it fails closed)
 const isShell = (pathname) => pathname === "/" || pathname.endsWith(".html");
 function rewriteTarget(pathname) {
   if (isShell(pathname) || pathname === "/api/client-config") return true; // shells carry the marker; config carries their hashes
@@ -43,7 +44,8 @@ function rewriteTarget(pathname) {
 
 // What this phase serves for a rewritten path. Shells always carry a test-only marker saying which
 // release's HTML bytes the document got.
-function transform(pathname, text) {
+function transform(pathname, text, search = "") {
+  if (holdInstall && pathname === "/api/client-config" && search.includes("sw_install=")) return text;
   if (phase === "N+1" || (phase === "mixed" && pathname === "/sw.js")) text = text.split(CURRENT).join(NEXT);
   if (isShell(pathname)) text = text.replace(/<head>/i, `<head><meta name="lp-test-release" content="${phase === "N+1" ? NEXT : CURRENT}">`);
   return text;
@@ -91,7 +93,7 @@ function startProxy() {
       up.on("data", (c) => chunks.push(c));
       up.on("end", async () => {
         try {
-          let text = transform(pathname, Buffer.concat(chunks).toString("utf8"));
+          let text = transform(pathname, Buffer.concat(chunks).toString("utf8"), new URL(req.url, BASE).search);
           if (pathname === "/api/client-config" && up.statusCode === 200) text = await withIntegrity(text);
           const body = Buffer.from(text, "utf8");
           const out = { ...up.headers, "content-length": String(body.length) };
@@ -339,6 +341,68 @@ async function scenarioRollingDeploy(surface) {
 }
 
 
+// J (O-122): the user returns after a deploy. The old worker serves the old shell, the page sees
+// the server's new version and offers Update before the new worker has finished installing. One
+// press must bring N+1, and no second offer may follow.
+async function scenarioReturnClickOnce(surface) {
+  const { ctx, page } = await freshContext("return-once-" + surface);
+  try {
+    const start = await installN(page, surface);
+    await page.close();
+    phase = "N+1";
+    const again = await ctx.newPage();
+    await again.goto(BASE + SURFACES[surface].url);
+    const first = await readVersion(again);
+    const toast = await waitFor(async () => (await again.locator(SURFACES[surface].toast).count()) > 0, 20000, 100);
+    let after = "", secondToast = false, navigations = 0;
+    if (toast) {
+      again.on("framenavigated", (f) => { if (f === again.mainFrame()) navigations++; });
+      await SURFACES[surface].click(again);
+      await waitFor(async () => (await readVersion(again)) === NEXT, 40000, 500);
+      await again.waitForTimeout(1500);
+      after = await readVersion(again);
+      // A second offer would come once the new worker finishes installing in the background.
+      secondToast = await waitFor(async () => (await again.locator(SURFACES[surface].toast).count()) > 0, 15000, 250);
+    }
+    record(`J:${surface} return after deploy → one click → N+1, no second offer`,
+      start.controlled && toast && after === NEXT && !secondToast,
+      { start, first, toast, after, secondToast, navigations, sw: await swState(again) });
+  } finally { await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
+}
+
+// K (O-122 fallback): the press finds no installable worker (its install fails closed), so the Room
+// reloads its shell from the network. When the worker installs later, it is applied silently: no
+// second offer and no extra reload.
+async function scenarioFallbackThenSilent() {
+  const { ctx, page } = await freshContext("fallback-room");
+  try {
+    const start = await installN(page, "room");
+    await page.close();
+    holdInstall = true; phase = "N+1";
+    const again = await ctx.newPage();
+    await again.goto(BASE + SURFACES.room.url);
+    const toast = await waitFor(async () => (await again.locator(SURFACES.room.toast).count()) > 0, 20000, 100);
+    let reloaded = "", after = "", secondToast = false, navigationsAfterInstall = -1;
+    if (toast) {
+      await SURFACES.room.click(again);
+      await waitFor(async () => (await readVersion(again)) === NEXT, 45000, 500);
+      reloaded = await readVersion(again);
+      await again.waitForTimeout(1500);
+      const origin = await again.evaluate(() => performance.timeOrigin);
+      holdInstall = false;
+      await bounded(again.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration("/"); if (reg) await reg.update().catch(() => {}); }), 20000, "SW_SMOKE_UPDATE_TIMEOUT");
+      await waitFor(async () => { const st = await swState(again); return !st.waiting && !st.installing; }, 30000, 500);
+      secondToast = await waitFor(async () => (await again.locator(SURFACES.room.toast).count()) > 0, 8000, 250);
+      after = await readVersion(again);
+      navigationsAfterInstall = (await again.evaluate(() => performance.timeOrigin)) === origin ? 0 : 1;
+    }
+    const sw = await swState(again);
+    record("K:room fallback network reload → N+1, late worker applied silently",
+      start.controlled && toast && reloaded === NEXT && after === NEXT && !secondToast && !sw.waiting && navigationsAfterInstall === 0,
+      { start, toast, reloaded, after, secondToast, navigationsAfterInstall, sw });
+  } finally { holdInstall = false; await bounded(ctx.close(), 15000, "SW_SMOKE_CONTEXT_CLOSE_TIMEOUT"); }
+}
+
 // F: one tab, the new worker is already waiting (installed while the user read), plain reload →
 // the reload itself brings N+1 (no toast click). G: two tabs → a plain reload must NOT swap the
 // other tab's code; the toast stays the way to update.
@@ -402,6 +466,8 @@ async function scenarioReloadTwoTabs() {
     if (run("G")) await runCase("G", scenarioReloadTwoTabs);
     for (const surface of ["studio", "room", "mediatheque"]) if (run("I") || run("I:" + surface)) await runCase("I:" + surface, () => scenarioToastUpdate(surface, false, true));
     if (run("H")) await runCase("H", () => scenarioToastUpdate('room', true));
+    for (const surface of ["studio", "room", "mediatheque"]) if (run("J") || run("J:" + surface)) await runCase("J:" + surface, () => scenarioReturnClickOnce(surface));
+    if (run("K")) await runCase("K", scenarioFallbackThenSilent);
   } finally {
     if (proxy) proxy.close();
     await stopServer(child);

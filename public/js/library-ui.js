@@ -5057,7 +5057,16 @@ const roomShellVersion = (() => {
 })();
 const roomWatchedWorkers = new WeakSet();
 let roomWaitingWorker = null, roomReloadingForUpdate = false, roomUpdateActivationRequested = false, roomUpdateToastEl = null, roomAppVersion = '';
-let roomVersionMismatch = false;
+let roomVersionMismatch = false, roomUpdateBusy = false;
+// O-122: one Update press is the whole update. The press is remembered for two minutes in this tab,
+// so a release worker that finishes installing after a fallback reload is applied, not offered again.
+const ROOM_UPDATE_INTENT_KEY = 'lp.room.updateIntentAt', ROOM_UPDATE_INTENT_MS = 2 * 60 * 1000;
+function markRoomUpdateIntent() { try { sessionStorage.setItem(ROOM_UPDATE_INTENT_KEY, String(Date.now())); } catch (_) {} }
+function clearRoomUpdateIntent() { try { sessionStorage.removeItem(ROOM_UPDATE_INTENT_KEY); } catch (_) {} }
+function roomUpdateIntentFresh() {
+  try { const at = Number(sessionStorage.getItem(ROOM_UPDATE_INTENT_KEY)); return at > 0 && Date.now() - at < ROOM_UPDATE_INTENT_MS; }
+  catch (_) { return false; }
+}
 let roomConnectionState = 'online', roomReconnectPromise = null;
 function setRoomConnectionState(next) {
   roomConnectionState = next || roomConnectionState;
@@ -5143,32 +5152,101 @@ async function refreshRoomVersionBeforeNetworkReload() {
     if (config && config.version) roomAppVersion = String(config.version);
   } catch (_) {}
 }
-async function applyRoomUpdate() {
-  const safePoint = await prepareRoomUpdateSafePoint();
-  if (!safePoint.ok) return;
-  let registration = null;
-  try { registration = await navigator.serviceWorker.getRegistration('/'); } catch (_) {}
-  const w = (registration && registration.waiting) ||
-    (roomWaitingWorker && roomWaitingWorker.state === 'installed' ? roomWaitingWorker : null);
-  if (w) {
-    roomWaitingWorker = w;
-    dismissRoomUpdateToast();
-    roomUpdateActivationRequested = true;
-    w.postMessage({ type: 'SKIP_WAITING' });
-    roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'progress-flushed' : 'safe-point' });
-    // A dropped message must not reload into the old shell. Re-send only while
-    // the same worker is still waiting; controllerchange owns the one reload.
-    setTimeout(async () => {
-      if (roomReloadingForUpdate) return;
-      try { const reg = await navigator.serviceWorker.getRegistration('/'); if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
-      catch (_) {}
-    }, 3500);
-  } else if (roomVersionMismatch) {
-    dismissRoomUpdateToast();
-    roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'network-reload-progress-flushed' : 'network-reload-safe-point' });
-    await refreshRoomVersionBeforeNetworkReload();
-    reloadRoomShellFromNetwork();
-  } else { reconnectRoomNetwork(); }
+// O-122: the server already answers with the new version, but the release's worker may still be
+// installing (a returning visitor's browser starts that on open). Wait for it instead of reloading
+// into the old worker's precached shell, which would offer the update a second time.
+async function waitForRoomReleaseWorker(timeoutMs) {
+  let reg = null;
+  try { reg = await navigator.serviceWorker.getRegistration('/'); } catch (_) {}
+  if (!reg) return null;
+  if (reg.waiting) return reg.waiting;
+  if (!reg.installing) { try { await reg.update(); } catch (_) {} }
+  if (reg.waiting) return reg.waiting;
+  const worker = reg.installing;
+  if (!worker) return null;
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (value) => {
+      if (settled) return; settled = true;
+      clearTimeout(timer); worker.removeEventListener('statechange', inspect); resolve(value);
+    };
+    const inspect = () => {
+      if (worker.state === 'installed') done(reg.waiting || worker);
+      else if (worker.state !== 'installing') done(null); // redundant: the install failed closed
+    };
+    const timer = setTimeout(() => done(null), timeoutMs);
+    worker.addEventListener('statechange', inspect);
+    inspect();
+  });
+}
+function roomWorkerVersion(worker, timeoutMs) {
+  return new Promise((resolve) => {
+    if (!worker || typeof MessageChannel !== 'function') { resolve(''); return; }
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => resolve(''), timeoutMs);
+    channel.port1.onmessage = (event) => { clearTimeout(timer); resolve(String((event.data && event.data.version) || '')); };
+    try { worker.postMessage({ type: 'GET_VERSION' }, [channel.port2]); } catch (_) { clearTimeout(timer); resolve(''); }
+  });
+}
+function setRoomUpdateToastBusy() {
+  if (!roomUpdateToastEl) return;
+  const label = roomUpdateToastEl.querySelector('span');
+  if (label) label.textContent = tt('app.updateLoading', 'Загружается обновление…');
+  for (const button of roomUpdateToastEl.querySelectorAll('button')) button.disabled = true;
+}
+function activateRoomWorker(w, safePoint) {
+  roomWaitingWorker = w;
+  dismissRoomUpdateToast();
+  roomUpdateActivationRequested = true;
+  markRoomUpdateIntent();
+  w.postMessage({ type: 'SKIP_WAITING' });
+  roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'progress-flushed' : 'safe-point' });
+  // A dropped message must not reload into the old shell. Re-send only while
+  // the same worker is still waiting; controllerchange owns the one reload.
+  setTimeout(async () => {
+    if (roomReloadingForUpdate) return;
+    try { const reg = await navigator.serviceWorker.getRegistration('/'); if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); }
+    catch (_) {}
+  }, 3500);
+}
+async function applyRoomUpdate(options) {
+  const resumed = !!(options && options.resumed);
+  if (roomUpdateBusy) return;
+  roomUpdateBusy = true;
+  try {
+    const safePoint = await prepareRoomUpdateSafePoint();
+    if (!safePoint.ok) return;
+    let registration = null;
+    try { registration = await navigator.serviceWorker.getRegistration('/'); } catch (_) {}
+    let w = (registration && registration.waiting) ||
+      (roomWaitingWorker && roomWaitingWorker.state === 'installed' ? roomWaitingWorker : null);
+    if (!w && roomVersionMismatch) {
+      setRoomUpdateToastBusy();
+      w = await waitForRoomReleaseWorker(30000);
+    }
+    if (w) { activateRoomWorker(w, safePoint); return; }
+    // A resumed press never reloads a second time on its own: the offer comes back instead.
+    if (resumed) { clearRoomUpdateIntent(); showRoomUpdateToast(null); return; }
+    if (roomVersionMismatch) {
+      dismissRoomUpdateToast();
+      markRoomUpdateIntent();
+      roomDiagPush({ kind: 'room.update', result: safePoint.readerOpen ? 'network-reload-progress-flushed' : 'network-reload-safe-point' });
+      await refreshRoomVersionBeforeNetworkReload();
+      reloadRoomShellFromNetwork();
+    } else { reconnectRoomNetwork(); }
+  } finally { roomUpdateBusy = false; }
+}
+// A worker that finished installing after this tab's own Update press is applied, not offered.
+function offerRoomUpdate(worker) {
+  // A press in progress is waiting for exactly this worker: it applies it, no fresh offer flashes up.
+  if (roomUpdateBusy) return;
+  if (worker && roomUpdateIntentFresh()) {
+    roomDiagPush({ kind: 'room.update', result: 'intent-resumed' });
+    roomWaitingWorker = worker;
+    applyRoomUpdate({ resumed: true });
+    return;
+  }
+  showRoomUpdateToast(worker);
 }
 function showRoomUpdateToast(worker) {
   roomWaitingWorker = worker || roomWaitingWorker;
@@ -5191,20 +5269,31 @@ function registerRoomServiceWorker() {
     if (!roomUpdateActivationRequested || roomReloadingForUpdate) return;
     // A queued notification for the prior controller is not activation of our target.
     if (!roomWaitingWorker || navigator.serviceWorker.controller !== roomWaitingWorker) return;
-    roomReloadingForUpdate = true; location.reload();
+    clearRoomUpdateIntent();
+    roomReloadingForUpdate = true;
+    // The fallback network reload may already have brought this release's shell: then the new
+    // worker only takes over, and a second reload would show nothing new. Ask the worker which
+    // release it serves; any doubt reloads.
+    roomWorkerVersion(navigator.serviceWorker.controller, 1500).then((served) => {
+      if (served && roomShellVersion && served === roomShellVersion) {
+        roomReloadingForUpdate = false; roomUpdateActivationRequested = false; roomWaitingWorker = null;
+        roomVersionMismatch = false; refreshAboutUpdateStatus(); return;
+      }
+      location.reload();
+    });
   });
   navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
     const watch = (worker) => {
       if (!worker || roomWatchedWorkers.has(worker)) return;
       roomWatchedWorkers.add(worker);
       const inspect = () => {
-        if (worker.state === 'installed' && navigator.serviceWorker.controller) showRoomUpdateToast(worker);
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) offerRoomUpdate(worker);
       };
       worker.addEventListener('statechange', inspect);
       inspect();
     };
     const inspect = () => {
-      if (reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
+      if (reg.waiting && navigator.serviceWorker.controller) offerRoomUpdate(reg.waiting);
       watch(reg.installing);
     };
     inspect();
@@ -5230,8 +5319,9 @@ async function loadRoomVersion() {
         setRoomConnectionState('update-ready');
         try {
           const reg = await navigator.serviceWorker.getRegistration('/');
-          if (reg && reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
-          else showRoomUpdateToast(null);
+          if (reg && reg.waiting && navigator.serviceWorker.controller) offerRoomUpdate(reg.waiting);
+          else if (!roomUpdateIntentFresh()) showRoomUpdateToast(null);
+          else applyRoomUpdate({ resumed: true }); // the press already happened: keep waiting for the release, no second offer
           if (reg) reg.update().catch(() => {});
         } catch (_) { showRoomUpdateToast(null); }
       } else {

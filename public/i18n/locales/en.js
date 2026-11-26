@@ -188,6 +188,7 @@ window.I18N_LOCALES.en = {
     updateAvailable: "App update available",
     updateNow: "Update",
     updateLater: "Later",
+    updateLoading: "Loading the update…",
     offlineReady: "App ready to work offline",
   },
   classic: {
