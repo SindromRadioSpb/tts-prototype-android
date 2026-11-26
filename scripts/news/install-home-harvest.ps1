@@ -4,13 +4,15 @@
 #   powershell -ExecutionPolicy Bypass -File scripts\news\install-home-harvest.ps1 -KeyFile C:\Users\me\linguistpro-c14.key
 param(
   [Parameter(Mandatory = $true)][string]$KeyFile,
-  [string]$RepoDir = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+  [string]$RepoDir = '',
   [string]$OutDir = (Join-Path $env:USERPROFILE 'linguistpro-c14'),
   [string]$Origin = 'https://linguistpro.kolosei.com',
   [string]$Outlet = 'c14',
   [string]$TaskName = 'LinguistPro C14 harvest'
 )
 $ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1 has no $PSScriptRoot inside param(): the repository folder is found here.
+if (-not $RepoDir) { $RepoDir = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) '..\..')).Path }
 if (-not (Test-Path $KeyFile)) { throw "Key file not found: $KeyFile" }
 # The task runs in the repository folder: relative paths would point there, so make them absolute now.
 $KeyFile = (Resolve-Path $KeyFile).Path
