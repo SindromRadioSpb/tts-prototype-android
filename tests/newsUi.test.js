@@ -254,3 +254,38 @@ test('url state keeps ★ and tag filters', () => {
   assert.equal(UI.stateHref(s), '/news.html?view=overview&star=1&tag=' + encodeURIComponent('выборы'));
   assert.equal(UI.parseState('view=overview&tag=' + encodeURIComponent('#x')).tag, null);
 });
+
+// ---- C14 from the home PC (spec 2026-11-26 §6.4; plan W2 Task 10) -------------------------------------
+function uiLocales() {
+  const sandbox = { window: {} };
+  for (const lang of ['ru', 'en', 'he']) vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'public/i18n/locales', lang + '.js'), 'utf8'), sandbox);
+  return sandbox.window.I18N_LOCALES;
+}
+const tOf = loc => (k, f) => { const v = k.split('.').reduce((o, x) => o && o[x], loc); return typeof v === 'string' ? v : f; };
+const AT = Date.parse('2026-11-26T12:00:00Z');
+test('home_pc tile names the route and last harvest time', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderOutletTile(document, { outlet_id: 'c14', route: 'home_pc', last_ok_at: '2026-11-26T11:10:00Z', fresh_count: 0 }, { now: AT, t: tOf(uiLocales().ru) });
+  const line = el.querySelector('.nw-tile-relay');
+  assert.match(line.textContent, /с домашнего компьютера/); assert.match(line.textContent, /13:10/);
+  assert.equal(line.getAttribute('data-stale'), 'false');
+});
+test('stale after 3 hours says the PC has been silent since …', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderOutletTile(document, { outlet_id: 'c14', route: 'home_pc', last_ok_at: '2026-11-26T08:30:00Z' }, { now: AT, t: tOf(uiLocales().ru) });
+  const line = el.querySelector('.nw-tile-relay');
+  assert.match(line.textContent, /ПК не присылал сбор с 10:30/); assert.equal(line.getAttribute('data-stale'), 'true');
+  const day = UI.renderOutletTile(document, { outlet_id: 'c14', route: 'home_pc', last_ok_at: '2026-11-24T08:30:00Z' }, { now: AT, t: tOf(uiLocales().ru) });
+  assert.match(day.querySelector('.nw-tile-relay').textContent, /24\.11/, 'an older silence names the date');
+});
+test('never harvested says so, not «0»', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  for (const lang of ['ru', 'en', 'he']) {
+    const el = UI.renderOutletTile(document, { outlet_id: 'c14', route: 'home_pc', last_ok_at: null }, { now: AT, t: tOf(uiLocales()[lang]) });
+    const text = el.querySelector('.nw-tile-relay').textContent;
+    assert.ok(text && !/news\.relay/.test(text), lang + ': ' + text);
+  }
+  assert.match(UI.renderOutletTile(document, { outlet_id: 'c14', route: 'home_pc', last_ok_at: null }, { now: AT, t: tOf(uiLocales().ru) }).querySelector('.nw-tile-relay').textContent, /ещё не присылал/);
+  const ynet = UI.renderOutletTile(document, { outlet_id: 'ynet', route: 'server' }, { now: AT });
+  assert.equal(ynet.querySelector('.nw-tile-relay'), null);
+});

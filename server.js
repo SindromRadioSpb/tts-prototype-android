@@ -1452,7 +1452,7 @@ const SHELL_INTEGRITY_PATHS = [
   "/library.html",
   "/js/library-ui.js?v=908",
   // News section (3.11.885)
-  "/js/news-outlets.js?v=885",
+  "/js/news-outlets.js?v=916",
   "/js/news-reader.js?v=912",
   "/js/news-local-sweep.js?v=885",
   "/css/news-reader.css?v=895",
@@ -1541,9 +1541,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=915",
-  "/i18n/locales/en.js?v=915",
-  "/i18n/locales/he.js?v=915",
+  "/i18n/locales/ru.js?v=916",
+  "/i18n/locales/en.js?v=916",
+  "/i18n/locales/he.js?v=916",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4612,9 +4612,11 @@ function newsStore() {
     const db = require("./db/sqlite").getDb();
     // One index for the overview and every outlet (docs/superpowers/specs/2026-11-21-news-findability-design.md §7.1).
     const index = require("./db/newsIndex").createNewsIndex({ db });
+    // The owner's outlet switches and each outlet's harvest state (docs/superpowers/specs/2026-11-26-news-sources-expansion-design.md §4, §8).
+    const outletState = require("./db/newsOutletState").createOutletState({ db });
     // A published article closes the owner's order for it (findability W5).
-    _newsStore = { index, repo: require("./db/newsRepo").createNewsRepo({ db, index, onPublished: ids => _newsStore.orders.onPublished(ids) }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
-      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m), index, tagsForDot: () => _newsStore.marks.ownerTags() }),
+    _newsStore = { index, outletState, repo: require("./db/newsRepo").createNewsRepo({ db, index, onPublished: ids => _newsStore.orders.onPublished(ids) }), auth: require("./news/newsEditorAuth").createNewsEditorAuth({ db }),
+      harvester: require("./news/harvest/newsHarvest").createNewsHarvester({ db, dataDir: DATA_DIR, log: m => console.log(m), index, outletState, tagsForDot: () => _newsStore.marks.ownerTags() }),
       list: require("./db/newsList").createNewsList({ db, cardsFor: ids => _newsStore.repo.cardsFor(ids) }),
       // Tags, ★ and reads per user; the owner's marks keep articles and their photos (findability W4).
       marks: require("./db/newsMarks").createNewsMarks({ db, photoOf: async src => _newsStore.harvester.cachedPhotoBytes(src) }) };
@@ -4624,12 +4626,16 @@ function newsStore() {
     _newsStore.repo.setEditionListener(r => _newsStore.harvester.accountPack(r));
     // Archived days offloaded to the owner's PC and back (owner only).
     _newsStore.offload = require("./news/newsOffload").createNewsOffload({ db, repo: _newsStore.repo, dataDir: DATA_DIR });
+    // Outlets closed to the server (C14) come from the owner's home PC with a revocable key (spec 2026-11-26 §6).
+    _newsStore.relayAuth = require("./news/newsRelayAuth").createRelayAuth({ db });
+    _newsStore.relayIntake = require("./news/newsRelayIntake").createRelayIntake({ db, outletState, index,
+      storePhoto: (src, bytes) => _newsStore.harvester.storeCachedPhoto(src, bytes) });
   }
   return _newsStore;
 }
 const lazyMember = pick => new Proxy({}, { get: (_, key) => { const target = pick(newsStore()); const v = target[key]; return typeof v === "function" ? v.bind(target) : v; } });
 require("./news/newsRoutes").mountNewsRoutes(app, {
-  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list), marks: lazyMember(s => s.marks), orders: lazyMember(s => s.orders),
+  repo: lazyMember(s => s.repo), editorAuth: lazyMember(s => s.auth), harvester: lazyMember(s => s.harvester), offload: lazyMember(s => s.offload), list: lazyMember(s => s.list), marks: lazyMember(s => s.marks), orders: lazyMember(s => s.orders), outletState: lazyMember(s => s.outletState), relayAuth: lazyMember(s => s.relayAuth), relayIntake: lazyMember(s => s.relayIntake),
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
   // audit_log.user_id references users(id): an editor is not a user, so its id rides in the detail.
   audit: (type, actorId, detail, ip) => {
@@ -4637,6 +4643,8 @@ require("./news/newsRoutes").mountNewsRoutes(app, {
     Promise.resolve(identityRepo.audit(type, editor ? null : actorId, editor ? { ...detail, editor: actorId } : detail, ip)).catch(() => {});
   },
   readLimiter: makeRateLimiter({ windowMs: 60_000, max: 300, name: "news-read" }), writeLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "news-editor-write" }),
+  // The home PC's harvest (cards + photos of one hourly run); each relay key also has a daily byte quota.
+  relayLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "news-relay" }),
 });
 const _newsLifecycle = setInterval(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));

@@ -133,3 +133,54 @@ test('dot instruction card: full link, version and date, copy button, the text f
   assert.equal(el.querySelector('.ne-dot-task-status').textContent, 'Ссылка скопирована');
   for (const lang of ['ru', 'en', 'he']) assert.equal(typeof locales()[lang].newsEditor.dotTask.title, 'string', lang + ' has the card strings');
 });
+
+// ---- «Издания» (spec 2026-11-26 §8; plan W1 Task 6) ----------------------------------------------------
+const OUTLETS_FIXTURE = [
+  { outlet_id: 'ynet', name_latin: 'ynet', name_he: 'ynet', group: 'national', enabled: true, route: 'server', has_adapter: true, day_count: 120, last_ok_at: '2026-11-26T07:55:00.000Z', last_error: null },
+  { outlet_id: 'c14', name_latin: 'Channel 14', name_he: 'עכשיו 14', group: 'national', enabled: true, route: 'home_pc', has_adapter: true, day_count: 0, last_ok_at: null, last_error: null },
+  { outlet_id: 'mako', name_latin: 'mako', name_he: 'mako', group: 'national', enabled: false, route: 'server', has_adapter: false, day_count: 0, last_ok_at: null, last_error: null },
+  { outlet_id: 'walla', name_latin: 'Walla', name_he: 'וואלה', group: 'national', enabled: true, route: 'server', has_adapter: true, day_count: 3, last_ok_at: null, last_error: 'FEED_FAILED:HTTP_500', last_error_at: '2026-11-26T07:00:00.000Z' },
+  { outlet_id: 'haipo', name_latin: 'Hai Po', name_he: 'חי פה', group: 'local', region: 'north', enabled: false, route: 'server', has_adapter: false, day_count: 0, last_ok_at: null, last_error: null },
+];
+test('outlets grouped, local by region', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const el = UI.renderOutletsTable(document, OUTLETS_FIXTURE, { t: tFor(locales().ru), now: Date.parse('2026-11-26T08:00:00Z'), canSwitch: true });
+  const heads = [...el.querySelectorAll('[data-group]')].map(x => x.getAttribute('data-group'));
+  assert.deepEqual(heads, ['national', 'local:north']);
+  assert.match(el.querySelector('[data-group="local:north"]').textContent, /Местные: север/);
+  assert.equal(el.querySelectorAll('tr[data-outlet]').length, 5);
+  assert.equal(el.querySelector('tr[data-outlet=c14]').getAttribute('data-route'), 'home_pc');
+  assert.match(el.querySelector('tr[data-outlet=c14]').textContent, /с ПК/);
+  assert.match(el.querySelector('tr[data-outlet=c14]').textContent, /ПК ещё не присылал сбор/, 'a home-PC outlet never harvested says so');
+  const late = UI.renderOutletsTable(document, [{ ...OUTLETS_FIXTURE[1], last_ok_at: '2026-11-26T03:00:00.000Z' }], { t: tFor(locales().ru), now: Date.parse('2026-11-26T08:00:00Z') });
+  assert.match(late.textContent, /ПК не присылал сбор с/);
+  assert.match(el.querySelector('tr[data-outlet=ynet]').textContent, /120/);
+  assert.equal(el.querySelector('tr[data-outlet=c14] bdi[lang=he]').textContent, 'עכשיו 14', 'the Hebrew name is isolated, not glued to the Latin one');
+  assert.equal(el.querySelector('tr[data-outlet=ynet] bdi'), null);
+  assert.deepEqual(UI.OUTLET_GROUPS, require('../public/js/news-outlets').GROUPS);
+});
+test('no-adapter row is greyed and its checkbox disabled', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  const switched = [];
+  const el = UI.renderOutletsTable(document, OUTLETS_FIXTURE, { t: tFor(locales().ru), canSwitch: true, onSwitch: (id, on) => switched.push([id, on]) });
+  const mako = el.querySelector('tr[data-outlet=mako]');
+  assert.ok(mako.classList.contains('ne-outlet-off'));
+  assert.equal(mako.querySelector('input[type=checkbox]').hasAttribute('disabled'), true);
+  assert.match(mako.textContent, /нет подключения/);
+  const ynet = el.querySelector('tr[data-outlet=ynet] input[type=checkbox]');
+  assert.equal(ynet.hasAttribute('disabled'), false); assert.equal(ynet.checked, true);
+  ynet.checked = false; ynet.dispatchEvent(new document.defaultView.Event('change'));
+  assert.deepEqual(switched, [['ynet', false]]);
+  const ro = UI.renderOutletsTable(document, OUTLETS_FIXTURE, { t: tFor(locales().ru), canSwitch: false });
+  assert.ok([...ro.querySelectorAll('input[type=checkbox]')].every(i => i.hasAttribute('disabled')), 'an editor only reads');
+});
+test('error codes are translated, never raw', () => {
+  const { document } = parseHTML('<html><body></body></html>');
+  for (const lang of ['ru', 'en', 'he']) {
+    const el = UI.renderOutletsTable(document, OUTLETS_FIXTURE, { t: tFor(locales()[lang]), canSwitch: true });
+    assert.doesNotMatch(el.textContent, /FEED_FAILED|HOME_PC|NO_ADAPTER/, lang);
+  }
+  for (const lang of ['ru', 'en', 'he']) for (const c of UI.OUTLET_CODES) assert.equal(typeof tFor(locales()[lang])('newsEditor.outlets.code.' + c, undefined), 'string', lang + ' ' + c);
+  for (const lang of ['ru', 'en', 'he']) for (const g of UI.OUTLET_GROUPS) assert.equal(typeof tFor(locales()[lang])('news.outletGroup.' + g, undefined), 'string', lang + ' ' + g);
+  for (const lang of ['ru', 'en', 'he']) for (const r of ['north', 'jerusalem', 'center', 'south']) assert.equal(typeof tFor(locales()[lang])('news.region.' + r, undefined), 'string', lang + ' ' + r);
+});

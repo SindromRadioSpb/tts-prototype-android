@@ -50,3 +50,14 @@
 .ne-dot-task-link{overflow-wrap:anywhere;word-break:break-all}
 .ne-dot-task-text pre{max-height:60vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0;padding:12px;border:1px solid var(--nw-line);border-radius:8px;font-size:.85rem;line-height:1.5}
 .ne-dot-task-text summary{cursor:pointer}
+/* «Издания» (spec 2026-11-26 §8): the owner's outlet list by group. */
+.ne-outlets{width:100%;border-collapse:collapse;font-size:.92rem;margin-block-start:8px}
+.ne-outlets th,.ne-outlets td{padding:6px 8px;text-align:start;border-block-end:1px solid color-mix(in srgb,var(--nw-muted) 25%,transparent);vertical-align:middle}
+.ne-outlets thead th{font-weight:600;color:var(--nw-muted)}
+.ne-outlets-group th{padding-block-start:14px;font-weight:700;border-block-end:2px solid color-mix(in srgb,var(--nw-muted) 45%,transparent)}
+.ne-outlets tr.ne-outlet-off{opacity:.55}
+.ne-outlets tr.ne-outlet-disabled th{color:var(--nw-muted)}
+.ne-outlets .ne-outlet-error{color:#b3261e}
+.ne-outlets input[type=checkbox]{width:20px;height:20px}
+@media (max-width:640px){.ne-outlets thead{display:none}.ne-outlets td:nth-child(4){display:none}}
+.ne-outlets .ne-outlet-he{font-weight:400;font-size:.82rem;color:var(--nw-muted)}

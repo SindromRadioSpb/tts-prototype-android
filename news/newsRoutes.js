@@ -9,11 +9,12 @@ const { NewsError, LIMITS } = require('../db/newsRepo');
 const C = require('./newsPackCore');
 const { validTag, validKey } = require('../db/newsMarks');
 const { createDotTask, TASK_URL } = require('./newsDotTask');
+const { sourceFor } = require('./harvest/newsHarvestSources');
 
 const WORK_PAYLOAD_VERSION = 'news-work-v2';
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
-function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null, dotTask = null }) {
+function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {}, readLimiter, writeLimiter, packLimitPerHour = 20, harvester = null, offload = null, list = null, marks = null, orders = null, dotTask = null, outletState = null, relayAuth = null, relayIntake = null, relayLimiter = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass;
   const json = express.json({ limit: '64kb' });
@@ -61,8 +62,17 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
   app.get('/api/news/outlets', read, async (req, res) => {
     try {
       const counts = new Map((await repo.listOutlets()).map(o => [o.outlet_id, o]));
+      // Outlets the owner switched off and with nothing fresh are not shown to readers (spec 2026-11-26 §7.2); the route and the
+      // last good harvest let a home-PC outlet say when it was last harvested instead of a silent «0».
+      const states = outletState ? new Map((await outletState.list()).map(s => [s.outlet_id, s])) : null;
+      // An outlet with fresh published articles still shows (mako has no harvester; dot's packs publish it).
+      const shown = Outlets.OUTLETS.filter(o => !states || (states.get(o.id) || {}).enabled || ((counts.get(o.id) || {}).fresh_count > 0));
       res.set('Cache-Control', 'public, max-age=60');
-      res.json({ ok: true, outlets: Outlets.OUTLETS.map(o => ({ outlet_id: o.id, name_he: o.name_he, name_latin: o.name_latin, color: o.color, ...counts.get(o.id) })) });
+      res.json({ ok: true, outlets: shown.map(o => {
+        const st = states ? states.get(o.id) : null;
+        return { outlet_id: o.id, name_he: o.name_he, name_latin: o.name_latin, color: o.color, group: o.group, region: o.region || null,
+          ...(st ? { route: st.route, last_ok_at: st.last_ok_at } : {}), ...counts.get(o.id) };
+      }) });
     } catch (e) { send(res, e); }
   });
   app.get('/api/news/feed', read, async (req, res) => {
@@ -460,6 +470,68 @@ function mountNewsRoutes(app, { repo, editorAuth, resolveUser, audit = () => {},
         res.set({ 'Content-Type': 'application/zip', 'X-Content-Type-Options': 'nosniff' });
         res.download(file.path, file.name);
       } catch (e) { send(res, e); }
+    });
+  }
+  // The owner's outlet list (spec 2026-11-26 §8): every outlet of the catalog, its switch and harvest state.
+  if (outletState) {
+    app.get('/api/news/editor/outlets', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res); if (!actor) return;
+      try {
+        const states = new Map((await outletState.list()).map(s => [s.outlet_id, s])), day = await outletState.dayCounts();
+        res.json({ ok: true, can_switch: actor.kind === 'owner', outlets: Outlets.OUTLETS.map(o => {
+          const st = states.get(o.id);
+          return { outlet_id: o.id, name_he: o.name_he, name_latin: o.name_latin, color: o.color, group: o.group, region: o.region || null, priority: o.priority,
+            enabled: st.enabled, route: st.route, has_adapter: !!sourceFor(o.id), last_ok_at: st.last_ok_at, last_error: st.last_error, last_error_at: st.last_error_at,
+            day_count: day.get(o.id) || 0 };
+        }) });
+      } catch (e) { send(res, e); }
+    });
+    app.post('/api/news/editor/outlets/:id', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+      try {
+        const enabled = req.body && req.body.enabled;
+        if (typeof enabled !== 'boolean') throw new NewsError('BAD_ENABLED', 400);
+        const outlet = await outletState.setEnabled(String(req.params.id), enabled, actor.id);
+        audit(enabled ? 'news_outlet_enabled' : 'news_outlet_disabled', actor.id, { outlet_id: outlet.outlet_id }, req.ip);
+        res.json({ ok: true, outlet });
+      } catch (e) { send(res, e); }
+    });
+  }
+  // Keys of the home PC (spec 2026-11-26 §6.1): the owner issues and revokes them; a key is shown once.
+  if (relayAuth) {
+    app.get('/api/news/editor/relay-keys', read, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { ownerOnly: true }); if (!actor) return;
+      try { res.json({ ok: true, keys: await relayAuth.list() }); } catch (e) { send(res, e); }
+    });
+    app.post('/api/news/editor/relay-keys', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+      try {
+        const r = await relayAuth.issue(req.body && req.body.label, actor.id);
+        audit('news_relay_key_created', actor.id, { key_id: r.key_id }, req.ip);
+        res.json({ ok: true, ...r });
+      } catch (e) { send(res, e); }
+    });
+    app.post('/api/news/editor/relay-keys/:id/revoke', write, json, noStore, async (req, res) => {
+      const actor = await actorFor(req, res, { mutating: true, ownerOnly: true }); if (!actor) return;
+      try {
+        const r = await relayAuth.revoke(req.params.id);
+        audit('news_relay_key_revoked', actor.id, { key_id: r.key_id }, req.ip);
+        res.json({ ok: true, ...r });
+      } catch (e) { send(res, e); }
+    });
+  }
+  // The home PC hands in its harvest (spec 2026-11-26 §6.2–§6.3): a relay key only, nothing else reaches these.
+  if (relayAuth && relayIntake) {
+    // Its own limiter (a run sends dozens of photos), never the public read one; each key also has a daily byte quota.
+    const relayLimit = relayLimiter || write;
+    const relayActor = async (req, res) => { const k = await relayAuth.resolve(req).catch(() => null); if (!k) res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' }); return k; };
+    app.post('/api/news/relay/batches', relayLimit, express.json({ limit: '4mb' }), noStore, async (req, res) => {
+      const k = await relayActor(req, res); if (!k) return;
+      try { res.json({ ok: true, ...(await relayIntake.accept(k.key_id, req.body)) }); } catch (e) { send(res, e); }
+    });
+    app.put('/api/news/relay/photos', relayLimit, express.raw({ type: 'image/jpeg', limit: '700kb' }), noStore, async (req, res) => {
+      const k = await relayActor(req, res); if (!k) return;
+      try { res.json(await relayIntake.putPhoto(k.key_id, String(req.query.outlet || ''), String(req.query.src || ''), req.body)); } catch (e) { send(res, e); }
     });
   }
   app.get('/api/news/editor/editors', read, noStore, async (req, res) => {

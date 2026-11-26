@@ -23,6 +23,53 @@
   }
   function reasonText(code, t) { return t("newsEditor.reason." + code, code); }
 
+  // ---- «Издания» (docs/superpowers/specs/2026-11-26-news-sources-expansion-design.md §8) -------------
+  var OUTLET_GROUPS = ["national", "local", "religious", "haredi", "economy_tech", "science_env", "society", "radio"];
+  var OUTLET_REGIONS = ["north", "jerusalem", "center", "south"];
+  var OUTLET_CODES = ["DISABLED", "HOME_PC", "NO_ADAPTER", "BOT_CHALLENGE", "FEED_FAILED", "NEVER"];
+  var RELAY_STALE_MS = 3 * 3600 * 1000; // the home PC is silent: spec 2026-11-26 §6.4
+  function ilDateTime(iso) { try { return new Date(iso).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jerusalem" }); } catch (_) { return iso; } }
+  function outletCodeText(err, t) { var code = String(err || "").split(":")[0]; return t("newsEditor.outlets.code." + code, t("newsEditor.outlets.code.FEED_FAILED", "ошибка ленты")); }
+  // outlets: GET /api/news/editor/outlets rows; opts.onSwitch(id, enabled) when the owner flips a switch.
+  function renderOutletsTable(doc, outlets, opts) {
+    opts = opts || {};
+    var t = opts.t || function (k, f) { return f; };
+    var table = h(doc, "table", { class: "ne-outlets" }, [h(doc, "thead", {}, [h(doc, "tr", {}, [
+      h(doc, "th", { scope: "col", text: t("newsEditor.outlets.colOn", "В срезе") }), h(doc, "th", { scope: "col", text: t("newsEditor.outlet", "Издание") }),
+      h(doc, "th", { scope: "col", text: t("newsEditor.outlets.colRoute", "Сбор") }), h(doc, "th", { scope: "col", text: t("newsEditor.outlets.colDay", "За сутки") }),
+      h(doc, "th", { scope: "col", text: t("newsEditor.outlets.colState", "Состояние") })])])]);
+    var body = h(doc, "tbody");
+    var keyOf = function (o) { return o.group === "local" && o.region ? "local:" + o.region : o.group; };
+    var order = [];
+    OUTLET_GROUPS.forEach(function (g) { if (g === "local") OUTLET_REGIONS.forEach(function (r) { order.push("local:" + r); }); order.push(g); });
+    order.forEach(function (key) {
+      var rows = (outlets || []).filter(function (o) { return keyOf(o) === key; });
+      if (!rows.length) return;
+      var g = key.split(":")[0], r = key.split(":")[1];
+      var label = t("news.outletGroup." + g, g) + (r ? ": " + t("news.region." + r, r).toLowerCase() : "");
+      body.appendChild(h(doc, "tr", { class: "ne-outlets-group", "data-group": key }, [h(doc, "th", { colspan: "5", scope: "colgroup", text: label })]));
+      rows.forEach(function (o) {
+        var connectable = o.has_adapter || o.route === "home_pc";
+        var box = h(doc, "input", { type: "checkbox", "aria-label": t("newsEditor.outlets.switchNamed", "В срезе: {outlet}").replace("{outlet}", o.name_latin), disabled: !connectable || !opts.canSwitch });
+        box.checked = !!o.enabled;
+        box.addEventListener("change", function () { if (opts.onSwitch) opts.onSwitch(o.outlet_id, box.checked, box); });
+        var state = !connectable ? t("newsEditor.outlets.code.NO_ADAPTER", "нет подключения")
+          : !o.enabled ? t("newsEditor.outlets.code.DISABLED", "выключено")
+          : o.last_error ? outletCodeText(o.last_error, t) + (o.last_error_at ? " · " + ilDateTime(o.last_error_at) : "")
+          : o.route === "home_pc" && (!o.last_ok_at || (opts.now || Date.now()) - Date.parse(o.last_ok_at) > RELAY_STALE_MS)
+            ? (o.last_ok_at ? t("newsEditor.outlets.pcSilent", "ПК не присылал сбор с {time}").replace("{time}", ilDateTime(o.last_ok_at)) : t("newsEditor.outlets.pcNever", "ПК ещё не присылал сбор"))
+          : o.last_ok_at ? t("newsEditor.outlets.lastOk", "последний сбор {time}").replace("{time}", ilDateTime(o.last_ok_at))
+          : t("newsEditor.outlets.code.NEVER", "ещё не собиралось");
+        var route = o.route === "home_pc" ? t("newsEditor.outlets.code.HOME_PC", "с ПК") : t("newsEditor.outlets.routeServer", "сервер");
+        body.appendChild(h(doc, "tr", { "data-outlet": o.outlet_id, "data-route": o.route, class: connectable ? (o.enabled ? "" : "ne-outlet-disabled") : "ne-outlet-off" }, [
+          h(doc, "td", {}, [box]), h(doc, "th", { scope: "row" }, [h(doc, "span", { text: o.name_latin }), o.name_he !== o.name_latin ? h(doc, "div", { class: "ne-outlet-he" }, [h(doc, "bdi", { dir: "rtl", lang: "he", text: o.name_he })]) : null]),
+          h(doc, "td", { text: route }), h(doc, "td", { text: String(o.day_count || 0) }), h(doc, "td", { class: o.last_error ? "ne-outlet-error" : "", text: state })]));
+      });
+    });
+    table.appendChild(body);
+    return table;
+  }
+
   // ---- editions (docs/superpowers/specs/2026-11-15-news-editions-design.md §5.10) -------------------
   var SLOTS = ["morning", "midday", "evening", "late", "extra"];
   var SLOT_SHORT = { morning: "Утро", midday: "Обед", evening: "Вечер", late: "Поздний", extra: "Внеочередной" };
@@ -328,6 +375,62 @@
       return box;
     }
 
+    // «Издания»: what goes into the slice — the owner switches outlets on and off (spec 2026-11-26 §8).
+    function outletsCard() {
+      var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-outlets-title" }, [h(doc, "h2", { id: "ne-outlets-title", text: t("newsEditor.outlets.title", "Издания") }),
+        h(doc, "p", { class: "ne-muted", text: t("newsEditor.outlets.hint", "Галочка «в срезе» включает сбор издания с ближайшего часа; снятая останавливает его. Собранное остаётся в архиве и поиске.") })]);
+      var host = h(doc, "div", { "aria-live": "polite" });
+      async function refresh() {
+        try {
+          var data = await api("GET", "/api/news/editor/outlets");
+          host.replaceChildren(renderOutletsTable(doc, data.outlets, { t: t, canSwitch: !!data.can_switch, onSwitch: async function (id, on, input) {
+            input.disabled = true;
+            try { await api("POST", "/api/news/editor/outlets/" + encodeURIComponent(id), json({ enabled: on }), "application/json"); say(on ? t("newsEditor.outlets.on", "Издание включено в срез") : t("newsEditor.outlets.off", "Издание выключено из среза")); }
+            catch (e) { input.checked = !on; say(e.message === "NO_ADAPTER" ? t("newsEditor.outlets.code.NO_ADAPTER", "нет подключения") : errorText(e)); }
+            refresh();
+          } }));
+        } catch (e) { host.replaceChildren(h(doc, "p", { text: errorText(e) })); }
+      }
+      box.appendChild(host);
+      refresh();
+      return box;
+    }
+
+    // «Сбор с ПК»: keys of the home PC that harvests outlets closed to the server (spec 2026-11-26 §6.1); owner only.
+    async function relayCard() {
+      var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-relay-title" }, [h(doc, "h2", { id: "ne-relay-title", text: t("newsEditor.relay.title", "Сбор с ПК") }),
+        h(doc, "p", { class: "ne-muted", text: t("newsEditor.relay.hint", "Ключ домашнего компьютера: он только передаёт собранные статьи изданий, закрытых для сервера (C14). Показывается один раз; сохраните его в файл для Планировщика Windows.") })]);
+      var created = h(doc, "div", { class: "ne-created", "aria-live": "polite" });
+      var make = h(doc, "button", { type: "button", class: "ne-button", text: t("newsEditor.relay.create", "Выдать ключ ПК") });
+      var list = h(doc, "ul", { class: "ne-editors" });
+      make.addEventListener("click", async function () {
+        try {
+          var r = await api("POST", "/api/news/editor/relay-keys", json({ label: t("newsEditor.relay.label", "Домашний ПК") }), "application/json");
+          var copy = h(doc, "button", { type: "button", class: "ne-button ne-quiet", text: t("newsEditor.copy", "Скопировать") });
+          var key = r.key; r = null;
+          copy.addEventListener("click", function () { try { win.navigator.clipboard.writeText(key).then(function () { say(t("newsEditor.copied", "Ключ скопирован")); }); } catch (_) {} });
+          created.replaceChildren(h(doc, "p", { text: t("newsEditor.keyOnce", "Сохраните ключ сейчас — больше он не покажется:") }), h(doc, "code", { class: "ne-key", text: key }), copy);
+          await refresh();
+        } catch (e) { say(errorText(e)); }
+      });
+      async function refresh() {
+        var data = await api("GET", "/api/news/editor/relay-keys");
+        list.replaceChildren();
+        data.keys.forEach(function (k) {
+          var used = k.last_used_at ? " · " + t("newsEditor.relay.used", "последний раз {time}").replace("{time}", ilDateTime(k.last_used_at)) : "";
+          var li = h(doc, "li", {}, [h(doc, "span", { text: k.label + " · " + (k.status === "ACTIVE" ? t("newsEditor.active", "действует") : t("newsEditor.revoked", "отозван")) + used })]);
+          if (k.status === "ACTIVE") li.appendChild(confirmButton(doc, t("newsEditor.revoke", "Отозвать"), t("newsEditor.confirm", "Точно? Нажмите ещё раз"), async function () {
+            try { await api("POST", "/api/news/editor/relay-keys/" + encodeURIComponent(k.key_id) + "/revoke", json({}), "application/json"); await refresh(); say(t("newsEditor.revokedDone", "Ключ отозван")); }
+            catch (e) { say(errorText(e)); }
+          }));
+          list.appendChild(li);
+        });
+      }
+      box.append(h(doc, "div", { class: "ne-inline" }, [make]), created, list);
+      try { await refresh(); } catch (e) { box.appendChild(h(doc, "p", { text: errorText(e) })); }
+      return box;
+    }
+
     // «Статьи для dot»: the server's daily harvest archives (§16) — download and pass to dot.
     function harvestCard() {
       var box = h(doc, "section", { class: "ne-card", "aria-labelledby": "ne-harvest-title" }, [h(doc, "h2", { id: "ne-harvest-title", text: t("newsEditor.harvest.title", "Статьи для dot") }),
@@ -344,8 +447,10 @@
       });
       function outletsLine(outlets) {
         return Object.keys(outlets || {}).map(function (id) {
-          var o = outlets[id] || {}, bad = (o.errors || []).some(function (e) { return /BOT_CHALLENGE|BLOCKED/.test(e); });
-          return id + " " + (bad ? t("newsEditor.harvest.closed", "закрыт для сервера") : String(o.taken || 0));
+          var o = outlets[id] || {}, errs = o.errors || [], bad = errs.some(function (e) { return /BOT_CHALLENGE|BLOCKED/.test(e); });
+          var why = errs.indexOf("HOME_PC") >= 0 ? t("newsEditor.outlets.code.HOME_PC", "с ПК") : errs.indexOf("DISABLED") >= 0 ? t("newsEditor.outlets.code.DISABLED", "выключено")
+            : bad ? t("newsEditor.harvest.closed", "закрыт для сервера") : null;
+          return id + " " + (why || String(o.taken || 0));
         }).join(" · ");
       }
       function sizeText(bytes) { return bytes > 1048576 ? (Math.round(bytes / 104857.6) / 10) + " МБ" : Math.max(1, Math.round(bytes / 1024)) + " КБ"; }
@@ -462,11 +567,11 @@
         dotTaskHost.replaceChildren(renderDotTaskCard(doc, data, { t: t, origin: (win.location && win.location.origin) || "",
           copy: function (s) { return win.navigator.clipboard.writeText(s); } }));
       }).catch(function () {});
-      var parts = [who, ordersCard(), dotTaskHost, editionsCard(), storageHost, interestsHost, harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
+      var parts = [who, ordersCard(), dotTaskHost, editionsCard(), storageHost, interestsHost, outletsCard(), harvestCard(), articlesCard(), uploadCard(function (receipt) { showReceipt(receipt); refreshJournal(); }), receiptHost];
       var journalHost = h(doc, "div");
       parts.push(journalHost);
       async function refreshJournal() { journalHost.replaceChildren(await journalCard()); }
-      if (session.kind === "owner") parts.push(await editorsCard());
+      if (session.kind === "owner") parts.push(await editorsCard(), await relayCard());
       root.replaceChildren.apply(root, parts);
       await refreshJournal();
       root.removeAttribute("aria-busy");
@@ -517,5 +622,5 @@
     } else box.appendChild(h(doc, "p", { class: "ne-muted", text: t("newsEditor.interests.ownerOnly", "Менять интересы может только владелец") }));
     return box;
   }
-  return { renderDotTaskCard: renderDotTaskCard, renderOrdersTable: renderOrdersTable,renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
+  return { renderDotTaskCard: renderDotTaskCard, renderOutletsTable: renderOutletsTable, OUTLET_GROUPS: OUTLET_GROUPS, OUTLET_CODES: OUTLET_CODES, renderOrdersTable: renderOrdersTable,renderInterestsCard: renderInterestsCard, slotAverages: slotAverages, renderEditionsTable: renderEditionsTable, renderArticleRow: renderArticleRow, renderReceipt: renderReceipt, TOTALS: TOTALS, REASONS: REASONS, boot: boot };
 });

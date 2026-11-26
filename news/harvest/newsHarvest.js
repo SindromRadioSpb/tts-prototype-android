@@ -121,7 +121,7 @@ function leadOf(paragraphs, max = LIMITS.leadChars) {
 
 // ---- the harvester -----------------------------------------------------------------------------------
 function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSharp = () => require('sharp'), sources = SOURCES,
-  limits = {}, delayMs = 1200, now = () => Date.now(), log = () => {}, blocked = [], index = { refresh: async () => ({}), prune: async () => 0 }, diskGuard = null, tagsForDot = null } = {}) {
+  limits = {}, delayMs = 1200, now = () => Date.now(), log = () => {}, blocked = [], index = { refresh: async () => ({}), prune: async () => 0 }, diskGuard = null, tagsForDot = null, outletState = null } = {}) {
   // The news index follows every change of the slice (findability spec §7.1); a failure never stops the harvest.
   const reindex = keys => keys && keys.length ? index.refresh(keys).catch(e => log('[news-index] refresh failed: ' + (e && e.message))) : Promise.resolve();
   const L = { ...LIMITS, ...limits };
@@ -215,10 +215,15 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     for (const src of sources) {
       const rep = report.outlets[src.outlet_id] = { feed_items: 0, new: 0, errors: [] };
       if (blocked.includes(src.outlet_id)) { rep.errors.push('BLOCKED_FOR_SERVERS'); continue; }
+      // The owner's switch (spec 2026-11-26 §8): off = not harvested; home_pc = only the home PC harvests it.
+      const state = outletState ? await outletState.get(src.outlet_id) : null;
+      if (state && !state.enabled) { rep.errors.push('DISABLED'); continue; }
+      if (state && state.route === 'home_pc') { rep.errors.push('HOME_PC'); continue; }
+      let feedsOk = 0, lastFeedError = null;
       for (const feed of src.feeds) {
         let items = [];
-        try { items = parseFeed((await get(feed.url, { max: L.feed, accept: 'application/rss+xml,application/xml,text/xml' })).buf.toString('utf8')); }
-        catch (e) { rep.errors.push((e.challenge ? 'BOT_CHALLENGE' : 'FEED_FAILED') + ':' + e.message); }
+        try { items = parseFeed((await get(feed.url, { max: L.feed, accept: 'application/rss+xml,application/xml,text/xml' })).buf.toString('utf8')); feedsOk++; }
+        catch (e) { lastFeedError = (e.challenge ? 'BOT_CHALLENGE' : 'FEED_FAILED') + ':' + e.message; rep.errors.push(lastFeedError); }
         rep.feed_items += items.length;
         for (const it of items) {
           if (!src.article.test(it.link) || Outlets.outletForUrl(it.link) !== src.outlet_id) continue;
@@ -234,13 +239,16 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
         }
         await sleep(delayMs);
       }
+      if (outletState) await outletState.recordPoll(src.outlet_id, feedsOk ? { okAt: iso(started) } : { error: lastFeedError || 'FEED_FAILED' }).catch(e => log('[news-harvest] outlet state: ' + (e && e.message)));
     }
     // Pages, oldest first; a page that fails is retried on the next polls, three times at most.
-    const queue = await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='queued' ORDER BY first_seen_at LIMIT ?`, [L.pagesPerPoll]);
+    // Pages of outlets switched off or harvested by the home PC wait out of the window: they never take its slots.
+    const stopped = new Set(Object.entries(report.outlets).filter(([, o]) => o.errors.includes('DISABLED') || o.errors.includes('HOME_PC')).map(([id]) => id));
+    const queue = await dbAll(db, `SELECT * FROM news_harvest_items WHERE status='queued' AND outlet_id NOT IN (${[...stopped].map(() => '?').join(',') || "''"}) ORDER BY first_seen_at LIMIT ?`, [...stopped, L.pagesPerPoll]);
     const challenged = new Set();
     for (const row of queue) {
       const src = sources.find(s => s.outlet_id === row.outlet_id);
-      if (!src || challenged.has(row.outlet_id)) continue;
+      if (!src || challenged.has(row.outlet_id) || stopped.has(row.outlet_id)) continue;
       touched.add(row.url_key);
       const fail = (reason, final) => dbRun(db, `UPDATE news_harvest_items SET status=?, reason=?, attempts=attempts+1 WHERE url_key=?`, [final ? 'failed' : 'queued', reason, row.url_key]);
       if (!(await allowed(row.url))) { await fail('ROBOTS', true); continue; }
@@ -975,7 +983,11 @@ function createNewsHarvester({ db, dataDir, fetchImpl = globalThis.fetch, loadSh
     return { last_ready: last ? { slot: last.slot, day: last.day, published_at: last.published_at } : null, next };
   }
   return { runOnce, poll, tick, listRuns, pending, runFile, downloadEdition, loadSchedule, saveSchedule, setCloseExpired, stories, accountPack, closeEdition,
-    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup, rawWork, rawImage, orderForOwner, cachedPhotoBytes: src => { try { return cachedPhoto(src); } catch (_) { return null; } } };
+    closeExpired: () => closeExpired(), recheckPublished, orderExtras, orderArchivedCandidate, recordRead, readingSummary, interestsText, interestsRow, saveInterests, listEditions, nextEdition, status, isRunning: () => !!busy, cleanup, rawWork, rawImage, orderForOwner, cachedPhotoBytes: src => { try { return cachedPhoto(src); } catch (_) { return null; } },
+    // A photo the home PC fetched (spec 2026-11-26 §6.2): into the same 3-day cache the edition build reads first.
+    // The home PC sends the photos of its cards (spec 2026-11-26 §6.2): fetched and resized as for an edition, cached 3 days.
+    photoFor: src => photo(src, loadSharp()),
+    storeCachedPhoto: (src, bytes) => { const p = cachedPhotoPath(src); fs.mkdirSync(photoCache, { recursive: true }); fs.writeFileSync(p + '.part', bytes); fs.renameSync(p + '.part', p); } };
 }
 
 module.exports = { createNewsHarvester, parseFeed, parseRobots, draftOf, rowsOf, leadOf, USER_AGENT, LIMITS };

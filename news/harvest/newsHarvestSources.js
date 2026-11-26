@@ -64,13 +64,15 @@ const ARCHIVE_IMAGE_HOSTS = {
   maariv: /^images\.maariv\.co\.il$/,
   n12: /^(?:img\.mako\.co\.il|images\.mako\.co\.il|images\.n12\.co\.il)$/,
   haaretz: /^(?:img\.haarets\.co\.il|gif\.haarets\.co\.il|images\.haaretz\.co\.il)$/,
-  c14: /^(?:cdn\.c14\.co\.il|static\.c14\.co\.il)$/,
+  // C14 serves article photos from its own site (www…/wp-content/uploads/, home-PC pilot 2026-11-26).
+  c14: /^(?:cdn\.c14\.co\.il|static\.c14\.co\.il|www\.c14\.co\.il)$/,
 };
 function canFetchArchiveImage(outletId, src) {
   const hosts = Object.hasOwn(ARCHIVE_IMAGE_HOSTS, outletId) && ARCHIVE_IMAGE_HOSTS[outletId];
   try {
     const u = new URL(src);
     if (!hosts || u.protocol !== 'https:' || u.username || u.password || u.port || !hosts.test(u.hostname)) return false;
+    if (outletId === 'c14' && u.hostname === 'www.c14.co.il') return u.pathname.startsWith('/wp-content/uploads/');
     return outletId !== 'maariv' || u.pathname.startsWith('/image/upload/');
   } catch (_) { return false; }
 }

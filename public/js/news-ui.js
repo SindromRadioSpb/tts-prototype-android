@@ -134,6 +134,19 @@
     box.append(toggle, menu);
     return box;
   }
+  // An outlet the home PC harvests (spec 2026-11-26 §6.4): where it comes from and when the PC last sent it —
+  // never a silent «0». Silent for more than 3 hours = the PC has not sent anything since that time.
+  var RELAY_STALE_MS = 3 * 3600 * 1000;
+  function relayLine(outlet, now, t) {
+    if (!outlet || outlet.route !== "home_pc") return null;
+    var at = Date.parse(outlet.last_ok_at || "");
+    if (!isFinite(at)) return { stale: true, text: t("news.relay.never", "Собирается с домашнего компьютера · ПК ещё не присылал сбор") };
+    var opt = { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Jerusalem" };
+    if (israelDate(at) !== israelDate(now)) { opt.day = "2-digit"; opt.month = "2-digit"; }
+    var when; try { when = new Date(at).toLocaleString("ru-RU", opt); } catch (_) { when = outlet.last_ok_at; }
+    return now - at > RELAY_STALE_MS ? { stale: true, text: fill(t("news.relay.stale", "Собирается с домашнего компьютера · ПК не присылал сбор с {time}"), { time: when }) }
+      : { stale: false, text: fill(t("news.relay.line", "Собирается с домашнего компьютера · последний сбор {time}"), { time: when }) };
+  }
   function renderOutletTile(doc, outlet, opts) {
     opts = opts || {};
     var t = opts.t || function (k, f) { return f; }, o = outletOf(outlet.outlet_id);
@@ -144,6 +157,8 @@
       h(doc, "span", { class: "nw-tile-count", text: count + (outlet.latest_at ? " · " + timeAgo(outlet.latest_at, opts.now || Date.now(), t, opts.locale) : "") }),
     ]);
     link.style.setProperty("--nw-outlet", o.color);
+    var relay = relayLine(outlet, opts.now || Date.now(), t);
+    if (relay) link.appendChild(h(doc, "span", { class: "nw-tile-relay", "data-stale": relay.stale ? "true" : "false", text: relay.text }));
     var pinned = !!opts.pinned;
     var pin = h(doc, "button", { type: "button", class: "nw-pin", "data-pin": o.id, "aria-pressed": pinned ? "true" : "false",
       "aria-label": fill(pinned ? t("news.unpinNamed", "Открепить {outlet}") : t("news.pinNamed", "Закрепить {outlet}"), { outlet: o.name_latin }), text: pinned ? "★" : "☆" });

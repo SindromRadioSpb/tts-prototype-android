@@ -26,6 +26,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .nw-tile:hover{border-color:var(--nw-accent);border-inline-start-color:var(--nw-outlet,#3d4a5c)}
 .nw-tile-name{font-size:1.45rem;font-weight:700;line-height:1.2;overflow-wrap:anywhere}.nw-tile-latin{color:var(--nw-muted);font-size:.85rem}
 .nw-tile-count{margin-block-start:auto;font-size:.82rem;color:var(--nw-muted)}
+/* A home-PC outlet says when the PC last sent its harvest (spec 2026-11-26 §6.4). */
+.nw-tile-relay{font-size:.76rem;line-height:1.35;color:var(--nw-muted)}
+.nw-tile-relay[data-stale=true]{color:#a3461a}
 .nw-pin{position:absolute;inset-block-start:6px;inset-inline-end:6px;width:44px;height:44px;border:0;background:transparent;color:var(--nw-muted);font-size:1.3rem;border-radius:8px}
 .nw-pin[aria-pressed=true]{color:#b7791f}
 .nw-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-block-end:12px}
