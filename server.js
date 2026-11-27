@@ -1351,9 +1351,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
-  "/css/mediatheque.css?v=925",
-  "/js/mediatheque-ui.js?v=925",
-  "/js/mediatheque-video-queue.js?v=925",
+  "/css/mediatheque.css?v=926",
+  "/js/mediatheque-ui.js?v=926",
+  "/js/mediatheque-video-queue.js?v=926",
+  "/js/mediatheque-placement.js?v=926",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1543,9 +1544,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=925",
-  "/i18n/locales/en.js?v=925",
-  "/i18n/locales/he.js?v=925",
+  "/i18n/locales/ru.js?v=926",
+  "/i18n/locales/en.js?v=926",
+  "/i18n/locales/he.js?v=926",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4548,7 +4549,8 @@ app.post('/api/publication/corpora/:corpusId/draft/material-archive',rlPublicati
   (req,res)=>publicationWrite(req,res,'archive_copied',(repo,actor,opts)=>repo.copyMediathequeArchive(actor,req.params.corpusId,req.body||{},opts)));
 app.post('/api/publication/corpora/:corpusId/draft/material-rights',rlPublicationWrite,requireStrictSameOriginJson,
   (req,res)=>publicationWrite(req,res,'material_rights',(repo,actor,opts)=>repo.recordMaterialRights(actor,req.params.corpusId,req.body||{},opts)));
-for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', 'undoMediathequeDraft'], ['repair', 'repairMediathequeDraft'], ['publish', 'publishMediatheque'], ['rollback', 'rollbackMediatheque']]) {
+// 'place' — «Разложить» (spec 2026-11-28): one material into public topics/collections, published at once.
+for (const [operation, method] of [['draft', 'saveMediathequeDraft'], ['undo', 'undoMediathequeDraft'], ['repair', 'repairMediathequeDraft'], ['publish', 'publishMediatheque'], ['rollback', 'rollbackMediatheque'], ['place', 'placeMediathequeItem']]) {
   app.post('/api/publication/mediatheque/' + operation, rlPublicationWrite, requireStrictSameOriginJson,
     (req, res) => publicationWrite(req, res, 'mediatheque_' + operation, (repo, actor, opts) => repo[method](actor, req.body || {}, opts)));
 }
@@ -4663,14 +4665,22 @@ const lazyChannels = new Proxy({}, { get: (_, key) => { const c = mediaChannels(
 // Stage M2 (spec §5.4–5.5): dot (the news editor key) uploads its archive; the server publishes it into «Видео дня»
 // with the owner's canonical writers, as the owner's own «Добавить материал» does.
 let _dailyPublisher = null;
+const mediaOwnerActor = async () => {
+  const row = await new Promise((res, rej) => require("./db/sqlite").getDb().get("SELECT id FROM users WHERE role='owner' ORDER BY rowid LIMIT 1", (e, r) => e ? rej(e) : res(r)));
+  if (!row) throw Object.assign(new Error("no owner"), { code: "PUBLISHER_FORBIDDEN", status: 403 });
+  return { id: row.id, role: "owner" };
+};
 const dailyPublisher = () => _dailyPublisher || (_dailyPublisher = require("./mediaqueue/dailyPublisher").createDailyPublisher({
-  repo: getPublicationRepo(), queue: lazyQueue, log: m => console.log(m),
-  ownerActor: async () => {
-    const row = await new Promise((res, rej) => require("./db/sqlite").getDb().get("SELECT id FROM users WHERE role='owner' ORDER BY rowid LIMIT 1", (e, r) => e ? rej(e) : res(r)));
-    if (!row) throw Object.assign(new Error("no owner"), { code: "PUBLISHER_FORBIDDEN", status: 403 });
-    return { id: row.id, role: "owner" };
-  },
+  repo: getPublicationRepo(), queue: lazyQueue, log: m => console.log(m), ownerActor: mediaOwnerActor,
 }));
+// «Разложить» (spec 2026-11-28): hourly, «Видео дня» keeps 5 days; unplaced materials move to «Нераспределённые».
+const sweepMediaDaily = () => mediaOwnerActor().then(owner => getPublicationRepo().sweepMediathequeDaily(owner))
+  .then(r => { if (r.expired.length) console.log("[media-daily] swept", { expired: r.expired.length, unsorted: r.unsorted.length }); })
+  .catch(e => console.error("[media-daily] sweep failed:", e && (e.code || e.message)));
+const _mediaDailyTick = setInterval(sweepMediaDaily, 60 * 60 * 1000);
+if (_mediaDailyTick.unref) _mediaDailyTick.unref();
+const _mediaDailyBoot = setTimeout(sweepMediaDaily, 4 * 60 * 1000);
+if (_mediaDailyBoot.unref) _mediaDailyBoot.unref();
 require("./mediaqueue/mediaQueueRoutes").mountMediaQueueRoutes(app, {
   queue: lazyQueue,
   relayAuth: lazyMember(s => s.relayAuth),

@@ -15,7 +15,7 @@ const { createDailyPublisher } = require('../mediaqueue/dailyPublisher');
 
 const MIGRATIONS = ['020_identity.sql', '056_group_song_corpus_p0.sql', '057_group_corpus_audio_revisions.sql', '058_group_corpus_catalog_metadata.sql',
   '063_publication_domain.sql', '067_mediatheque_structure.sql', '068_mediatheque_material_purge.sql', '069_mediatheque_purge_sources.sql',
-  '099_media_queue.sql', '100_media_queue_publish.sql', '101_media_channels.sql', '102_media_worker_seen.sql'];
+  '099_media_queue.sql', '100_media_queue_publish.sql', '101_media_channels.sql', '102_media_worker_seen.sql', '103_media_daily_seen.sql'];
 const exec = (db, s) => new Promise((resolve, reject) => db.exec(s, e => e ? reject(e) : resolve()));
 const VIDEO = 'sYd4zgR7f6w';
 const DAY = 24 * 3600 * 1000;

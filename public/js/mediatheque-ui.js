@@ -1,10 +1,12 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=925';
+import './mediatheque-video-queue.js?v=926';
+import './mediatheque-placement.js?v=926';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
+const P = globalThis.MediathequePlacement;
 const $ = id => document.getElementById(id);
 const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const t = (key, vars) => window.t('mediatheque.' + key, vars);
@@ -89,6 +91,7 @@ function errorText(error) {
   // The package verifier's own codes (GRAPH_EDGE_DUPLICATE, MANIFEST_…) name the defect: show it.
   if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|GRAPH_|MANIFEST_|CANONICAL_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid') + withCode(code);
   if (/^MEDIA_(URL_INVALID|QUEUE_FULL|CHANNEL_URL_INVALID|CHANNEL_NOT_FOUND|CHANNELS_FULL|CHANNEL_FETCH_FAILED)$/.test(code)) return t('videoQueue.hint.' + code);
+  if (/^MEDIATHEQUE_PLACE_(UNKNOWN|INVALID)$/.test(code)) return t('place.error.' + code);
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF|OWNER_ONLY/.test(code)) return t('signInOwner');
   return t('failed') + withCode(code);
 }
@@ -387,11 +390,13 @@ function itemHtml(item) {
       <div class="ml-item-meta"><span dir="auto">${esc(item.source || t('sourceUnknown'))}</span>${!item.videoId && item.kind !== 'text' ? `<span>${esc(duration(item.durationSeconds))}</span>` : ''}</div>
       <div class="ml-item-status"><span>${esc(item.available ? t('kind.' + item.kind) : t('unavailable'))}</span>
       ${item.hasTranslation ? `<span>${esc(t('withTranslation'))}</span>` : ''}${item.progressKnown && item.progress === 'finished' ? `<span>${esc(t('progress.finished'))}</span>` : ''}</div>
+      ${placeBadgeHtml(item)}
     </div>
     <div class="ml-item-footer">${href ? `<a class="ml-open" href="${esc(href)}">${esc(action)}</a>` : ''}
       ${href && tutorEnabled && !manage ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : ''}
       ${publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}"`) : ''}
-      ${!state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
+      ${canPlace() && item.ref.kind === 'public' ? button('place-item', t('place.action'), `data-key="${esc(item.key)}"`, 'ml-place-action')
+        : !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'personal' && item.ref.kind === 'public' ? button('forget-reference', t('forgetReference'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'public' && item.ref.kind === 'public' ? (managed(item)
         ? button('edit-material', t('editMaterial'), `data-key="${esc(item.key)}"`) + button('download-material', t('downloadArchive'), `data-key="${esc(item.key)}" data-part="package"`)
@@ -558,7 +563,8 @@ function bulkHtml(items) {
     ${n ? button('clear-selection', t('clearSelection'), '', 'ml-quiet') : ''}</div>`;
 }
 function catalogHtml() {
-  const d = structure(), f = state.filters, results = C.query(d, state.prepared, f), size = 36;
+  const d = structure(), f = state.filters, size = 36, inbox = placeInbox();
+  const results = C.query(d, state.prepared, f).filter(i => !(inbox && state.unplacedOnly) || !P.placesOf(d, i.key).length);
   const pages = Math.max(1, Math.ceil(results.length / size)); state.page = Math.min(state.page, pages);
   const items = results.slice((state.page - 1) * size, state.page * size), collection = d.collections.find(c => c.id === f.collection), category = d.categories.find(c => c.id === f.category);
   const context = collection || category;
@@ -576,6 +582,7 @@ function catalogHtml() {
         <div class="ml-result-controls"><select id="ml-sort" aria-label="${esc(t('sortLabel'))}">${C.SORTS.map(s => option(s, t('sort.' + s), f.sort)).join('')}</select>
         <div class="ml-layout-toggle" role="group" aria-label="${esc(t('layout'))}">${['cards','list'].map(l => button('layout', t(l), `data-layout="${l}" aria-pressed="${f.layout === l}"`)).join('')}</div></div></div>
       ${descriptionHtml(context?.description)}
+      ${inbox ? `<div class="ml-place-bar">${button('place-unplaced', t('place.onlyUnplaced'), `aria-pressed="${!!state.unplacedOnly}"`)}<p>${esc(t(f.category === P.DAILY_ID ? 'place.keepHint' : 'place.unsortedHint'))}</p></div>` : ''}
       ${collection ? collectionContextHtml(collection) : ''}
       ${canEdit() && context ? `<div class="ml-toolbar">${structureActions(collection ? 'collection' : 'category', context.id)}${organizeMode() ? button('assign', t('addSelectedHere'), state.selected.size ? '' : 'disabled') : ''}</div>` : ''}
       ${filtersHtml()}${activeFiltersHtml()}
@@ -676,7 +683,7 @@ function render() {
 }
 
 // Отмена (кнопка, крестик, Esc) — не то же, что успешная отправка: только она зовёт onCancel.
-function closeDialog() { const cancel = dialogCancel; dialogCancel = null; $('ml-dialog').close(); dialogAction = null; dialogRevision = null; if (cancel) Promise.resolve().then(cancel).catch(() => {}); $('ml-dialog').classList.remove('ml-filter-dialog'); lastDialogFocus?.focus?.({ preventScroll: true }); }
+function closeDialog() { const cancel = dialogCancel; dialogCancel = null; placeDraft = null; $('ml-dialog').close(); dialogAction = null; dialogRevision = null; if (cancel) Promise.resolve().then(cancel).catch(() => {}); $('ml-dialog').classList.remove('ml-filter-dialog'); lastDialogFocus?.focus?.({ preventScroll: true }); }
 function showDialog(title, html, action, onCancel) {
   if (!$('ml-dialog').open) lastDialogFocus = document.activeElement;
   $('ml-dialog-title').textContent = title;
@@ -796,6 +803,108 @@ async function addToCollection(key) {
     }); return;
   }
   state.selected = new Set([key]); assignmentDialog();
+}
+// «Разложить» (docs/superpowers/specs/2026-11-28-mediatheque-daily-sorting-design.md): the owner, outside the editor,
+// places one material at once — «Общедоступные» publishes immediately (narrow edition), «Мои материалы» saves locally.
+const canPlace = () => state.space === 'public' && state.owner && !state.preview && !state.editing;
+const placeInbox = () => canPlace() && state.section === 'catalog' && P.INBOX_IDS.includes(state.filters.category);
+let placeDraft = null;
+function placeBadgeHtml(item) {
+  if (!placeInbox()) return '';
+  const label = P.placeLabel(structure(), item.key);
+  return label ? `<p class="ml-place-badge" data-placed="true" dir="auto">${esc(t('place.placed', { places: label }))}</p>`
+    : `<p class="ml-place-badge" data-placed="false">${esc(t('place.unplaced'))}</p>`;
+}
+// Topics with their collections nested; collections without a topic last. query narrows by title, checked stay visible.
+function placeTreeHtml(d, draft) {
+  const q = C.normalize(draft.query || ''), hit = s => !q || C.normalize(s).includes(q), id = (type, x) => type + ':' + x;
+  const box = (type, x, title, cls = '') => `<label class="ml-place-row ${cls}"><input type="checkbox" data-place="${esc(id(type, x))}" ${draft.checked.has(id(type, x)) ? 'checked' : ''}><span dir="auto">${esc(title)}</span></label>`;
+  const freshRow = c => { const name = t(c.type === 'category' ? 'place.newTopicName' : 'place.newCollectionName');
+    return `<label class="ml-place-row ml-place-new ${c.type === 'collection' ? 'ml-place-child' : 'ml-place-topic'}"><input type="checkbox" data-place="${esc(id(c.type, c.tempId))}" ${draft.checked.has(id(c.type, c.tempId)) ? 'checked' : ''}><input name="new-${esc(c.tempId)}" maxlength="200" value="${esc(c.title)}" placeholder="${esc(name)}" aria-label="${esc(name)}" dir="auto"></label>`; };
+  const fresh = (type, topic) => draft.create.filter(c => c.type === 'collection' && (c.categoryId || '') === (topic || '')).map(freshRow).join('');
+  const colls = d.collections, topics = d.categories.filter(c => !P.INBOX_IDS.includes(c.id));
+  const groups = topics.map(topic => {
+    const own = colls.filter(c => c.categoryId === topic.id), path = C.categoryPath(d, topic.id).map(x => x.title).join(' / ');
+    const topicHit = hit(path), shown = own.filter(c => topicHit || hit(c.title) || draft.checked.has(id('collection', c.id)));
+    if (!topicHit && !shown.length && !draft.checked.has(id('category', topic.id))) return '';
+    return `<div class="ml-place-group">${box('category', topic.id, path, 'ml-place-topic')}${shown.map(c => box('collection', c.id, c.title, 'ml-place-child')).join('')}
+      ${fresh('collection', topic.id)}${button('place-new', t('place.newCollectionIn', { topic: topic.title }), `data-type="collection" data-topic="${esc(topic.id)}"`, 'ml-place-add')}</div>`;
+  }).join('');
+  const loose = colls.filter(c => !c.categoryId || !topics.some(x => x.id === c.categoryId)).filter(c => hit(c.title) || draft.checked.has(id('collection', c.id)));
+  const freshTopics = draft.create.filter(c => c.type === 'category').map(c => `<div class="ml-place-group">${freshRow(c)}
+    ${fresh('collection', c.tempId)}${button('place-new', t('place.newCollectionIn', { topic: c.title || t('place.newTopicName') }), `data-type="collection" data-topic="${esc(c.tempId)}"`, 'ml-place-add')}</div>`).join('');
+  return groups + freshTopics + (loose.length ? `<div class="ml-place-group"><p class="ml-place-loose">${esc(t('place.noTopic'))}</p>${loose.map(c => box('collection', c.id, c.title, 'ml-place-child')).join('')}</div>` : '')
+    + (!groups && !loose.length && !draft.create.length ? `<p class="ml-place-empty">${esc(t(q ? 'place.nothingFound' : 'place.noPlaces'))}</p>` : '')
+    + button('place-new', t('place.newTopic'), 'data-type="category"', 'ml-place-add');
+}
+const placeStructure = target => target === 'public' ? structure() : state.personal.structure;
+function placeTreeRefresh() {
+  const tree = $('ml-place-tree'); if (!tree || !placeDraft) return;
+  for (const c of placeDraft.create) { const input = tree.querySelector(`[name="new-${CSS.escape(c.tempId)}"]`); if (input) c.title = input.value; }
+  tree.innerHTML = placeTreeHtml(placeStructure(placeDraft.target), placeDraft);
+}
+function openPlaceDialog(key, target = 'public') {
+  const item = state.prepared.byKey.get(key); if (!item || item.ref.kind !== 'public') return;
+  if (target === 'mine' && !state.localReady) { announce(t('localFailed'), true); return; }
+  const d = placeStructure(target);
+  placeDraft = { key, target, query: '', create: [], checked: new Set(P.placesOf(d, key).map(p => p.type + ':' + p.id)) };
+  const choice = v => `<label class="ml-place-target"><input type="radio" name="place-target" value="${v}" ${target === v ? 'checked' : ''}><span>${esc(t(v === 'public' ? 'place.public' : 'place.mine'))}</span></label>`;
+  showDialog(t('place.dialogTitle', { title: item.title }), `<fieldset class="ml-place-where"><legend>${esc(t('place.where'))}</legend>${choice('public')}${choice('mine')}</fieldset>
+    <p class="ml-place-note">${esc(t(target === 'public' ? 'place.publicNote' : 'place.mineNote'))}</p>
+    <input type="search" id="ml-place-search" class="ml-place-search" placeholder="${esc(t('place.search'))}" aria-label="${esc(t('place.search'))}">
+    <div class="ml-place-tree" id="ml-place-tree">${placeTreeHtml(d, placeDraft)}</div>${formActions(t('place.submit'))}`,
+  async data => {
+    const draft = placeDraft;
+    const create = draft.create.map(c => ({ ...c, title: String(data.get('new-' + c.tempId) || '').trim() })).filter(c => c.title);
+    const made = new Set(create.map(c => c.tempId));
+    const places = [...draft.checked].map(s => { const i = s.indexOf(':'); return { type: s.slice(0, i), id: s.slice(i + 1) }; })
+      .filter(p => !draft.create.some(c => c.tempId === p.id) || made.has(p.id));
+    const valid = create.filter(c => c.type === 'category' || !c.categoryId || made.has(c.categoryId) || !draft.create.some(x => x.tempId === c.categoryId));
+    if (draft.target === 'public') {
+      const r = await api('/api/publication/mediatheque/place', { ref: item.ref, places, create: valid });
+      await loadPublic();
+      if (state.draft) state.draft = await api('/api/publication/mediatheque').catch(() => state.draft);
+      closeDialog(); render(); announce(r.label ? t('place.published', { places: r.label }) : t('place.cleared'));
+    } else {
+      let next = P.place(state.personal.structure, item.ref, { places, create: valid }, C, { newId: () => uid() });
+      if (!places.length) next = C.command(next, { type: 'reference.save', references: [item.ref] });
+      state.personal = await localDb.saveMediathequeStructure(next, state.personal.revision);
+      const label = P.placeLabel(state.personal.structure, key);
+      closeDialog(); render(); announce(t('place.savedMine', { places: label || t('place.mineOnly') }));
+    }
+  });
+}
+function onPlaceDialogEvent(event) {
+  const node = event.target; if (!placeDraft || !node.closest('#ml-form')) return;
+  if (node.name === 'place-target' && event.type === 'change') {
+    if (node.value === 'mine' && !state.localReady) { node.checked = false; announce(t('localFailed'), true); return; }
+    placeDraft.target = node.value; placeDraft.create = []; placeDraft.checked = new Set(P.placesOf(placeStructure(node.value), placeDraft.key).map(p => p.type + ':' + p.id));
+    const note = $('ml-form').querySelector('.ml-place-note'); if (note) note.textContent = t(node.value === 'public' ? 'place.publicNote' : 'place.mineNote');
+    placeTreeRefresh(); return;
+  }
+  if (node.id === 'ml-place-search' && event.type === 'input') { placeDraft.query = node.value; placeTreeRefresh(); return; }
+  if (node.dataset.place && event.type === 'change') {
+    const value = node.dataset.place;
+    if (node.checked) {
+      placeDraft.checked.add(value);
+      // A collection brings its topic along (it can be unchecked again).
+      const [type, cid] = [value.slice(0, value.indexOf(':')), value.slice(value.indexOf(':') + 1)];
+      const topic = type === 'collection' ? (placeStructure(placeDraft.target).collections.find(c => c.id === cid)?.categoryId || placeDraft.create.find(c => c.tempId === cid)?.categoryId) : null;
+      if (topic && !P.INBOX_IDS.includes(topic) && !placeDraft.checked.has('category:' + topic)) { placeDraft.checked.add('category:' + topic); placeTreeRefresh(); }
+    } else placeDraft.checked.delete(value);
+  }
+}
+document.addEventListener('change', onPlaceDialogEvent);
+document.addEventListener('input', onPlaceDialogEvent);
+function addPlaceRow(type, topic) {
+  if (!placeDraft) return;
+  const tempId = 'new' + (placeDraft.create.length + 1) + '_' + Math.random().toString(36).slice(2, 8);
+  placeTreeRefresh();
+  placeDraft.create.push({ tempId, type, title: '', ...(type === 'collection' ? { categoryId: topic || null } : {}) });
+  placeDraft.checked.add(type + ':' + tempId);
+  if (type === 'collection' && topic) placeDraft.checked.add('category:' + topic);
+  placeTreeRefresh();
+  $('ml-place-tree')?.querySelector(`[name="new-${CSS.escape(tempId)}"]`)?.focus();
 }
 function assignmentDialog() {
   const items = selectedMaterials(); if (!items.length) return;
@@ -982,6 +1091,9 @@ async function onAction(action, node) {
   if (action === 'retry') return loadAll();
   if (action === 'retry-local') { await localDb.recoverLocalDB(); await loadLocal(); render(); return; }
   if (action === 'add-item') return addToCollection(node.dataset.key);
+  if (action === 'place-item') return openPlaceDialog(node.dataset.key);
+  if (action === 'place-new') return addPlaceRow(node.dataset.type, node.dataset.topic);
+  if (action === 'place-unplaced') { state.unplacedOnly = !state.unplacedOnly; state.page = 1; render(); return; }
   if (action === 'share-link') {
     const item = state.prepared.byKey.get(node.dataset.key);
     const url = publicMaterialLink(item);

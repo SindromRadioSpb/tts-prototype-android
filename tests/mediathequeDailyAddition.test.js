@@ -12,7 +12,7 @@ const C = require('../public/js/mediatheque-core');
 const { createPublicationRepo, DAILY_VIDEO } = require('../db/publicationRepo');
 
 const MIGRATIONS = ['020_identity.sql', '056_group_song_corpus_p0.sql', '057_group_corpus_audio_revisions.sql', '058_group_corpus_catalog_metadata.sql',
-  '063_publication_domain.sql', '067_mediatheque_structure.sql', '068_mediatheque_material_purge.sql', '069_mediatheque_purge_sources.sql'];
+  '063_publication_domain.sql', '067_mediatheque_structure.sql', '068_mediatheque_material_purge.sql', '069_mediatheque_purge_sources.sql', '103_media_daily_seen.sql'];
 const exec = (db, s) => new Promise((resolve, reject) => db.exec(s, e => e ? reject(e) : resolve()));
 async function setup(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-daily-'));

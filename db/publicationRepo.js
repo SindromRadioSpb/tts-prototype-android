@@ -15,6 +15,7 @@ const IngredientCore = require("../public/js/learning-compass-ingredients.js");
 const CatalogDiscovery = require("../public/js/catalog-discovery-core.js");
 const PlaybackSource = require('../public/js/playback-source.js');
 const Mediatheque = require('../public/js/mediatheque-core.js');
+const Placement = require('../public/js/mediatheque-placement.js');
 const { createMediathequeCatalogReader } = require('./mediathequeCatalogReader');
 const MaterialArchive = require('../publication/materialArchive');
 
@@ -1035,8 +1036,60 @@ function createPublicationRepo(options = {}) {
       if (!published.items.some(item => Mediatheque.refKey(item.ref) === Mediatheque.refKey(ref))) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
       const draft = await getMediathequeDraft(actor);
       const draftBase = draft.revision ? draft.structure : published.structure;
+      // «Разложить» (spec 2026-11-28): the 5-day stay in «Видео дня» counts from here.
+      await dbRun(database, 'INSERT OR IGNORE INTO media_daily_seen(item_key,first_seen_at) VALUES(?,?)', [Mediatheque.refKey(ref), now()]);
       return writeNarrowEdition(actor, dailyCommands(published.structure, ref, retireKeys), dailyCommands(draftBase, ref, retireKeys), draft.revision);
     });
+  }
+  // «Разложить» (docs/superpowers/specs/2026-11-28-mediatheque-daily-sorting-design.md): the owner places one material
+  // into public topics/collections at once — the same narrow edition as dot's, so no other draft edit gets published.
+  // places = the whole wanted set; a place the owner already removed in the draft is skipped there.
+  async function placeMediathequeItem(actor, input = {}, opts) {
+    mediathequeOwner(actor);
+    let ref;
+    try { ref = Mediatheque.reference(input.ref); } catch (_) { fail('PUBLICATION_INPUT_INVALID', 400); }
+    if (ref.kind !== 'public' || (input.places != null && !Array.isArray(input.places)) || (input.create != null && !Array.isArray(input.create))) fail('PUBLICATION_INPUT_INVALID', 400);
+    const text = (v, max) => String(v == null ? '' : v).slice(0, max);
+    const places = (input.places || []).slice(0, 200).map(p => ({ type: text(p && p.type, 20), id: text(p && p.id, 200) }));
+    const create = (input.create || []).slice(0, 20).map(c => ({ tempId: text(c && c.tempId, 80), type: text(c && c.type, 20), title: text(c && c.title, 400),
+      categoryId: c && c.categoryId ? text(c.categoryId, 200) : null }));
+    return withIdempotency(actor, 'MEDIATHEQUE_PLACE', opts, { ref, places, create }, async () => {
+      const published = await getPublicMediatheque(), key = Mediatheque.refKey(ref);
+      if (!published.items.some(item => Mediatheque.refKey(item.ref) === key)) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
+      const draft = await getMediathequeDraft(actor);
+      const draftBase = draft.revision ? draft.structure : published.structure;
+      const ids = new Map(), newId = t => { if (!ids.has(t)) ids.set(t, 'm_' + crypto.randomBytes(16).toString('hex')); return ids.get(t); };
+      const pub = Placement.place(published.structure, ref, { places, create }, Mediatheque, { publicOnly: true, newId });
+      const dr = Placement.place(draftBase, ref, { places, create }, Mediatheque, { publicOnly: true, newId, skipUnknown: true });
+      const written = await writeNarrowEdition(actor, pub, dr, draft.revision);
+      return { ...written, label: Placement.placeLabel(pub, key), places: Placement.placesOf(pub, key) };
+    });
+  }
+  // Hourly: a material older than 5 days leaves «Видео дня»; the unplaced ones go to «Нераспределённые».
+  // A material added by hand is dated from the first sweep that sees it. Nothing to move → no new edition.
+  async function sweepMediathequeDaily(actor, { now: at = Date.now(), days = 5 } = {}) {
+    mediathequeOwner(actor);
+    return serialize(() => transaction(async () => {
+      const published = await getPublicMediatheque();
+      const daily = published.structure.categories.find(c => c.id === DAILY_VIDEO.id);
+      const shown = daily ? daily.items : [];
+      const stamp = new Date(at).toISOString();
+      for (const k of shown) await dbRun(database, 'INSERT OR IGNORE INTO media_daily_seen(item_key,first_seen_at) VALUES(?,?)', [k, stamp]);
+      const rows = await dbAll(database, 'SELECT item_key,first_seen_at FROM media_daily_seen');
+      const seen = new Map(rows.map(r => [r.item_key, Date.parse(r.first_seen_at)]));
+      const r = Placement.sweep(published.structure, seen, at, Mediatheque, days);
+      const keep = new Set(shown.filter(k => !r.expired.includes(k)));
+      for (const row of rows) if (!keep.has(row.item_key)) await dbRun(database, 'DELETE FROM media_daily_seen WHERE item_key=?', [row.item_key]);
+      if (!r.expired.length) return { expired: [], unsorted: [] };
+      const draft = await getMediathequeDraft(actor);
+      const draftBase = draft.revision ? draft.structure : published.structure;
+      // The draft follows the same moves; keys it does not hold in «Видео дня» are left alone there.
+      const draftDaily = new Set((draftBase.categories.find(c => c.id === DAILY_VIDEO.id) || { items: [] }).items);
+      const draftSeen = new Map([...seen].filter(([k]) => r.expired.includes(k) && draftDaily.has(k)));
+      const dr = Placement.sweep(draftBase, draftSeen, at, Mediatheque, days).structure;
+      const written = await writeNarrowEdition(actor, r.structure, dr, draft.revision);
+      return { expired: r.expired, unsorted: r.unsorted, edition_id: written.edition_id };
+    }));
   }
   async function withdrawMediathequeDailyItem(actor, input = {}, opts) {
     mediathequeOwner(actor);
@@ -1332,7 +1385,7 @@ function createPublicationRepo(options = {}) {
     withdraw, restore, rollback,
     getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, repairMediathequeDraft, publishMediatheque, rollbackMediatheque,
     prepareMediathequeArchive, attachMediathequeMedia, copyMediathequeArchive,
-    publishMediathequeDailyAddition, withdrawMediathequeDailyItem,
+    publishMediathequeDailyAddition, withdrawMediathequeDailyItem, placeMediathequeItem, sweepMediathequeDaily,
     recordMaterialRights: (actor,corpusId,input,opts)=>applyRightsPreset(actor,corpusId,input,opts,true),
     deleteMediathequeMaterials, discardMediathequePendingImport, updateMediathequeMaterial, mediathequeMaterialArchive,
   };

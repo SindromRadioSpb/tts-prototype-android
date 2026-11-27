@@ -28,7 +28,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.925";
+const CACHE_VERSION = "v3.11.926";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -83,9 +83,10 @@ const PRECACHE_URLS = [
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
-  "/css/mediatheque.css?v=925",
-  "/js/mediatheque-ui.js?v=925",
-  "/js/mediatheque-video-queue.js?v=925",
+  "/css/mediatheque.css?v=926",
+  "/js/mediatheque-ui.js?v=926",
+  "/js/mediatheque-video-queue.js?v=926",
+  "/js/mediatheque-placement.js?v=926",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -398,9 +399,9 @@ const PRECACHE_URLS = [
   "/data/benyehuda/corpus-catalog-v12.json",
   // i18n
   "/i18n/index.js",
-  "/i18n/locales/ru.js?v=925",
-  "/i18n/locales/en.js?v=925",
-  "/i18n/locales/he.js?v=925",
+  "/i18n/locales/ru.js?v=926",
+  "/i18n/locales/en.js?v=926",
+  "/i18n/locales/he.js?v=926",
   // Local DB layer (OPFS + wa-sqlite WASM glue)
   "/db/wa-sqlite.mjs",
   "/db/wa-sqlite.wasm",
