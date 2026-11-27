@@ -10,7 +10,7 @@ const { createMediaDotTask, TASK_URL } = require('./mediaDotTask');
 const safeEqual = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
 function mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit = () => {}, readLimiter = null, writeLimiter = null, workerLimiter = null,
-  editorAuth = null, dailyPublisher = null, dotTask = null, editorLimiter = null }) {
+  editorAuth = null, dailyPublisher = null, dotTask = null, editorLimiter = null, channels = null }) {
   const pass = (req, res, next) => next();
   const read = readLimiter || pass, write = writeLimiter || pass, worker = workerLimiter || pass;
   const json = express.json({ limit: '16kb' });
@@ -72,6 +72,34 @@ function mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit = () 
       });
     } catch (e) { send(res, e); }
   });
+
+  // ---- channels and candidates (stage M3, spec §5.2): the owner manages channels, everyone with the owner session sees candidates ----
+  if (channels) {
+    app.get('/api/media-queue/channels', read, noStore, async (req, res) => {
+      const actor = await ownerFor(req, res); if (!actor) return;
+      try { res.json({ ok: true, channels: await channels.list() }); } catch (e) { send(res, e); }
+    });
+    app.post('/api/media-queue/channels', write, json, noStore, async (req, res) => {
+      const actor = await ownerFor(req, res, { mutating: true }); if (!actor) return;
+      try {
+        const r = await channels.add({ input: req.body && req.body.url, actorId: actor.id });
+        if (!r.existing) audit('media_channel_added', actor.id, { channel_id: r.channel.channel_id }, req.ip);
+        res.json({ ok: true, ...r });
+      } catch (e) { send(res, e); }
+    });
+    app.post('/api/media-queue/channels/:id/remove', write, json, noStore, async (req, res) => {
+      const actor = await ownerFor(req, res, { mutating: true }); if (!actor) return;
+      try {
+        const r = await channels.remove(req.params.id);
+        audit('media_channel_removed', actor.id, r, req.ip);
+        res.json({ ok: true, ...r });
+      } catch (e) { send(res, e); }
+    });
+    app.get('/api/media-queue/candidates', read, noStore, async (req, res) => {
+      const actor = await ownerFor(req, res); if (!actor) return;
+      try { res.json({ ok: true, candidates: await channels.candidates(), quota: await queue.dotQuota() }); } catch (e) { send(res, e); }
+    });
+  }
 
   // ---- dot (the news editor key, spec §5.4): the instruction, take a job, upload the archive, refuse ----
   const task = dotTask || createMediaDotTask();
@@ -135,6 +163,36 @@ function mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit = () 
         res.json({ ok: true, job });
       } catch (e) { send(res, e); }
     });
+    if (channels) {
+      // dot's candidate round: read, translate the new titles, pick up to the day's quota (spec §5.2).
+      app.get('/api/media-queue/editor/candidates', read, noStore, async (req, res) => {
+        const actor = await editorFor(req, res, { ownerMay: true }); if (!actor) return;
+        try { res.json({ ok: true, candidates: await channels.candidates(), quota: await queue.dotQuota(), task: task.meta() }); } catch (e) { send(res, e); }
+      });
+      app.post('/api/media-queue/editor/candidates', ed, json, noStore, async (req, res) => {
+        const actor = await editorFor(req, res, { mutating: true }); if (!actor) return;
+        try {
+          const body = req.body || {}, picks = body.picks == null ? [] : body.picks;
+          if (!Array.isArray(picks) || picks.length > 5) throw new MediaQueueError('MEDIA_INPUT_INVALID', 400, 'picks');
+          const { translated } = await channels.translate(body.translations == null ? [] : body.translations, actor.editor_id);
+          const results = [];
+          // Each pick on its own: one refused video does not stop the others (per-item best-effort).
+          for (const id of picks) {
+            try {
+              const cand = await channels.get(id);
+              if (!cand) throw new MediaQueueError('MEDIA_CANDIDATE_NOT_FOUND', 404);
+              const r = await queue.enqueue({ url: 'https://www.youtube.com/watch?v=' + cand.video_id, source: 'dot', actorId: actor.editor_id });
+              if (!r.existing) audit('media_dot_picked', actor.id, { job_id: r.job.job_id, video_id: r.job.video_id, editor: actor.id }, req.ip);
+              results.push({ video_id: cand.video_id, ok: true, existing: r.existing, job: r.job });
+            } catch (e) {
+              if (!(e instanceof MediaQueueError)) throw e;
+              results.push({ video_id: String(id).slice(0, 20), ok: false, error: e.code });
+            }
+          }
+          res.json({ ok: true, translated, picks: results, quota: await queue.dotQuota() });
+        } catch (e) { send(res, e); }
+      });
+    }
     app.post('/api/media-queue/jobs/:id/withdraw', write, json, noStore, async (req, res) => {
       const owner = await ownerFor(req, res, { mutating: true }); if (!owner) return;
       try {

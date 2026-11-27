@@ -1,7 +1,7 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=922';
+import './mediatheque-video-queue.js?v=923';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
@@ -86,7 +86,7 @@ function errorText(error) {
   if (/MATERIAL_ARCHIVE_NO_MATERIAL/.test(code)) return t('archiveNoMaterial');
   // The package verifier's own codes (GRAPH_EDGE_DUPLICATE, MANIFEST_…) name the defect: show it.
   if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|GRAPH_|MANIFEST_|CANONICAL_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid') + withCode(code);
-  if (/^MEDIA_(URL_INVALID|QUEUE_FULL)$/.test(code)) return t('videoQueue.hint.' + code);
+  if (/^MEDIA_(URL_INVALID|QUEUE_FULL|CHANNEL_URL_INVALID|CHANNEL_NOT_FOUND|CHANNELS_FULL|CHANNEL_FETCH_FAILED)$/.test(code)) return t('videoQueue.hint.' + code);
   if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF|OWNER_ONLY/.test(code)) return t('signInOwner');
   return t('failed') + withCode(code);
 }

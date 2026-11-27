@@ -59,7 +59,7 @@ test('classifyYtDlpError', () => {
 function zipBytes() { const z = new AdmZip(); z.addFile('manifest.json', Buffer.from('{"completed":true}')); return z.toBuffer(); }
 function harness(t, { lease = { job_id: 'mj_0123456789abcdef', video_id: ID, url: 'https://www.youtube.com/watch?v=' + ID, attempts: 0 },
   ytMeta = { code: 0, stdout: JSON.stringify({ title: 'Сюжет', duration: 754.3, channel: 'Kan 11' }), stderr: '' },
-  ytDl = null, asr = { code: 0 }, asrOutput = 'zip', putStatus = 200 } = {}) {
+  ytDl = null, asr = { code: 0 }, asrOutput = 'zip', putStatus = 200, metaStepJob = null } = {}) {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-worker-'));
   t.after(() => fs.rmSync(workDir, { recursive: true, force: true }));
   const calls = [], execs = [], written = {};
@@ -69,6 +69,7 @@ function harness(t, { lease = { job_id: 'mj_0123456789abcdef', video_id: ID, url
     const ok = s => new Response(JSON.stringify(s), { status: 200, headers: { 'content-type': 'application/json' } });
     if (u.pathname === '/api/media-queue/worker/lease') return ok({ ok: true, job: lease });
     if (u.pathname.endsWith('/asr-zip')) return new Response(JSON.stringify(putStatus === 200 ? { ok: true } : { ok: false, error: 'MEDIA_ASR_ZIP_INVALID' }), { status: putStatus });
+    if (metaStepJob && body && body.meta) return ok({ ok: true, job: metaStepJob });
     return ok({ ok: true, job: {} });
   };
   const exec = async (cmd, args, opts) => {
@@ -188,4 +189,11 @@ test('runOnce server refuses the zip → UPLOAD_REJECTED', async t => {
   const h = harness(t, { putStatus: 400 });
   assert.equal(await h.run(), 'failed');
   assert.deepEqual(h.calls.at(-1).body, { code: 'UPLOAD_REJECTED', detail: 'MEDIA_ASR_ZIP_INVALID', retryable: false, countAttempt: true });
+});
+
+test('runOnce stops before the download when the server closed the job at the meta step (dot pick over 2 hours)', async t => {
+  const h = harness(t, { metaStepJob: { status: 'failed_acquire', error_code: 'MEDIA_TOO_LONG' }, ytMeta: { code: 0, stdout: JSON.stringify({ title: 'ארוך', duration: 9000 }), stderr: '' } });
+  assert.equal(await h.run(), 'failed');
+  assert.equal(h.execs.length, 1, 'no download');
+  assert.ok(!h.calls.some(c => c.path.endsWith('/fail')), 'the server already closed it');
 });

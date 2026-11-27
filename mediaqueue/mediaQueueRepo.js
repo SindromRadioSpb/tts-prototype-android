@@ -15,6 +15,13 @@ const LEASE_MS = 30 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 const OWNER_OPEN_LIMIT = 100;
 const OWNER_PRIORITY = 100;
+// dot's own picks from the channels (stage M3, owner decision 2026-11-27): up to 5 per Israel day, each up to 2 hours,
+// after the owner's orders.
+const DOT_PRIORITY = 10;
+const DOT_DAILY = 5;
+const DOT_MAX_DURATION_SEC = 2 * 3600;
+const SOURCES = ['owner', 'dot'];
+const israelDay = ms => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(ms));
 const ASR_ZIP_MAX = 50 * 1024 * 1024;
 // A small deflated ZIP can unpack to gigabytes: sizes are checked from the headers before anything is unpacked.
 const ASR_ZIP_UNPACKED_MAX = 500 * 1024 * 1024;
@@ -50,7 +57,8 @@ const clip = (s, n) => s == null ? null : String(s).slice(0, n);
 function publicJob(row) {
   if (!row) return null;
   const { lease_key_id, dot_editor_id, ...job } = row;
-  return job;
+  // The PC learns the length only from yt-dlp: it is told the limit with the job.
+  return { ...job, max_duration_sec: job.source === 'dot' ? DOT_MAX_DURATION_SEC : null };
 }
 
 function inspectAsrZip(bytes, { maxUnpacked = ASR_ZIP_UNPACKED_MAX } = {}) {
@@ -85,22 +93,39 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
   const get = async jobId => publicJob(await row(jobId));
   const inList = list => list.map(() => '?').join(',');
 
-  async function enqueue({ url, source = 'owner', actorId = null } = {}) {
-    if (source !== 'owner') fail('MEDIA_INPUT_INVALID', 400, 'source');
+  // Enqueues run one at a time: the duplicate check, the limits and the insert never interleave (two picks at the quota edge).
+  let chain = Promise.resolve();
+  const exclusive = fn => { const r = chain.then(fn, fn); chain = r.catch(() => {}); return r; };
+  const quotaUsed = day => dbGet(db, "SELECT COUNT(*) n FROM media_jobs WHERE source='dot' AND pick_day=? AND COALESCE(error_code,'')<>'MEDIA_TOO_LONG'", [day]).then(r => r.n);
+  async function dotQuota() {
+    const day = israelDay(now()), used = await quotaUsed(day);
+    return { limit: DOT_DAILY, used, left: Math.max(0, DOT_DAILY - used), day, max_duration_sec: DOT_MAX_DURATION_SEC };
+  }
+  const enqueue = (opts = {}) => exclusive(() => enqueueNow(opts));
+  async function enqueueNow({ url, source = 'owner', actorId = null } = {}) {
+    if (!SOURCES.includes(source)) fail('MEDIA_INPUT_INVALID', 400, 'source');
     const parsed = parseYoutubeUrl(url);
     if (!parsed) fail('MEDIA_URL_INVALID', 400);
     const existing = await dbGet(db, `SELECT * FROM media_jobs WHERE video_id=? AND status IN (${inList(DEDUPE)}) ORDER BY created_at DESC LIMIT 1`, [parsed.video_id, ...DEDUPE]);
     if (existing) return { job: publicJob(existing), existing: true };
-    const open = await dbGet(db, `SELECT COUNT(*) n FROM media_jobs WHERE source='owner' AND status IN (${inList(OPEN)})`, OPEN);
-    if (open.n >= OWNER_OPEN_LIMIT) fail('MEDIA_QUEUE_FULL', 409, { limit: OWNER_OPEN_LIMIT });
+    const day = israelDay(now());
+    if (source === 'owner') {
+      const open = await dbGet(db, `SELECT COUNT(*) n FROM media_jobs WHERE source='owner' AND status IN (${inList(OPEN)})`, OPEN);
+      if (open.n >= OWNER_OPEN_LIMIT) fail('MEDIA_QUEUE_FULL', 409, { limit: OWNER_OPEN_LIMIT });
+    } else if (await quotaUsed(day) >= DOT_DAILY) fail('MEDIA_DOT_DAILY_LIMIT', 409, { limit: DOT_DAILY, day });
+    // A video from a channel starts with the title and channel its feed gave.
+    const cand = await dbGet(db, `SELECT c.title, c.channel_id, ch.title AS channel_title FROM media_candidates c
+      LEFT JOIN media_channels ch ON ch.channel_id=c.channel_id WHERE c.video_id=?`, [parsed.video_id]).catch(() => null);
     const jobId = 'mj_' + crypto.randomBytes(8).toString('hex'), t = iso();
-    await dbRun(db, `INSERT INTO media_jobs(job_id,video_id,url,source,priority,status,attempts,created_by,created_at,updated_at)
-      VALUES(?,?,?,?,?,'queued',0,?,?,?)`, [jobId, parsed.video_id, parsed.url, source, OWNER_PRIORITY, actorId == null ? null : String(actorId), t, t]);
+    await dbRun(db, `INSERT INTO media_jobs(job_id,video_id,url,source,priority,status,attempts,created_by,created_at,updated_at,pick_day,channel_id,title,channel_title)
+      VALUES(?,?,?,?,?,'queued',0,?,?,?,?,?,?,?)`, [jobId, parsed.video_id, parsed.url, source, source === 'owner' ? OWNER_PRIORITY : DOT_PRIORITY,
+      actorId == null ? null : String(actorId), t, t, source === 'dot' ? day : null, cand && cand.channel_id || null, cand && cand.title || null, cand && cand.channel_title || null]);
     return { job: await get(jobId), existing: false };
   }
 
   // Reading the list also returns abandoned leases to the queue, so a job never shows «on the PC» forever.
-  const list = async ({ limit = 200 } = {}) => (await reclaimExpired(), await dbAll(db, 'SELECT * FROM media_jobs ORDER BY created_at DESC, rowid DESC LIMIT ?', [Math.max(1, Math.min(500, Number(limit) || 200))])).map(publicJob);
+  const list = async ({ limit = 200 } = {}) => (await reclaimExpired(), await dbAll(db, `SELECT j.*, c.title_ru FROM media_jobs j
+    LEFT JOIN media_candidates c ON c.video_id=j.video_id ORDER BY j.created_at DESC, j.rowid DESC LIMIT ?`, [Math.max(1, Math.min(500, Number(limit) || 200))])).map(publicJob);
 
   // A lease whose time ran out (the PC went off mid-job) goes back to the queue and counts as an attempt.
   async function reclaimExpired() {
@@ -142,6 +167,11 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
         channel_title=COALESCE(?,channel_title), lease_until=?, updated_at=? WHERE job_id=?`,
       [status, progress == null ? null : Number(progress), clip(detail, 300), clip(m.title, 500), dur, clip(m.channel_title, 200),
         iso(now() + LEASE_MS), iso(), r.job_id]);
+    // dot's pick over 2 hours is closed before the download; it gives its place in the day's quota back.
+    if (r.source === 'dot' && dur != null && dur > DOT_MAX_DURATION_SEC) {
+      await dbRun(db, `UPDATE media_jobs SET status='failed_acquire', error_code='MEDIA_TOO_LONG', error_detail=?, lease_key_id=NULL, lease_until=NULL,
+          progress=NULL, step_detail=NULL, updated_at=? WHERE job_id=?`, [String(dur), iso(), r.job_id]);
+    }
     return get(r.job_id);
   }
 
@@ -181,7 +211,11 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
     if (dup) fail('MEDIA_JOB_STATE', 409, { existing: dup.job_id });
     // A job that failed at dot's step already has its ASR: it goes back to dot, not to the PC.
     const back = r.status === 'failed_publish' && r.asr_zip_sha256 ? 'asr_ready' : 'queued';
-    await dbRun(db, `UPDATE media_jobs SET status=?, attempts=0, error_code=NULL, error_detail=NULL, dot_editor_id=NULL, dot_lease_until=NULL, updated_at=? WHERE job_id=?`, [back, iso(), r.job_id]);
+    // The owner retrying dot's pick that was too long wants it anyway: it becomes the owner's order, without the limit.
+    const own = r.error_code === 'MEDIA_TOO_LONG';
+    await dbRun(db, `UPDATE media_jobs SET status=?, attempts=0, error_code=NULL, error_detail=NULL, dot_editor_id=NULL, dot_lease_until=NULL,
+        source=CASE WHEN ? THEN 'owner' ELSE source END, priority=CASE WHEN ? THEN ? ELSE priority END, updated_at=? WHERE job_id=?`,
+      [back, own ? 1 : 0, own ? 1 : 0, OWNER_PRIORITY, iso(), r.job_id]);
     return get(r.job_id);
   }
 
@@ -258,8 +292,8 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
   const retireCandidates = beforeIso => dbAll(db, `SELECT job_id, published_slug, published_work_id FROM media_jobs
     WHERE status='published' AND published_at<? ORDER BY published_at`, [String(beforeIso)]);
 
-  return { enqueue, list, get, lease, step, fail: failJob, acceptAsrZip, asrZipPath, retry, cancel,
+  return { enqueue, dotQuota, list, get, lease, step, fail: failJob, acceptAsrZip, asrZipPath, retry, cancel,
     nextForDot, takeForDot, beginPublish, publishFailed, markPublished, dotFail, withdraw, retireCandidates };
 }
 
-module.exports = { parseYoutubeUrl, createMediaQueue, MediaQueueError, inspectAsrZip, LIMITS: { LEASE_MS, MAX_ATTEMPTS, OWNER_OPEN_LIMIT, ASR_ZIP_MAX, ASR_ZIP_UNPACKED_MAX, ASR_ZIP_MANIFEST_MAX, ASR_ZIP_ENTRIES_MAX } };
+module.exports = { parseYoutubeUrl, createMediaQueue, MediaQueueError, inspectAsrZip, LIMITS: { DOT_DAILY, DOT_MAX_DURATION_SEC, LEASE_MS, MAX_ATTEMPTS, OWNER_OPEN_LIMIT, ASR_ZIP_MAX, ASR_ZIP_UNPACKED_MAX, ASR_ZIP_MANIFEST_MAX, ASR_ZIP_ENTRIES_MAX } };

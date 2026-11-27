@@ -10,9 +10,14 @@ const { createRelayAuth } = require('../news/newsRelayAuth');
 const { createNewsEditorAuth } = require('../news/newsEditorAuth');
 const { createMediaQueue } = require('../mediaqueue/mediaQueueRepo');
 const { mountMediaQueueRoutes } = require('../mediaqueue/mediaQueueRoutes');
+const { createChannels } = require('../mediaqueue/mediaChannelsRepo');
 
 const OWNER_COOKIE = 'lp_session=owner-session', OWNER_CSRF = 'owner-csrf', READER_COOKIE = 'lp_session=reader-session';
 const ID = 'dQw4w9WgXcQ';
+const C14 = 'UCKEImtWikw9usC1pl_9m1nQ';
+const V = n => 'c' + String(n).padStart(10, '0');
+const FEED = '<feed xmlns="http://www.w3.org/2005/Atom"><author><name>C14</name></author>' + [1, 2, 3, 4, 5, 6, 7].map(n =>
+  `<entry><yt:videoId>${V(n)}</yt:videoId><title>כותרת ${n}</title><link rel="alternate" href="https://www.youtube.com/watch?v=${V(n)}"/><published>2026-11-2${n % 7}T10:00:00+00:00</published></entry>`).join('') + '</feed>';
 
 async function setup(t) {
   const db = await openDb();
@@ -32,7 +37,10 @@ async function setup(t) {
     publish: async (jobId, editorId, bytes) => { published.push({ jobId, editorId, bytes }); await queue.beginPublish(jobId, editorId, require('node:crypto').createHash('sha256').update(bytes).digest('hex')); return { job: await queue.markPublished(jobId, { slug: 'media-x', workId: 'work-y' }), material: { slug: 'media-x', workId: 'work-y', title: 'T' } }; },
     withdraw: async jobId => { withdrawn.push(jobId); return queue.withdraw(jobId); },
   };
-  mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit: (...a) => audits.push(a), editorAuth, dailyPublisher });
+  // A fake YouTube for the channels: C14's feed with three fresh videos.
+  const fetchText = async url => url.includes('channel_id=' + C14) ? { status: 200, text: FEED } : { status: 404, text: '' };
+  const channels = createChannels({ db, fetchText, now });
+  mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit: (...a) => audits.push(a), editorAuth, dailyPublisher, channels });
   const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
   t.after(() => new Promise(r => server.close(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); r(); })));
   const base = 'http://127.0.0.1:' + server.address().port;
@@ -46,7 +54,7 @@ async function setup(t) {
   });
   const { key } = await relayAuth.issue('home PC', 'owner');
   const { key: editorKey } = await editorAuth.createEditor('owner', 'dot');
-  return { call, owner, base, key, editorKey, audits, queue, published, withdrawn };
+  return { call, owner, base, key, editorKey, audits, queue, published, withdrawn, channels };
 }
 const bearer = k => ({ authorization: 'Bearer ' + k });
 function asrZip() {
@@ -219,4 +227,67 @@ test('an anonymous archive upload is refused before its body is read', async t =
     setTimeout(() => { resolve('no answer: the server is reading the body'); req.destroy(); }, 3000);
   });
   assert.equal(status, 401);
+});
+
+// ---- M3 Task 3: channels, candidates and dot's picks over HTTP ------------------------------------------------------
+test('owner adds, lists and removes a channel; candidates come with the quota', async t => {
+  const { call, owner, audits } = await setup(t);
+  const a = await call('POST', '/api/media-queue/channels', { json: { url: 'https://www.youtube.com/channel/' + C14 }, headers: owner });
+  assert.equal(a.status, 200); assert.equal(a.body.channel.title, 'C14'); assert.equal(a.body.existing, false);
+  assert.ok(audits.some(x => x[0] === 'media_channel_added'));
+  const bad = await call('POST', '/api/media-queue/channels', { json: { url: 'https://youtu.be/' + ID }, headers: owner });
+  assert.equal(bad.status, 400); assert.equal(bad.body.error, 'MEDIA_CHANNEL_URL_INVALID');
+  const list = await call('GET', '/api/media-queue/channels', { headers: owner });
+  assert.equal(list.body.channels.length, 1);
+  const c = await call('GET', '/api/media-queue/candidates', { headers: owner });
+  assert.equal(c.status, 200); assert.ok(c.body.candidates.length >= 5); assert.equal(c.body.quota.limit, 5);
+  const r = await call('POST', '/api/media-queue/channels/' + C14 + '/remove', { json: {}, headers: owner });
+  assert.equal(r.status, 200);
+  assert.equal((await call('GET', '/api/media-queue/channels', { headers: owner })).body.channels.length, 0);
+  assert.equal((await call('POST', '/api/media-queue/channels/' + C14 + '/remove', { json: {}, headers: owner })).status, 404);
+});
+
+test('channel routes refuse the relay key, the editor key, a reader and a missing CSRF', async t => {
+  const { call, owner, key, editorKey } = await setup(t);
+  for (const headers of [{}, bearer(key), bearer(editorKey), { cookie: READER_COOKIE }]) {
+    assert.ok([401, 403].includes((await call('GET', '/api/media-queue/channels', { headers })).status));
+    assert.ok([401, 403].includes((await call('GET', '/api/media-queue/candidates', { headers })).status));
+    assert.ok([401, 403].includes((await call('POST', '/api/media-queue/channels', { json: { url: C14 }, headers })).status));
+  }
+  const noCsrf = await call('POST', '/api/media-queue/channels', { json: { url: C14 }, headers: { cookie: owner.cookie, origin: owner.origin } });
+  assert.equal(noCsrf.status, 403);
+});
+
+test('dot reads candidates, translates titles and picks within the quota', async t => {
+  const { call, owner, editorKey, audits } = await setup(t);
+  await call('POST', '/api/media-queue/channels', { json: { url: C14 }, headers: owner });
+  const g = await call('GET', '/api/media-queue/editor/candidates', { headers: bearer(editorKey) });
+  assert.equal(g.status, 200); assert.equal(g.body.quota.left, 5); assert.ok(g.body.task.version);
+  const ids = g.body.candidates.map(c => c.video_id);
+  const p = await call('POST', '/api/media-queue/editor/candidates', { headers: bearer(editorKey),
+    json: { translations: [{ video_id: ids[0], title_ru: 'Заголовок 1' }], picks: ids.slice(0, 3) } });
+  assert.equal(p.status, 200); assert.equal(p.body.translated, 1);
+  assert.deepEqual(p.body.picks.map(x => x.ok), [true, true, true]);
+  assert.equal(p.body.picks[0].job.source, 'dot'); assert.equal(p.body.quota.left, 2);
+  assert.ok(audits.some(x => x[0] === 'media_dot_picked'));
+  const more = await call('POST', '/api/media-queue/editor/candidates', { headers: bearer(editorKey), json: { picks: [ids[3], ids[4], ids[5]] } });
+  assert.deepEqual(more.body.picks.map(x => x.ok ? 'ok' : x.error), ['ok', 'ok', 'MEDIA_DOT_DAILY_LIMIT']);
+  const unknown = await call('POST', '/api/media-queue/editor/candidates', { headers: bearer(editorKey), json: { picks: [ID] } });
+  assert.equal(unknown.body.picks[0].error, 'MEDIA_CANDIDATE_NOT_FOUND');
+  const big = await call('POST', '/api/media-queue/editor/candidates', { headers: bearer(editorKey), json: { picks: ids.slice(0, 6) } });
+  assert.equal(big.status, 400); assert.equal(big.body.error, 'MEDIA_INPUT_INVALID');
+  const c = await call('GET', '/api/media-queue/candidates', { headers: owner });
+  const first = c.body.candidates.find(x => x.video_id === ids[0]);
+  assert.equal(first.title_ru, 'Заголовок 1'); assert.equal(first.job_source, 'dot');
+});
+
+test('dot candidate routes: the owner may look but not pick; the relay key and anonymous get 401', async t => {
+  const { call, owner, key } = await setup(t);
+  assert.equal((await call('GET', '/api/media-queue/editor/candidates', { headers: { cookie: owner.cookie } })).status, 200);
+  const o = await call('POST', '/api/media-queue/editor/candidates', { headers: owner, json: { picks: [] } });
+  assert.equal(o.status, 403); assert.equal(o.body.error, 'EDITOR_ONLY');
+  for (const headers of [{}, bearer(key)]) {
+    assert.equal((await call('GET', '/api/media-queue/editor/candidates', { headers })).status, 401);
+    assert.equal((await call('POST', '/api/media-queue/editor/candidates', { headers, json: { picks: [] } })).status, 401);
+  }
 });

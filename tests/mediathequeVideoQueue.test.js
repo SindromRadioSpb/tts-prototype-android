@@ -82,7 +82,7 @@ function localeObject(lang) {
 }
 test('every key used exists in ru, en and he', () => {
   const keys = ['open', 'title', 'intro', 'url', 'add', 'added', 'already', 'empty', 'retry', 'cancel', 'download', 'duration', 'openMaterial', 'withdraw', 'withdrawn',
-    ...STATUSES.map(s => 'status.' + s), ...Q.HINT_CODES.map(c => 'hint.' + c), ...Q.FINAL_HINT_CODES.map(c => 'hint.' + c + '_final'), 'hint.unknown'];
+    ...STATUSES.map(s => 'status.' + s), ...Q.HINT_CODES.map(c => 'hint.' + c), ...Q.FINAL_HINT_CODES.map(c => 'hint.' + c + '_final'), 'hint.unknown', ...Q.M3_KEYS];
   for (const lang of ['ru', 'en', 'he']) {
     const vq = localeObject(lang).mediatheque.videoQueue;
     for (const k of keys) {
@@ -96,4 +96,35 @@ test('a server-side publish failure is not blamed on dot\'s archive', () => {
   assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'MEDIA_PUBLISH_RETRY' }), 'videoQueue.hint.MEDIA_PUBLISH_RETRY');
   assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'MEDIA_DAILY_DRAFT_BUSY' }), 'videoQueue.hint.MEDIA_DAILY_DRAFT_BUSY');
   assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'PACKAGE_HASH_MISMATCH' }), 'videoQueue.hint.PUBLISH_FAILED');
+});
+
+// ---- M3 Task 4: candidates and channels (plan ...-m3.md) --------------------------------------------------------------
+const ctxT = { t: (k, p) => k + (p ? JSON.stringify(p) : ''), esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') };
+const cand = o => ({ video_id: 'aaaaaaaaaaa', title: 'הפטריוטים <b>', title_ru: 'Патриоты', channel_title: 'C14', published_at: '2026-11-26T22:09:37.000Z', job_id: null, job_status: null, job_source: null, ...o });
+
+test('a candidate without a job offers «В очередь»; its title is escaped and the translation shown', () => {
+  const h = Q.candidateRowHtml(cand(), ctxT);
+  assert.match(h, /data-vq-cand="enqueue"/); assert.ok(h.includes('data-url="https://www.youtube.com/watch?v=aaaaaaaaaaa"'));
+  assert.ok(h.includes('הפטריוטים &lt;b>')); assert.ok(!h.includes('<b>'));
+  assert.ok(h.includes('Патриоты')); assert.ok(h.includes('<bdi>C14</bdi>')); assert.ok(h.includes('26.11'));
+});
+test('a candidate dot picked shows ★ and the job status instead of the button', () => {
+  const h = Q.candidateRowHtml(cand({ job_id: 'mj_1', job_status: 'asr', job_source: 'dot' }), ctxT);
+  assert.ok(!h.includes('data-vq-cand')); assert.ok(h.includes('★'));
+  assert.ok(h.includes('videoQueue.status.asr')); assert.ok(h.includes('videoQueue.byDot'));
+  const own = Q.candidateRowHtml(cand({ job_id: 'mj_2', job_status: 'queued', job_source: 'owner' }), ctxT);
+  assert.ok(!own.includes('★')); assert.ok(!own.includes('videoQueue.byDot'));
+});
+test('a finished job of a candidate (cancelled) offers the queue again', () => {
+  assert.match(Q.candidateRowHtml(cand({ job_id: 'mj_1', job_status: 'cancelled', job_source: 'owner' }), ctxT), /data-vq-cand="enqueue"/);
+});
+test('a channel row shows its error and a remove button', () => {
+  const h = Q.channelRowHtml({ channel_id: 'UCKEImtWikw9usC1pl_9m1nQ', title: 'C14 <x>', handle: 'c14news', last_ok_at: null, last_error: 'MEDIA_FEED_HTTP_403' }, ctxT);
+  assert.ok(h.includes('videoQueue.channelError')); assert.ok(h.includes('MEDIA_FEED_HTTP_403'));
+  assert.match(h, /data-vq-ch="remove" data-id="UCKEImtWikw9usC1pl_9m1nQ"/); assert.ok(h.includes('C14 &lt;x>')); assert.ok(h.includes('@c14news'));
+  assert.ok(!Q.channelRowHtml({ channel_id: 'UCKEImtWikw9usC1pl_9m1nQ', title: 'C14', last_ok_at: '2026-11-27T08:00:00Z', last_error: null }, ctxT).includes('channelError'));
+});
+test('a job row shows dot translation and who picked it; too-long has a hint', () => {
+  const h = Q.rowHtml({ job_id: 'mj_0123456789abcdef', video_id: 'aaaaaaaaaaa', url: 'https://www.youtube.com/watch?v=aaaaaaaaaaa', status: 'failed_acquire', source: 'dot', title: 'א', title_ru: 'Перевод', error_code: 'MEDIA_TOO_LONG' }, ctxT);
+  assert.ok(h.includes('Перевод')); assert.ok(h.includes('videoQueue.byDot')); assert.ok(h.includes('videoQueue.hint.MEDIA_TOO_LONG'));
 });

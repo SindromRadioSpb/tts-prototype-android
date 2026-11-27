@@ -1351,9 +1351,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
-  "/css/mediatheque.css?v=921",
-  "/js/mediatheque-ui.js?v=922",
-  "/js/mediatheque-video-queue.js?v=922",
+  "/css/mediatheque.css?v=923",
+  "/js/mediatheque-ui.js?v=923",
+  "/js/mediatheque-video-queue.js?v=923",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1543,9 +1543,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=922",
-  "/i18n/locales/en.js?v=922",
-  "/i18n/locales/he.js?v=922",
+  "/i18n/locales/ru.js?v=923",
+  "/i18n/locales/en.js?v=923",
+  "/i18n/locales/he.js?v=923",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4656,6 +4656,10 @@ require("./news/newsRoutes").mountNewsRoutes(app, {
 let _mediaQueue = null;
 const mediaQueue = () => _mediaQueue || (_mediaQueue = require("./mediaqueue/mediaQueueRepo").createMediaQueue({ db: require("./db/sqlite").getDb(), dataDir: DATA_DIR }));
 const lazyQueue = new Proxy({}, { get: (_, key) => { const q = mediaQueue(); return typeof q[key] === "function" ? q[key].bind(q) : q[key]; } });
+// Stage M3 (spec §5.2): YouTube channels the server polls by RSS and the candidates they bring.
+let _mediaChannels = null;
+const mediaChannels = () => _mediaChannels || (_mediaChannels = require("./mediaqueue/mediaChannelsRepo").createChannels({ db: require("./db/sqlite").getDb() }));
+const lazyChannels = new Proxy({}, { get: (_, key) => { const c = mediaChannels(); return typeof c[key] === "function" ? c[key].bind(c) : c[key]; } });
 // Stage M2 (spec §5.4–5.5): dot (the news editor key) uploads its archive; the server publishes it into «Видео дня»
 // with the owner's canonical writers, as the owner's own «Добавить материал» does.
 let _dailyPublisher = null;
@@ -4682,7 +4686,16 @@ require("./mediaqueue/mediaQueueRoutes").mountMediaQueueRoutes(app, {
   writeLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "media-queue-write" }),
   workerLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "media-worker" }),
   editorLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "media-queue-editor" }),
+  channels: lazyChannels,
 });
+// Stage M3 (spec §5.2): each channel's RSS is read about once an hour (poll() skips channels read in the last 55 minutes),
+// first a few minutes after boot so frequent deploys do not leave candidates stale.
+const pollMediaChannels = () => mediaChannels().poll().then(r => { if (r.polled) console.log("[media-channels] polled", r); })
+  .catch(e => console.error("[media-channels] poll failed:", e && e.message));
+const _mediaChannelsTick = setInterval(pollMediaChannels, 15 * 60 * 1000);
+if (_mediaChannelsTick.unref) _mediaChannelsTick.unref();
+const _mediaChannelsBoot = setTimeout(pollMediaChannels, 3 * 60 * 1000);
+if (_mediaChannelsBoot.unref) _mediaChannelsBoot.unref();
 const _newsLifecycle = setInterval(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));
   // Owner orders whose full text is gone can no longer be made (findability W5).

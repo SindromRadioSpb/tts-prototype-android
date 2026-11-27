@@ -87,7 +87,10 @@ async function runOnce({ origin, key, workDir, asrRoot, exec, fetch = globalThis
   // A live or upcoming stream never ends as a file: refuse it rather than hold the PC.
   if (info.is_live === true || info.live_status === 'is_live' || info.live_status === 'is_upcoming') { await failWith('YOUTUBE_LIVE', info.live_status || 'is_live', false); return 'failed'; }
   const dur = Number(info.duration);
-  await step('acquiring', { meta: { title: info.title || null, duration_sec: Number.isFinite(dur) ? Math.round(dur) : null, channel_title: info.channel || info.uploader || null } });
+  const metaStep = await step('acquiring', { meta: { title: info.title || null, duration_sec: Number.isFinite(dur) ? Math.round(dur) : null, channel_title: info.channel || info.uploader || null } });
+  // The server may close the job on what the metadata showed (dot's pick over 2 hours): nothing is downloaded then.
+  const st = metaStep && metaStep.job && metaStep.job.status;
+  if (st && st !== 'acquiring') { log(`${job.video_id}: сервер закрыл задание (${metaStep.job.error_code || st})`); return 'failed'; }
   // A fresh folder per lease: the ASR tool never overwrites, so an old ZIP from an earlier attempt can never be picked up.
   const dir = path.join(workDir, job.video_id, 'a' + ((Number(job.attempts) || 0) + 1) + '-' + folderStamp(now()));
   fs.mkdirSync(dir, { recursive: true });

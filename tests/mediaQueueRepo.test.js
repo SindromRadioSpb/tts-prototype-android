@@ -403,3 +403,93 @@ test('markPublished twice with the same work id returns the job', async t => {
   assert.equal((await queue.markPublished(a.job_id, { slug: 's', workId: 'w' })).status, 'published');
   assert.deepEqual(await codeOf(queue.markPublished(a.job_id, { slug: 's', workId: 'other' })), ['MEDIA_JOB_STATE', 409]);
 });
+
+// ---- M3 Task 2: dot's picks, the daily quota and the 2-hour limit (plan ...-m3.md) --------------------------------
+const { LIMITS } = require('../mediaqueue/mediaQueueRepo');
+const pick = (queue, n) => queue.enqueue({ url: 'https://youtu.be/' + vid(n), source: 'dot', actorId: 'ed_dot' });
+
+test('dot picks: 5 per Israel day, the 6th is refused, the next Israel day has 5 again', async t => {
+  const { clock, queue } = await setup(t);
+  clock.now = Date.parse('2026-11-27T21:30:00Z'); // 23:30 in Israel
+  for (let i = 1; i <= 5; i++) assert.equal((await pick(queue, i)).job.source, 'dot');
+  assert.deepEqual(await codeOf(pick(queue, 6)), ['MEDIA_DOT_DAILY_LIMIT', 409]);
+  const q = await queue.dotQuota();
+  assert.deepEqual([q.limit, q.used, q.left, q.day, q.max_duration_sec], [5, 5, 0, '2026-11-27', 7200]);
+  clock.now = Date.parse('2026-11-27T22:30:00Z'); // 00:30 next Israel day
+  assert.equal((await queue.dotQuota()).left, 5);
+  assert.equal((await pick(queue, 6)).existing, false);
+});
+
+test('dot picks racing at the quota edge create one job only', async t => {
+  const { queue } = await setup(t);
+  for (let i = 1; i <= 4; i++) await pick(queue, i);
+  const r = await Promise.allSettled([pick(queue, 10), pick(queue, 11), pick(queue, 12)]);
+  assert.equal(r.filter(x => x.status === 'fulfilled').length, 1);
+  assert.equal((await queue.dotQuota()).used, 5);
+});
+
+test('a dot pick of a video already queued returns that job and costs no quota', async t => {
+  const { queue } = await setup(t);
+  const own = await queue.enqueue({ url: 'https://youtu.be/' + vid(1), source: 'owner', actorId: 'owner1' });
+  const r = await pick(queue, 1);
+  assert.equal(r.existing, true); assert.equal(r.job.job_id, own.job.job_id);
+  assert.equal((await queue.dotQuota()).used, 0);
+});
+
+test('owner orders lease before dot picks; dot jobs carry the 2-hour limit', async t => {
+  const { clock, queue } = await setup(t);
+  await pick(queue, 1);
+  clock.now += 1000;
+  const own = await queue.enqueue({ url: 'https://youtu.be/' + vid(2), source: 'owner', actorId: 'owner1' });
+  const first = await queue.lease('k1');
+  assert.equal(first.job_id, own.job.job_id); assert.equal(first.max_duration_sec, null);
+  const second = await queue.lease('k1');
+  assert.equal(second.source, 'dot'); assert.equal(second.max_duration_sec, 7200);
+});
+
+test('a dot pick longer than 2 hours closes as MEDIA_TOO_LONG and gives its quota place back', async t => {
+  const { queue } = await setup(t);
+  for (let i = 1; i <= 5; i++) await pick(queue, i);
+  const j = await queue.lease('k1');
+  const r = await queue.step(j.job_id, 'k1', { status: 'acquiring', meta: { title: 'ארוך', duration_sec: LIMITS.DOT_MAX_DURATION_SEC + 1 } });
+  assert.equal(r.status, 'failed_acquire'); assert.equal(r.error_code, 'MEDIA_TOO_LONG'); assert.equal(r.attempts, 0);
+  assert.equal(r.duration_sec, 7201); assert.equal(r.lease_until, null);
+  assert.equal((await queue.dotQuota()).left, 1);
+  assert.deepEqual(await codeOf(queue.step(j.job_id, 'k1', { status: 'asr' })), ['MEDIA_JOB_NOT_LEASED', 409]);
+});
+
+test('an owner order longer than 2 hours goes on', async t => {
+  const { queue } = await setup(t);
+  await enq(queue);
+  const j = await queue.lease('k1');
+  const r = await queue.step(j.job_id, 'k1', { status: 'acquiring', meta: { duration_sec: 3 * 3600 } });
+  assert.equal(r.status, 'acquiring');
+});
+
+test('a pick takes title and channel from its candidate; the list shows dot\'s translation', async t => {
+  const { db, queue } = await setup(t);
+  await run(db, "INSERT INTO media_channels(channel_id,title,added_at,enabled) VALUES('UCKEImtWikw9usC1pl_9m1nQ','C14','x',1)");
+  await run(db, "INSERT INTO media_candidates(video_id,channel_id,title,published_at,first_seen_at,title_ru) VALUES(?,?,?,?,?,?)",
+    [vid(1), 'UCKEImtWikw9usC1pl_9m1nQ', 'הפטריוטים', '2026-11-26T22:00:00.000Z', 'x', 'Патриоты']);
+  const r = await pick(queue, 1);
+  assert.equal(r.job.title, 'הפטריוטים'); assert.equal(r.job.channel_title, 'C14'); assert.equal(r.job.channel_id, 'UCKEImtWikw9usC1pl_9m1nQ');
+  assert.equal(r.job.pick_day, '2026-11-27');
+  const [row] = await queue.list();
+  assert.equal(row.title_ru, 'Патриоты');
+});
+
+test('enqueue refuses an unknown source', async t => {
+  const { queue } = await setup(t);
+  assert.deepEqual(await codeOf(queue.enqueue({ url: 'https://youtu.be/' + ID, source: 'channel' })), ['MEDIA_INPUT_INVALID', 400]);
+});
+
+test('the owner\'s retry of a too-long dot pick makes it the owner\'s order', async t => {
+  const { queue } = await setup(t);
+  await pick(queue, 1);
+  const j = await queue.lease('k1');
+  await queue.step(j.job_id, 'k1', { status: 'acquiring', meta: { duration_sec: 9000 } });
+  const r = await queue.retry(j.job_id);
+  assert.deepEqual([r.status, r.source, r.priority, r.max_duration_sec, r.error_code], ['queued', 'owner', 100, null, null]);
+  const again = await queue.lease('k1');
+  assert.equal((await queue.step(again.job_id, 'k1', { status: 'acquiring', meta: { duration_sec: 9000 } })).status, 'acquiring');
+});
