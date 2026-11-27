@@ -1,7 +1,7 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=924';
+import './mediatheque-video-queue.js?v=925';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
@@ -360,6 +360,16 @@ function cover(item, time = true) {
     ${time && item.durationSeconds != null ? `<span class="ml-cover-time">${esc(duration(item.durationSeconds))}</span>` : ''}</div>`;
 }
 function button(action, label, extra = '', cls = '') { return `<button type="button" data-action="${action}" class="${cls}" ${extra}>${esc(label)}</button>`; }
+// The owner sorts dot's «Видео дня» into collections: the category gets its own tab beside «Все материалы»
+// (owner, public showcase, not the preview). Inside it, that tab is the current one.
+const DAILY_VIDEO_ID = 'm_daily_video';
+function sectionTabsHtml() {
+  const daily = state.space === 'public' && state.owner && !state.preview ? structure().categories.find(c => c.id === DAILY_VIDEO_ID) : null;
+  const onDaily = !!daily && state.section === 'catalog' && state.filters.category === DAILY_VIDEO_ID;
+  return ['home', 'catalog', 'topics', 'collections'].map(s => button('section', t(s === 'catalog' ? 'allMaterials' : s),
+    `data-section="${s}" ${state.section === s && !(onDaily && s === 'catalog') ? 'aria-current="page"' : ''}`)).join('')
+    + (daily ? button('daily-video', daily.title, `dir="auto" ${onDaily ? 'aria-current="page"' : ''}`) : '');
+}
 function orderButtons(type, id, canUp, canDown, extra = '') {
   return `<span class="ml-order-buttons">${button('up', '↑', `data-order-type="${type}" data-id="${esc(id)}" aria-label="${esc(t('up'))}" ${canUp ? '' : 'disabled'} ${extra}`)}
     ${button('down', '↓', `data-order-type="${type}" data-id="${esc(id)}" aria-label="${esc(t('down'))}" ${canDown ? '' : 'disabled'} ${extra}`)}</span>`;
@@ -648,7 +658,7 @@ function render() {
     ${updateWorker || updateRequired ? `<div class="ml-banner"><span>${esc(t('updateAvailable'))}</span>${button('update-app',t('updateNow'))}</div>` : ''}
     <div class="ml-discovery"><div class="ml-space" role="group" aria-label="${esc(t('space'))}">${button('space', t('public'), 'data-space="public" aria-pressed="' + (state.space === 'public') + '"')}${button('space', t('personal'), 'data-space="personal" aria-pressed="' + (state.space === 'personal') + '"')}</div><div class="ml-searchbar"><label class="ml-search"><span class="sr-only">${esc(t('search'))}</span><input type="search" id="ml-search" value="${esc(state.filters.q)}" placeholder="${esc(t('searchPlaceholder'))}"></label>
     ${state.section !== 'catalog' ? button('search-submit', t('search')) : ''}</div></div>
-    <nav class="ml-tabs" aria-label="${esc(t('navigation'))}">${['home','catalog','topics','collections'].map(s => button('section', t(s === 'catalog' ? 'allMaterials' : s), `data-section="${s}" ${state.section === s ? 'aria-current="page"' : ''}`)).join('')}</nav>
+    <nav class="ml-tabs" aria-label="${esc(t('navigation'))}">${sectionTabsHtml()}</nav>
     ${toolbarHtml()}<div id="ml-content" tabindex="-1">${!active ? `<p class="ml-loading">${esc(t(state.localError || state.publicError ? 'retryHelp' : 'loading'))}</p>`
       : state.section === 'home' ? `${d.home.description ? `<p class="ml-home-description">${esc(d.home.description)}</p>` : ''}${homeHtml()}`
       : state.section === 'catalog' ? catalogHtml() : state.section === 'topics' ? topicsHtml() : collectionsHtml()}</div>
@@ -957,6 +967,7 @@ async function onAction(action, node) {
     return showDialog(view.title,`<p>${esc(t('dynamicView'))}</p><p dir="auto">${esc(filterSummary(view.filters))}</p>${formActions(t(canEdit() ? 'editRules' : 'showResults'))}`,()=>{ closeDialog(); navigate('catalog',view.filters,{viewId:id}); if(canEdit())openFilters(); }); }
   if (action === 'space') { rememberLocation(); persist(); state.editing = false; state.preview = false; restorePresentation(node.dataset.space); persist('push'); render(); return; }
   if (action === 'section') return navigate(node.dataset.section, { q: '', category: '', collection: '' });
+  if (action === 'daily-video') return navigate('catalog', { q: '', category: DAILY_VIDEO_ID, collection: '' });
   if (action === 'organize') {
     if (state.space === 'public' && !state.editing) state.draft = await api('/api/publication/mediatheque');
     state.editing = !state.editing; state.preview = false; state.selected.clear(); render(); return;
