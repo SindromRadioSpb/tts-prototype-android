@@ -4,7 +4,7 @@ const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 const Q = require('../public/js/mediatheque-video-queue.js');
 
-const STATUSES = ['queued', 'acquiring', 'asr', 'asr_ready', 'failed_acquire', 'failed_asr', 'failed_upload', 'cancelled'];
+const STATUSES = ['queued', 'acquiring', 'asr', 'asr_ready', 'dot_taken', 'publishing', 'published', 'failed_acquire', 'failed_asr', 'failed_upload', 'failed_publish', 'cancelled', 'withdrawn'];
 
 test('statusLabelKey covers every status', () => {
   assert.deepEqual(Q.STATUSES, STATUSES);
@@ -44,8 +44,23 @@ test('reopening the dialog leaves one poll and one click listener', async () => 
 test('retry only for failed_*', () => {
   for (const s of STATUSES) assert.equal(Q.canRetry({ status: s }), s.startsWith('failed_'), s);
 });
-test('cancel only for queued/acquiring/asr', () => {
-  for (const s of STATUSES) assert.equal(Q.canCancel({ status: s }), ['queued', 'acquiring', 'asr'].includes(s), s);
+test('cancel until dot takes the job (queued/acquiring/asr/asr_ready)', () => {
+  for (const s of STATUSES) assert.equal(Q.canCancel({ status: s }), ['queued', 'acquiring', 'asr', 'asr_ready'].includes(s), s);
+});
+test('withdraw and the open link only for published', () => {
+  for (const s of STATUSES) assert.equal(Q.canWithdraw({ status: s }), s === 'published', s);
+  const t = k => k, esc = x => String(x);
+  const pub = Q.rowHtml({ job_id: 'mj_0123456789abcdef', video_id: 'dQw4w9WgXcQ', status: 'published', title: 'x', url: 'u' }, { t, esc });
+  assert.ok(pub.includes('href="/mediatheque.html?section=catalog&amp;category=m_daily_video"'), 'open in the Mediatheque');
+  assert.ok(pub.includes('data-vq="withdraw"'));
+  const ready = Q.rowHtml({ job_id: 'mj_0123456789abcdef', video_id: 'dQw4w9WgXcQ', status: 'asr_ready', title: 'x', url: 'u' }, { t, esc });
+  assert.ok(!ready.includes('m_daily_video') && !ready.includes('data-vq="withdraw"'));
+  assert.ok(ready.includes('asr-zip'), 'ASR zip still downloadable');
+});
+test('dot refusal and publish failures have hints', () => {
+  assert.equal(Q.hintKey({ status: 'failed_publish', error_code: 'DOT_REFUSED' }), 'videoQueue.hint.DOT_REFUSED');
+  assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'MATERIAL_ARCHIVE_INVALID' }), 'videoQueue.hint.PUBLISH_FAILED');
+  assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'MATERIAL_SOURCE_MISMATCH' }), 'videoQueue.hint.PUBLISH_FAILED');
 });
 test('rowHtml escapes the title and links the ASR zip only when ready', () => {
   const t = (k, v) => k + (v ? JSON.stringify(v) : ''), esc = s => String(s).replace(/</g, '&lt;');
@@ -66,7 +81,7 @@ function localeObject(lang) {
   return window.I18N_LOCALES[lang];
 }
 test('every key used exists in ru, en and he', () => {
-  const keys = ['open', 'title', 'intro', 'url', 'add', 'added', 'already', 'empty', 'retry', 'cancel', 'download', 'duration',
+  const keys = ['open', 'title', 'intro', 'url', 'add', 'added', 'already', 'empty', 'retry', 'cancel', 'download', 'duration', 'openMaterial', 'withdraw', 'withdrawn',
     ...STATUSES.map(s => 'status.' + s), ...Q.HINT_CODES.map(c => 'hint.' + c), ...Q.FINAL_HINT_CODES.map(c => 'hint.' + c + '_final'), 'hint.unknown'];
   for (const lang of ['ru', 'en', 'he']) {
     const vq = localeObject(lang).mediatheque.videoQueue;
@@ -75,4 +90,10 @@ test('every key used exists in ru, en and he', () => {
       assert.equal(typeof v, 'string', lang + ': ' + k); assert.ok(v.trim(), lang + ': ' + k);
     }
   }
+});
+
+test('a server-side publish failure is not blamed on dot\'s archive', () => {
+  assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'MEDIA_PUBLISH_RETRY' }), 'videoQueue.hint.MEDIA_PUBLISH_RETRY');
+  assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'MEDIA_DAILY_DRAFT_BUSY' }), 'videoQueue.hint.MEDIA_DAILY_DRAFT_BUSY');
+  assert.equal(Q.hintKey({ status: 'dot_taken', error_code: 'PACKAGE_HASH_MISMATCH' }), 'videoQueue.hint.PUBLISH_FAILED');
 });

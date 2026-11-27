@@ -19,6 +19,14 @@ test('migration 099 creates media_jobs', async () => {
   db.close();
 });
 
+test('migration 100 adds publish columns', async () => {
+  const db = await openDb();
+  const cols = (await all(db, 'PRAGMA table_info(media_jobs)')).map(c => c.name);
+  for (const c of ['dot_editor_id', 'dot_lease_until', 'upload_count', 'archive_sha256', 'published_slug', 'published_work_id', 'published_at', 'withdrawn_at'])
+    assert.ok(cols.includes(c), c);
+  db.close();
+});
+
 // ---- Task 2: the queue repository ------------------------------------------------------------------------
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path'), crypto = require('node:crypto');
 const AdmZip = require('adm-zip');
@@ -266,4 +274,132 @@ test('inspectAsrZip refuses a total unpacked size over the cap', () => {
   z.addFile('raw/big.json', Buffer.alloc(2048, 32));
   assert.throws(() => inspectAsrZip(z.toBuffer(), { maxUnpacked: 1024 }), e => e.code === 'MEDIA_ASR_ZIP_INVALID' && e.detail === 'too_large_unpacked');
   assert.equal(LIMITS.ASR_ZIP_UNPACKED_MAX, 500 * 1024 * 1024);
+});
+
+// ---- M2 Task 2: dot's side of the queue -------------------------------------------------------------------
+async function asrReady(queue, clock, n) {
+  const { job } = await enq(queue, 'https://youtu.be/' + vid(n));
+  const l = await queue.lease('k1');
+  assert.equal(l.job_id, job.job_id);
+  await queue.acceptAsrZip(job.job_id, 'k1', asrZip());
+  clock.now += 1000;
+  return job;
+}
+const H4 = 4 * 3600 * 1000;
+test('nextForDot gives the oldest ready job, then expired dot leases with retry:true', async t => {
+  const { queue, clock } = await setup(t);
+  assert.equal(await queue.nextForDot(), null);
+  const a = await asrReady(queue, clock, 1), b = await asrReady(queue, clock, 2);
+  const n1 = await queue.nextForDot();
+  assert.equal(n1.job_id, a.job_id); assert.equal(n1.retry, false);
+  await queue.takeForDot(a.job_id, 'ed1');
+  assert.equal((await queue.nextForDot()).job_id, b.job_id);
+  await queue.takeForDot(b.job_id, 'ed1');
+  assert.equal(await queue.nextForDot(), null);
+  clock.now += H4 + 1000;
+  const again = await queue.nextForDot();
+  assert.equal(again.job_id, a.job_id); assert.equal(again.retry, true);
+});
+test('takeForDot leases 4 h; another editor cannot take a live lease', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  const taken = await queue.takeForDot(a.job_id, 'ed1');
+  assert.equal(taken.status, 'dot_taken'); assert.equal(taken.dot_lease_until, new Date(clock.now + H4).toISOString());
+  assert.ok(!('dot_editor_id' in taken));
+  assert.equal((await queue.takeForDot(a.job_id, 'ed1')).status, 'dot_taken', 'own lease can be renewed');
+  assert.deepEqual(await codeOf(queue.takeForDot(a.job_id, 'ed2')), ['MEDIA_JOB_NOT_TAKEN', 409]);
+  clock.now += H4 + 1;
+  assert.equal((await queue.takeForDot(a.job_id, 'ed2')).status, 'dot_taken', 'an expired lease can be taken');
+  const queued = (await enq(queue, 'https://youtu.be/' + vid(9))).job;
+  assert.deepEqual(await codeOf(queue.takeForDot(queued.job_id, 'ed1')), ['MEDIA_JOB_NOT_TAKEN', 409]);
+});
+test('beginPublish only from own dot_taken; same sha repeat returns repeat:true', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  assert.deepEqual(await codeOf(queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64))), ['MEDIA_JOB_NOT_TAKEN', 409]);
+  await queue.takeForDot(a.job_id, 'ed1');
+  assert.deepEqual(await codeOf(queue.beginPublish(a.job_id, 'ed2', 'f'.repeat(64))), ['MEDIA_JOB_NOT_TAKEN', 409]);
+  const b = await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  assert.equal(b.job.status, 'publishing'); assert.equal(b.uploadNo, 1); assert.equal(b.repeat, false);
+  const r = await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  assert.equal(r.repeat, true); assert.equal(r.uploadNo, 1);
+  assert.deepEqual(await codeOf(queue.beginPublish(a.job_id, 'ed1', 'e'.repeat(64))), ['MEDIA_JOB_STATE', 409]);
+});
+test('publishFailed returns to dot_taken with the code; the next upload counts 2', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  await queue.takeForDot(a.job_id, 'ed1');
+  await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  const f = await queue.publishFailed(a.job_id, 'MATERIAL_ARCHIVE_INVALID', 'PACKAGE_X');
+  assert.equal(f.status, 'dot_taken'); assert.equal(f.error_code, 'MATERIAL_ARCHIVE_INVALID'); assert.equal(f.error_detail, 'PACKAGE_X');
+  const b = await queue.beginPublish(a.job_id, 'ed1', 'e'.repeat(64));
+  assert.equal(b.uploadNo, 2); assert.equal(b.job.error_code, null);
+});
+test('markPublished; a repeat after publishing returns repeat with the material', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  await queue.takeForDot(a.job_id, 'ed1');
+  await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  const p = await queue.markPublished(a.job_id, { slug: 'media-x', workId: 'work-y' });
+  assert.equal(p.status, 'published'); assert.equal(p.published_slug, 'media-x'); assert.equal(p.published_work_id, 'work-y');
+  assert.equal(p.published_at, new Date(clock.now).toISOString());
+  const r = await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  assert.equal(r.repeat, true); assert.equal(r.job.status, 'published');
+});
+test('dotFail → failed_publish; owner retry → asr_ready', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  await queue.takeForDot(a.job_id, 'ed1');
+  const f = await queue.dotFail(a.job_id, 'ed1', { reason: 'речь не на иврите' });
+  assert.equal(f.status, 'failed_publish'); assert.equal(f.error_code, 'DOT_REFUSED'); assert.equal(f.error_detail, 'речь не на иврите');
+  const r = await queue.retry(a.job_id);
+  assert.equal(r.status, 'asr_ready'); assert.equal(r.error_code, null);
+  assert.equal((await queue.nextForDot()).job_id, a.job_id);
+});
+test('withdraw only from published', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  assert.deepEqual(await codeOf(queue.withdraw(a.job_id)), ['MEDIA_JOB_STATE', 409]);
+  await queue.takeForDot(a.job_id, 'ed1'); await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  await queue.markPublished(a.job_id, { slug: 's', workId: 'w' });
+  const w = await queue.withdraw(a.job_id);
+  assert.equal(w.status, 'withdrawn'); assert.equal(w.withdrawn_at, new Date(clock.now).toISOString());
+});
+test('retireCandidates returns only dot publications older than the cut and not withdrawn', async t => {
+  const { queue, clock } = await setup(t);
+  const pub = async n => { const j = await asrReady(queue, clock, n); await queue.takeForDot(j.job_id, 'ed1'); await queue.beginPublish(j.job_id, 'ed1', String(n).repeat(64).slice(0, 64)); return queue.markPublished(j.job_id, { slug: 's', workId: 'w' + n }); };
+  const old = await pub(1); const gone = await pub(2); await queue.withdraw(gone.job_id);
+  clock.now += 31 * 24 * 3600 * 1000;
+  await pub(3);
+  const r = await queue.retireCandidates(new Date(clock.now - 30 * 24 * 3600 * 1000).toISOString());
+  assert.deepEqual(r, [{ job_id: old.job_id, published_slug: 's', published_work_id: 'w1' }]);
+});
+test('cancel is allowed while ASR is ready (dot has not taken it)', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  assert.equal((await queue.cancel(a.job_id)).status, 'cancelled');
+});
+
+// ---- M2 final review fixes ---------------------------------------------------------------------------------
+test('a publishing job stale for 30 min is offered again and accepts a different archive', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  await queue.takeForDot(a.job_id, 'ed1');
+  await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  assert.equal(await queue.nextForDot(), null, 'a fresh publish is not offered');
+  assert.deepEqual(await codeOf(queue.beginPublish(a.job_id, 'ed1', 'e'.repeat(64))), ['MEDIA_JOB_STATE', 409]);
+  clock.now += 31 * 60 * 1000; // the process died mid-publish
+  const n = await queue.nextForDot();
+  assert.equal(n.job_id, a.job_id); assert.equal(n.retry, true);
+  await queue.takeForDot(a.job_id, 'ed2');
+  const b = await queue.beginPublish(a.job_id, 'ed2', 'e'.repeat(64));
+  assert.equal(b.repeat, false); assert.equal(b.uploadNo, 2);
+});
+test('markPublished twice with the same work id returns the job', async t => {
+  const { queue, clock } = await setup(t);
+  const a = await asrReady(queue, clock, 1);
+  await queue.takeForDot(a.job_id, 'ed1'); await queue.beginPublish(a.job_id, 'ed1', 'f'.repeat(64));
+  await queue.markPublished(a.job_id, { slug: 's', workId: 'w' });
+  assert.equal((await queue.markPublished(a.job_id, { slug: 's', workId: 'w' })).status, 'published');
+  assert.deepEqual(await codeOf(queue.markPublished(a.job_id, { slug: 's', workId: 'other' })), ['MEDIA_JOB_STATE', 409]);
 });

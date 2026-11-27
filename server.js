@@ -1352,8 +1352,8 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
   "/css/mediatheque.css?v=921",
-  "/js/mediatheque-ui.js?v=921",
-  "/js/mediatheque-video-queue.js?v=921",
+  "/js/mediatheque-ui.js?v=922",
+  "/js/mediatheque-video-queue.js?v=922",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1543,9 +1543,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=921",
-  "/i18n/locales/en.js?v=921",
-  "/i18n/locales/he.js?v=921",
+  "/i18n/locales/ru.js?v=922",
+  "/i18n/locales/en.js?v=922",
+  "/i18n/locales/he.js?v=922",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4655,14 +4655,33 @@ require("./news/newsRoutes").mountNewsRoutes(app, {
 // runs ASR and hands in the ASR ZIP. The server never downloads from YouTube.
 let _mediaQueue = null;
 const mediaQueue = () => _mediaQueue || (_mediaQueue = require("./mediaqueue/mediaQueueRepo").createMediaQueue({ db: require("./db/sqlite").getDb(), dataDir: DATA_DIR }));
+const lazyQueue = new Proxy({}, { get: (_, key) => { const q = mediaQueue(); return typeof q[key] === "function" ? q[key].bind(q) : q[key]; } });
+// Stage M2 (spec §5.4–5.5): dot (the news editor key) uploads its archive; the server publishes it into «Видео дня»
+// with the owner's canonical writers, as the owner's own «Добавить материал» does.
+let _dailyPublisher = null;
+const dailyPublisher = () => _dailyPublisher || (_dailyPublisher = require("./mediaqueue/dailyPublisher").createDailyPublisher({
+  repo: getPublicationRepo(), queue: lazyQueue, log: m => console.log(m),
+  ownerActor: async () => {
+    const row = await new Promise((res, rej) => require("./db/sqlite").getDb().get("SELECT id FROM users WHERE role='owner' ORDER BY rowid LIMIT 1", (e, r) => e ? rej(e) : res(r)));
+    if (!row) throw Object.assign(new Error("no owner"), { code: "PUBLISHER_FORBIDDEN", status: 403 });
+    return { id: row.id, role: "owner" };
+  },
+}));
 require("./mediaqueue/mediaQueueRoutes").mountMediaQueueRoutes(app, {
-  queue: new Proxy({}, { get: (_, key) => { const q = mediaQueue(); return typeof q[key] === "function" ? q[key].bind(q) : q[key]; } }),
+  queue: lazyQueue,
   relayAuth: lazyMember(s => s.relayAuth),
+  editorAuth: lazyMember(s => s.auth),
+  dailyPublisher: { publish: (...a) => dailyPublisher().publish(...a), withdraw: (...a) => dailyPublisher().withdraw(...a) },
   resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
-  audit: (type, actorId, detail, ip) => { Promise.resolve(identityRepo.audit(type, actorId, detail, ip)).catch(() => {}); },
+  // audit_log.user_id references users(id): dot's editor id rides in the detail (as in the news routes).
+  audit: (type, actorId, detail, ip) => {
+    const editor = typeof actorId === "string" && actorId.startsWith("editor:");
+    Promise.resolve(identityRepo.audit(type, editor ? null : actorId, editor ? { ...detail, editor: actorId } : detail, ip)).catch(() => {});
+  },
   readLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "media-queue-read" }),
   writeLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "media-queue-write" }),
   workerLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "media-worker" }),
+  editorLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "media-queue-editor" }),
 });
 const _newsLifecycle = setInterval(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));

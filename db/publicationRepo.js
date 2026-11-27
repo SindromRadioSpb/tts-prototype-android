@@ -39,6 +39,8 @@ function fail(code, status) {
   if (status) error.status = status;
   throw error;
 }
+// dot publishes only into this category (spec 2026-11-27 §5.5).
+const DAILY_VIDEO = Object.freeze({ id: 'm_daily_video', title: 'Видео дня' });
 function sha256(value) { return crypto.createHash("sha256").update(value).digest("hex"); }
 function assetFileName(asset) { return asset.asset_key + ({'video/mp4':'.mp4','video/webm':'.webm','video/quicktime':'.mov','audio/mp4':'.m4a'}[asset.mime] || '.mp3'); }
 const MANAGED_SLUG = /^media-[a-f0-9]{20}$/;
@@ -995,6 +997,59 @@ function createPublicationRepo(options = {}) {
       return { revision: draft.revision, edition_id: editionId };
     });
   }
+  // dot's narrow publication into «Видео дня» (docs/superpowers/specs/2026-11-27-mediatheque-video-pipeline-design.md §5.5).
+  // The same commands go to the published edition AND to the owner's draft, so the owner's next publish keeps the
+  // material, and no other edit of the draft is published by dot.
+  function dailyCommands(structure, ref, retireKeys) {
+    const o = { publicOnly: true };
+    let s = structure;
+    if (!s.categories.some(c => c.id === DAILY_VIDEO.id)) s = Mediatheque.command(s, { type: 'category.create', id: DAILY_VIDEO.id, title: DAILY_VIDEO.title }, o);
+    if (ref) s = Mediatheque.command(s, { type: 'items.add', target: 'category', id: DAILY_VIDEO.id, references: [ref] }, o);
+    const keep = ref ? Mediatheque.refKey(ref) : null;
+    const shown = new Set(s.categories.find(c => c.id === DAILY_VIDEO.id).items);
+    const gone = retireKeys.filter(k => shown.has(k) && k !== keep);
+    if (gone.length) s = Mediatheque.command(s, { type: 'items.remove', target: 'category', id: DAILY_VIDEO.id, keys: gone }, o);
+    return s;
+  }
+  // Writes the new public edition (unused references forgotten, as publishMediatheque does) and the draft (+1 revision).
+  async function writeNarrowEdition(actor, publicStructure, draftStructure, draftRevision) {
+    const used = new Set([...publicStructure.categories, ...publicStructure.collections].flatMap(c => c.items));
+    if (publicStructure.home.featured) used.add(publicStructure.home.featured);
+    publicStructure.annotations.forEach(a => used.add(a.key));
+    const pub = Mediatheque.command(publicStructure, { type: 'reference.forget', keys: publicStructure.references.map(Mediatheque.refKey).filter(k => !used.has(k)) }, { publicOnly: true });
+    const revision = draftRevision + 1, json = canonicalJson(pub), editionId = id('me_'), at = now();
+    await dbRun(database, `INSERT INTO publication_mediatheque_editions(edition_id,revision,structure_json,sha256,published_by,published_at)
+      VALUES(?,?,?,?,?,?)`, [editionId, revision, json, sha256(json), actorId(actor), at]);
+    await dbRun(database, 'INSERT INTO publication_mediatheque_pointer(singleton,edition_id) VALUES(1,?) ON CONFLICT(singleton) DO UPDATE SET edition_id=excluded.edition_id', [editionId]);
+    await dbRun(database, `INSERT INTO publication_mediatheque_draft(singleton,revision,structure_json,undo_json,updated_by,updated_at)
+      VALUES(1,?,?,NULL,?,?) ON CONFLICT(singleton) DO UPDATE SET revision=excluded.revision,structure_json=excluded.structure_json,
+      undo_json=NULL,updated_by=excluded.updated_by,updated_at=excluded.updated_at`, [revision, canonicalJson(Mediatheque.validate(draftStructure, { publicOnly: true })), actorId(actor), at]);
+    return { edition_id: editionId, revision };
+  }
+  async function publishMediathequeDailyAddition(actor, input = {}, opts) {
+    mediathequeOwner(actor);
+    const ref = input.ref, retireKeys = Array.isArray(input.retireKeys) ? input.retireKeys.map(String) : [];
+    if (!ref || ref.kind !== 'public') fail('PUBLICATION_INPUT_INVALID', 400);
+    return withIdempotency(actor, 'MEDIATHEQUE_DAILY_ADD', opts, { ref, retireKeys }, async () => {
+      const published = await getPublicMediatheque();
+      if (!published.items.some(item => Mediatheque.refKey(item.ref) === Mediatheque.refKey(ref))) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
+      const draft = await getMediathequeDraft(actor);
+      const draftBase = draft.revision ? draft.structure : published.structure;
+      return writeNarrowEdition(actor, dailyCommands(published.structure, ref, retireKeys), dailyCommands(draftBase, ref, retireKeys), draft.revision);
+    });
+  }
+  async function withdrawMediathequeDailyItem(actor, input = {}, opts) {
+    mediathequeOwner(actor);
+    const key = String(input.key || '');
+    return withIdempotency(actor, 'MEDIATHEQUE_DAILY_WITHDRAW', opts, { key }, async () => {
+      const published = await getPublicMediatheque();
+      const daily = published.structure.categories.find(c => c.id === DAILY_VIDEO.id);
+      if (!daily || !daily.items.includes(key)) fail('MEDIATHEQUE_REFERENCE_UNAVAILABLE', 409);
+      const draft = await getMediathequeDraft(actor);
+      const draftBase = draft.revision ? draft.structure : published.structure;
+      return writeNarrowEdition(actor, dailyCommands(published.structure, null, [key]), dailyCommands(draftBase, null, [key]), draft.revision);
+    });
+  }
   async function rollbackMediatheque(actor, input, opts) {
     mediathequeOwner(actor);
     return withIdempotency(actor, 'MEDIATHEQUE_ROLLBACK', opts, input, async () => {
@@ -1277,6 +1332,7 @@ function createPublicationRepo(options = {}) {
     withdraw, restore, rollback,
     getMediathequeDraft, getPublicMediatheque, saveMediathequeDraft, undoMediathequeDraft, repairMediathequeDraft, publishMediatheque, rollbackMediatheque,
     prepareMediathequeArchive, attachMediathequeMedia, copyMediathequeArchive,
+    publishMediathequeDailyAddition, withdrawMediathequeDailyItem,
     recordMaterialRights: (actor,corpusId,input,opts)=>applyRightsPreset(actor,corpusId,input,opts,true),
     deleteMediathequeMaterials, discardMediathequePendingImport, updateMediathequeMaterial, mediathequeMaterialArchive,
   };
@@ -1293,4 +1349,5 @@ module.exports = {
   getPublicationRepo: singletonRepo,
   sanitizeSnapshot,
   canonicalJson,
+  DAILY_VIDEO,
 };

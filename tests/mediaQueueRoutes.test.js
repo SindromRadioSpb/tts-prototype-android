@@ -26,7 +26,13 @@ async function setup(t) {
     if (c.includes(READER_COOKIE)) return { user: { id: 'reader', role: 'user' }, session: { csrf: 'r' } };
     return null;
   };
-  mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit: (...a) => audits.push(a) });
+  // dot's publisher is a stand-in here (the real one is tested in mediaDailyPublisher.test.js).
+  const published = [], withdrawn = [];
+  const dailyPublisher = {
+    publish: async (jobId, editorId, bytes) => { published.push({ jobId, editorId, bytes }); await queue.beginPublish(jobId, editorId, require('node:crypto').createHash('sha256').update(bytes).digest('hex')); return { job: await queue.markPublished(jobId, { slug: 'media-x', workId: 'work-y' }), material: { slug: 'media-x', workId: 'work-y', title: 'T' } }; },
+    withdraw: async jobId => { withdrawn.push(jobId); return queue.withdraw(jobId); },
+  };
+  mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit: (...a) => audits.push(a), editorAuth, dailyPublisher });
   const server = await new Promise(r => { const s = app.listen(0, () => r(s)); });
   t.after(() => new Promise(r => server.close(() => { fs.rmSync(dataDir, { recursive: true, force: true }); db.close(); r(); })));
   const base = 'http://127.0.0.1:' + server.address().port;
@@ -40,7 +46,7 @@ async function setup(t) {
   });
   const { key } = await relayAuth.issue('home PC', 'owner');
   const { key: editorKey } = await editorAuth.createEditor('owner', 'dot');
-  return { call, owner, base, key, editorKey, audits, queue };
+  return { call, owner, base, key, editorKey, audits, queue, published, withdrawn };
 }
 const bearer = k => ({ authorization: 'Bearer ' + k });
 function asrZip() {
@@ -130,4 +136,87 @@ test('MediaQueueError maps to its status and code', async t => {
   assert.equal(nf.status, 404); assert.equal(nf.body.error, 'MEDIA_JOB_NOT_FOUND');
   const nl = await call('POST', '/api/media-queue/worker/jobs/mj_0000000000000000/step', { json: { status: 'asr' }, headers: bearer(key) });
   assert.equal(nl.status, 404);
+});
+
+// ---- M2 Task 5: dot's routes, the owner's withdraw, the instruction ---------------------------------------
+async function readyJob(h) {
+  const { body: { job } } = await h.call('POST', '/api/media-queue/jobs', { json: { url: 'https://youtu.be/' + ID }, headers: h.owner });
+  await h.call('POST', '/api/media-queue/worker/lease', { json: {}, headers: bearer(h.key) });
+  await h.call('PUT', '/api/media-queue/worker/jobs/' + job.job_id + '/asr-zip', { body: asrZip(), type: 'application/zip', headers: bearer(h.key) });
+  return job;
+}
+test('dot takes the next job and downloads the ASR zip', async t => {
+  const h = await setup(t);
+  const empty = await h.call('GET', '/api/media-queue/editor/jobs/next', { headers: bearer(h.editorKey) });
+  assert.equal(empty.status, 200); assert.equal(empty.body.job, null); assert.match(empty.body.task.version, /^[a-f0-9]{12}$/);
+  assert.equal(empty.body.task.url, '/api/media-queue/dot-task.md');
+  const job = await readyJob(h);
+  const n = await h.call('GET', '/api/media-queue/editor/jobs/next', { headers: bearer(h.editorKey) });
+  assert.equal(n.body.job.job_id, job.job_id); assert.equal(n.body.job.retry, false);
+  assert.equal(n.body.job.asr_zip, '/api/media-queue/editor/jobs/' + job.job_id + '/asr-zip');
+  assert.equal(n.body.job.archive, '/api/media-queue/editor/jobs/' + job.job_id + '/archive');
+  const dl = await h.call('GET', n.body.job.asr_zip, { headers: bearer(h.editorKey) });
+  assert.equal(dl.status, 200); assert.deepEqual(dl.raw, asrZip());
+  assert.equal((await h.queue.get(job.job_id)).status, 'dot_taken');
+  assert.ok(h.audits.some(a => a[0] === 'media_job_dot_taken'));
+});
+test('dot uploads an archive and the job is published', async t => {
+  const h = await setup(t);
+  const job = await readyJob(h);
+  await h.call('GET', '/api/media-queue/editor/jobs/' + job.job_id + '/asr-zip', { headers: bearer(h.editorKey) });
+  const up = await h.call('POST', '/api/media-queue/editor/jobs/' + job.job_id + '/archive', { body: Buffer.from('PK-archive'), type: 'application/zip', headers: bearer(h.editorKey) });
+  assert.equal(up.status, 200); assert.equal(up.body.job.status, 'published'); assert.deepEqual(up.body.material, { slug: 'media-x', workId: 'work-y', title: 'T' });
+  assert.equal(h.published.length, 1); assert.match(h.published[0].editorId, /^ned_/); assert.deepEqual(h.published[0].bytes, Buffer.from('PK-archive'));
+  assert.ok(h.audits.some(a => a[0] === 'media_job_published'));
+});
+test('dot refuses a job with a reason', async t => {
+  const h = await setup(t);
+  const job = await readyJob(h);
+  await h.call('GET', '/api/media-queue/editor/jobs/' + job.job_id + '/asr-zip', { headers: bearer(h.editorKey) });
+  const f = await h.call('POST', '/api/media-queue/editor/jobs/' + job.job_id + '/fail', { json: { reason: 'музыка без речи' }, headers: bearer(h.editorKey) });
+  assert.equal(f.status, 200); assert.equal(f.body.job.status, 'failed_publish'); assert.equal(f.body.job.error_detail, 'музыка без речи');
+});
+test('withdraw by the owner calls the publisher and marks the job', async t => {
+  const h = await setup(t);
+  const job = await readyJob(h);
+  await h.call('GET', '/api/media-queue/editor/jobs/' + job.job_id + '/asr-zip', { headers: bearer(h.editorKey) });
+  await h.call('POST', '/api/media-queue/editor/jobs/' + job.job_id + '/archive', { body: Buffer.from('PK'), type: 'application/zip', headers: bearer(h.editorKey) });
+  const w = await h.call('POST', '/api/media-queue/jobs/' + job.job_id + '/withdraw', { json: {}, headers: h.owner });
+  assert.equal(w.status, 200); assert.equal(w.body.job.status, 'withdrawn'); assert.deepEqual(h.withdrawn, [job.job_id]);
+  assert.ok(h.audits.some(a => a[0] === 'media_job_withdrawn'));
+});
+test('relay key cannot reach editor routes; editor key cannot reach owner and worker routes', async t => {
+  const h = await setup(t);
+  const job = await readyJob(h);
+  for (const [m, u] of [['GET', '/api/media-queue/editor/jobs/next'], ['GET', '/api/media-queue/editor/jobs/' + job.job_id + '/asr-zip']])
+    assert.equal((await h.call(m, u, { headers: bearer(h.key) })).status, 401, u);
+  assert.equal((await h.call('POST', '/api/media-queue/editor/jobs/' + job.job_id + '/archive', { body: Buffer.from('x'), type: 'application/zip', headers: bearer(h.key) })).status, 401);
+  assert.equal((await h.call('POST', '/api/media-queue/jobs', { json: { url: 'https://youtu.be/' + ID }, headers: bearer(h.editorKey) })).status, 401);
+  assert.equal((await h.call('POST', '/api/media-queue/jobs/' + job.job_id + '/withdraw', { json: {}, headers: bearer(h.editorKey) })).status, 401);
+  assert.equal((await h.call('POST', '/api/media-queue/worker/lease', { json: {}, headers: bearer(h.editorKey) })).status, 401);
+  // the owner may look at what dot would get, but cannot take it
+  assert.equal((await h.call('GET', '/api/media-queue/editor/jobs/next', { headers: h.owner })).status, 200);
+  assert.equal((await h.call('GET', '/api/media-queue/editor/jobs/' + job.job_id + '/asr-zip', { headers: h.owner })).status, 403);
+});
+test('dot-task.md is public, versioned, 304 on If-None-Match', async t => {
+  const h = await setup(t);
+  const r = await h.call('GET', '/api/media-queue/dot-task.md');
+  assert.equal(r.status, 200); assert.match(r.headers.get('content-type'), /text\/markdown/);
+  assert.match(r.raw.toString('utf8'), /Задание для dot: видео для Медиатеки/);
+  const etag = r.headers.get('etag');
+  assert.match(etag, /^"[a-f0-9]{12}"$/);
+  assert.equal((await h.call('GET', '/api/media-queue/dot-task.md', { headers: { 'if-none-match': etag } })).status, 304);
+});
+
+test('an anonymous archive upload is refused before its body is read', async t => {
+  const h = await setup(t);
+  const http = require('node:http'), u = new URL(h.base);
+  const status = await new Promise((resolve, reject) => {
+    const req = http.request({ host: u.hostname, port: u.port, method: 'POST', path: '/api/media-queue/editor/jobs/mj_0000000000000000/archive',
+      headers: { 'content-type': 'application/zip', 'content-length': String(600 * 1024 * 1024) } }, res => { resolve(res.statusCode); res.resume(); req.destroy(); });
+    req.on('error', e => (e.code === 'ECONNRESET' || e.code === 'EPIPE') ? null : reject(e));
+    req.write(Buffer.alloc(1024));
+    setTimeout(() => { resolve('no answer: the server is reading the body'); req.destroy(); }, 3000);
+  });
+  assert.equal(status, 401);
 });

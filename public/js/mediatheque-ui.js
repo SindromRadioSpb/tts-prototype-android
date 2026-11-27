@@ -1,7 +1,7 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=921';
+import './mediatheque-video-queue.js?v=922';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;

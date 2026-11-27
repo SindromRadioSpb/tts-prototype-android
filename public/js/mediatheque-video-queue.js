@@ -6,25 +6,33 @@
   if (root) root.MediathequeVideoQueue = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const STATUSES = ['queued', 'acquiring', 'asr', 'asr_ready', 'failed_acquire', 'failed_asr', 'failed_upload', 'cancelled'];
-  const OPEN = ['queued', 'acquiring', 'asr'];
+  const STATUSES = ['queued', 'acquiring', 'asr', 'asr_ready', 'dot_taken', 'publishing', 'published', 'failed_acquire', 'failed_asr', 'failed_upload', 'failed_publish', 'cancelled', 'withdrawn'];
+  // The owner may cancel until dot has taken the job (stage M2).
+  const CANCELLABLE = ['queued', 'acquiring', 'asr', 'asr_ready'];
+  // The ASR ZIP stays downloadable once it exists.
+  const HAS_ASR = ['asr_ready', 'dot_taken', 'publishing', 'published', 'failed_publish'];
+  // Codes of the publication checks: one hint that names the code.
+  const PUBLISH_CODE = /^(MATERIAL_|PACKAGE_|ZIP_|MANIFEST_|CANONICAL_|GRAPH_|SOURCE_|MEDIATHEQUE_|PLAYBACK_|PUBLICATION_)/;
+  const DAILY_HREF = '/mediatheque.html?section=catalog&amp;category=m_daily_video';
   const HINT_CODES = ['ACQUIRE_FAILED', 'ASR_FAILED', 'ASR_PARTIAL', 'ASR_BUSY', 'LEASE_EXPIRED', 'UPLOAD_REJECTED',
-    'YOUTUBE_SIGN_IN', 'YOUTUBE_PRIVATE', 'YOUTUBE_UNAVAILABLE', 'YOUTUBE_BLOCKED', 'YOUTUBE_LIVE', 'TOOL_MISSING', 'MEDIA_URL_INVALID', 'MEDIA_QUEUE_FULL'];
+    'YOUTUBE_SIGN_IN', 'YOUTUBE_PRIVATE', 'YOUTUBE_UNAVAILABLE', 'YOUTUBE_BLOCKED', 'YOUTUBE_LIVE', 'TOOL_MISSING', 'MEDIA_URL_INVALID', 'MEDIA_QUEUE_FULL', 'DOT_REFUSED', 'PUBLISH_FAILED', 'MEDIA_PUBLISH_RETRY', 'MEDIA_DAILY_DRAFT_BUSY'];
   // These codes promise another try; on a failed_* job (attempts used up) the final wording is shown instead.
   const FINAL_HINT_CODES = ['ACQUIRE_FAILED', 'LEASE_EXPIRED', 'YOUTUBE_BLOCKED', 'TOOL_MISSING'];
   const POLL_MS = 15000;
-  const MARK = { queued: '⏸', acquiring: '●', asr: '●', asr_ready: '✓', cancelled: '–' };
+  const MARK = { queued: '⏸', acquiring: '●', asr: '●', asr_ready: '✓', dot_taken: '●', publishing: '●', published: '★', cancelled: '–', withdrawn: '–' };
 
   const statusLabelKey = job => 'videoQueue.status.' + job.status;
   function hintKey(job) {
     if (!job.error_code) return null;
+    if (PUBLISH_CODE.test(job.error_code)) return 'videoQueue.hint.PUBLISH_FAILED';
     if (!HINT_CODES.includes(job.error_code)) return 'videoQueue.hint.unknown';
     const final = /^failed_/.test(job.status) && FINAL_HINT_CODES.includes(job.error_code);
     return 'videoQueue.hint.' + job.error_code + (final ? '_final' : '');
   }
   let current = null; // the open dialog's poll; a reopen stops the old one first
   const canRetry = job => /^failed_/.test(job.status);
-  const canCancel = job => OPEN.includes(job.status);
+  const canCancel = job => CANCELLABLE.includes(job.status);
+  const canWithdraw = job => job.status === 'published';
 
   function rowHtml(job, { t, esc }) {
     const id = esc(job.job_id);
@@ -37,14 +45,16 @@
     const actions = [
       canRetry(job) ? `<button type="button" data-vq="retry" data-id="${id}">${esc(t('videoQueue.retry'))}</button>` : '',
       canCancel(job) ? `<button type="button" data-vq="cancel" data-id="${id}">${esc(t('videoQueue.cancel'))}</button>` : '',
-      job.status === 'asr_ready' ? `<a class="ml-primary ml-vq-download" href="/api/media-queue/jobs/${id}/asr-zip" download>${esc(t('videoQueue.download'))}</a>` : '',
+      canWithdraw(job) ? `<a class="ml-primary ml-vq-download" href="${DAILY_HREF}">${esc(t('videoQueue.openMaterial'))}</a>` : '',
+      canWithdraw(job) ? `<button type="button" data-vq="withdraw" data-id="${id}">${esc(t('videoQueue.withdraw'))}</button>` : '',
+      HAS_ASR.includes(job.status) ? `<a class="${job.status === 'asr_ready' ? 'ml-primary ' : ''}ml-vq-download" href="/api/media-queue/jobs/${id}/asr-zip" download>${esc(t('videoQueue.download'))}</a>` : '',
     ].join('');
     return `<li class="ml-vq-row" data-status="${esc(job.status)}"><div class="ml-vq-main">`
       + `<span class="ml-vq-mark" aria-hidden="true">${MARK[job.status] || '✕'}</span>`
       + `<div><a class="ml-vq-name" dir="auto" href="${esc(job.url)}" target="_blank" rel="noopener">${esc(name)}</a>`
       + (meta ? `<small>${meta}</small>` : '')
       + `<p class="ml-vq-status">${esc(t(statusLabelKey(job)))}</p>`
-      + (hint ? `<p class="ml-vq-hint" dir="auto">${esc(t(hint, { code: job.error_code }))}</p>` : '')
+      + (hint ? `<p class="ml-vq-hint" dir="auto">${esc(t(hint, { code: job.error_code, detail: job.error_detail || '' }))}</p>` : '')
       + `</div></div>${actions ? `<div class="ml-actions">${actions}</div>` : ''}</li>`;
   }
 
@@ -92,5 +102,5 @@
     return refresh();
   }
 
-  return { STATUSES, HINT_CODES, FINAL_HINT_CODES, statusLabelKey, hintKey, canRetry, canCancel, rowHtml, open };
+  return { STATUSES, HINT_CODES, FINAL_HINT_CODES, statusLabelKey, hintKey, canRetry, canCancel, canWithdraw, rowHtml, open };
 });

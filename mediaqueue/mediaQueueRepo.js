@@ -21,8 +21,13 @@ const ASR_ZIP_UNPACKED_MAX = 500 * 1024 * 1024;
 const ASR_ZIP_MANIFEST_MAX = 1024 * 1024;
 const ASR_ZIP_ENTRIES_MAX = 2000;
 const OPEN = ['queued', 'acquiring', 'asr'];
-// A video that is open or already has its ASR is not queued a second time.
-const DEDUPE = [...OPEN, 'asr_ready'];
+// A video that is open, has its ASR, is with dot or is published is not queued a second time.
+const DEDUPE = [...OPEN, 'asr_ready', 'dot_taken', 'publishing', 'published'];
+const DOT_LEASE_MS = 4 * 3600 * 1000;
+// A publish that has not finished in 30 minutes died with the process: dot may take the job again.
+const STALE_PUBLISH_MS = 30 * 60 * 1000;
+// The owner may cancel until dot has taken the job.
+const CANCELLABLE = [...OPEN, 'asr_ready'];
 const FAILED_OF = { queued: 'failed_acquire', acquiring: 'failed_acquire', asr: 'failed_asr' };
 const AUDIO_EXT = /\.(wav|mp3|m4a|aac|opus|ogg|webm|flac|mp4|pcm)$/i;
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
@@ -44,7 +49,7 @@ function parseYoutubeUrl(s) {
 const clip = (s, n) => s == null ? null : String(s).slice(0, n);
 function publicJob(row) {
   if (!row) return null;
-  const { lease_key_id, ...job } = row;
+  const { lease_key_id, dot_editor_id, ...job } = row;
   return job;
 }
 
@@ -164,7 +169,8 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
 
   async function asrZipPath(jobId) {
     const r = await mustRow(jobId);
-    if (r.status !== 'asr_ready' || !r.asr_zip_sha256) fail('MEDIA_JOB_STATE', 409);
+    // The ZIP stays downloadable after dot took the job (and for the owner later).
+    if (!r.asr_zip_sha256) fail('MEDIA_JOB_STATE', 409);
     return path.join(asrDir, r.asr_zip_sha256 + '.zip');
   }
 
@@ -173,18 +179,87 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
     if (!/^failed_/.test(r.status)) fail('MEDIA_JOB_STATE', 409);
     const dup = await dbGet(db, `SELECT job_id FROM media_jobs WHERE video_id=? AND job_id<>? AND status IN (${inList(DEDUPE)})`, [r.video_id, r.job_id, ...DEDUPE]);
     if (dup) fail('MEDIA_JOB_STATE', 409, { existing: dup.job_id });
-    await dbRun(db, `UPDATE media_jobs SET status='queued', attempts=0, error_code=NULL, error_detail=NULL, updated_at=? WHERE job_id=?`, [iso(), r.job_id]);
+    // A job that failed at dot's step already has its ASR: it goes back to dot, not to the PC.
+    const back = r.status === 'failed_publish' && r.asr_zip_sha256 ? 'asr_ready' : 'queued';
+    await dbRun(db, `UPDATE media_jobs SET status=?, attempts=0, error_code=NULL, error_detail=NULL, dot_editor_id=NULL, dot_lease_until=NULL, updated_at=? WHERE job_id=?`, [back, iso(), r.job_id]);
     return get(r.job_id);
   }
 
   async function cancel(jobId) {
     const r = await mustRow(jobId);
-    if (!OPEN.includes(r.status)) fail('MEDIA_JOB_STATE', 409);
+    if (!CANCELLABLE.includes(r.status)) fail('MEDIA_JOB_STATE', 409);
     await dbRun(db, `UPDATE media_jobs SET status='cancelled', lease_key_id=NULL, lease_until=NULL, progress=NULL, updated_at=? WHERE job_id=?`, [iso(), r.job_id]);
     return get(r.job_id);
   }
 
-  return { enqueue, list, get, lease, step, fail: failJob, acceptAsrZip, asrZipPath, retry, cancel };
+  // ---- dot (spec §5.4): take a job with ASR ready, upload the learning archive, the server publishes ----
+  // → the oldest ready job (owner orders first), else a job whose dot lease ran out (retry: true).
+  async function nextForDot() {
+    const t = iso();
+    const ready = await dbGet(db, "SELECT * FROM media_jobs WHERE status='asr_ready' ORDER BY priority DESC, created_at, rowid LIMIT 1");
+    if (ready) return { ...publicJob(ready), retry: false };
+    const stale = await dbGet(db, `SELECT * FROM media_jobs WHERE (status='dot_taken' AND dot_lease_until<?) OR (status='publishing' AND updated_at<?)
+      ORDER BY priority DESC, created_at, rowid LIMIT 1`, [t, iso(now() - STALE_PUBLISH_MS)]);
+    return stale ? { ...publicJob(stale), retry: true } : null;
+  }
+  async function takeForDot(jobId, editorId) {
+    const r = await mustRow(jobId), t = iso(), ed = String(editorId);
+    const ok = r.status === 'asr_ready' || (r.status === 'dot_taken' && (r.dot_editor_id === ed || !r.dot_lease_until || r.dot_lease_until < t))
+      || (r.status === 'publishing' && r.updated_at < iso(now() - STALE_PUBLISH_MS));
+    if (!ok) fail('MEDIA_JOB_NOT_TAKEN', 409);
+    const u = await dbRun(db, `UPDATE media_jobs SET status='dot_taken', dot_editor_id=?, dot_lease_until=?, updated_at=? WHERE job_id=? AND status=? AND COALESCE(dot_editor_id,'')=?`,
+      [ed, iso(now() + DOT_LEASE_MS), t, r.job_id, r.status, r.dot_editor_id || '']);
+    if (u.changes !== 1) fail('MEDIA_JOB_NOT_TAKEN', 409);
+    return get(r.job_id);
+  }
+  // → { job, uploadNo, repeat }. The same archive sent again (dot did not see the answer) is a repeat, not a second material.
+  async function beginPublish(jobId, editorId, archiveSha) {
+    const r = await mustRow(jobId), ed = String(editorId), sha = String(archiveSha || '');
+    if (!/^[a-f0-9]{64}$/.test(sha)) fail('MEDIA_INPUT_INVALID', 400, 'archive_sha256');
+    if ((r.status === 'publishing' || r.status === 'published') && r.archive_sha256 === sha && r.dot_editor_id === ed)
+      return { job: publicJob(r), uploadNo: r.upload_count, repeat: true };
+    if (r.status === 'publishing' || r.status === 'published') fail('MEDIA_JOB_STATE', 409);
+    if (r.status !== 'dot_taken' || r.dot_editor_id !== ed) fail('MEDIA_JOB_NOT_TAKEN', 409);
+    const u = await dbRun(db, `UPDATE media_jobs SET status='publishing', upload_count=upload_count+1, archive_sha256=?, error_code=NULL, error_detail=NULL, updated_at=?
+      WHERE job_id=? AND status='dot_taken' AND dot_editor_id=?`, [sha, iso(), r.job_id, ed]);
+    if (u.changes !== 1) fail('MEDIA_JOB_NOT_TAKEN', 409);
+    const job = await get(r.job_id);
+    return { job, uploadNo: job.upload_count, repeat: false };
+  }
+  async function publishFailed(jobId, code, detail = null) {
+    const r = await mustRow(jobId);
+    await dbRun(db, `UPDATE media_jobs SET status='dot_taken', error_code=?, error_detail=?, updated_at=? WHERE job_id=? AND status='publishing'`,
+      [clip(code, 60), clip(detail, 300), iso(), r.job_id]);
+    return get(r.job_id);
+  }
+  async function markPublished(jobId, { slug, workId }) {
+    const r = await mustRow(jobId), t = iso();
+    // The same result recorded twice (a resend raced the first answer) is not an error.
+    if (r.status === 'published' && r.published_slug === String(slug) && r.published_work_id === String(workId)) return publicJob(r);
+    if (r.status !== 'publishing') fail('MEDIA_JOB_STATE', 409);
+    await dbRun(db, `UPDATE media_jobs SET status='published', published_slug=?, published_work_id=?, published_at=?, error_code=NULL, error_detail=NULL, updated_at=? WHERE job_id=?`,
+      [String(slug), String(workId), t, t, r.job_id]);
+    return get(r.job_id);
+  }
+  async function dotFail(jobId, editorId, { reason = null } = {}) {
+    const r = await mustRow(jobId);
+    if (r.status !== 'dot_taken' || r.dot_editor_id !== String(editorId)) fail('MEDIA_JOB_NOT_TAKEN', 409);
+    await dbRun(db, `UPDATE media_jobs SET status='failed_publish', error_code='DOT_REFUSED', error_detail=?, dot_lease_until=NULL, updated_at=? WHERE job_id=?`,
+      [clip(reason, 300), iso(), r.job_id]);
+    return get(r.job_id);
+  }
+  async function withdraw(jobId) {
+    const r = await mustRow(jobId), t = iso();
+    if (r.status !== 'published') fail('MEDIA_JOB_STATE', 409);
+    await dbRun(db, "UPDATE media_jobs SET status='withdrawn', withdrawn_at=?, updated_at=? WHERE job_id=?", [t, t, r.job_id]);
+    return get(r.job_id);
+  }
+  // dot's publications older than the cut and still shown: they leave «Видео дня» (spec §5.5, 30 days).
+  const retireCandidates = beforeIso => dbAll(db, `SELECT job_id, published_slug, published_work_id FROM media_jobs
+    WHERE status='published' AND published_at<? ORDER BY published_at`, [String(beforeIso)]);
+
+  return { enqueue, list, get, lease, step, fail: failJob, acceptAsrZip, asrZipPath, retry, cancel,
+    nextForDot, takeForDot, beginPublish, publishFailed, markPublished, dotFail, withdraw, retireCandidates };
 }
 
 module.exports = { parseYoutubeUrl, createMediaQueue, MediaQueueError, inspectAsrZip, LIMITS: { LEASE_MS, MAX_ATTEMPTS, OWNER_OPEN_LIMIT, ASR_ZIP_MAX, ASR_ZIP_UNPACKED_MAX, ASR_ZIP_MANIFEST_MAX, ASR_ZIP_ENTRIES_MAX } };
