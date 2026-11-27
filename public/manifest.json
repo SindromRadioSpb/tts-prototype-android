@@ -6,13 +6,21 @@
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "orientation": "any",
   "lang": "ru",
   "dir": "ltr",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "categories": ["education", "productivity", "utilities"],
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/icons/icon.svg",
@@ -58,5 +66,14 @@
       "description": "Open the analytics dashboard",
       "url": "/?view=dashboard&source=pwa-shortcut"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/mediatheque.html",
+    "method": "GET",
+    "params": {
+      "title": "share_title",
+      "text": "share_text",
+      "url": "share_url"
+    }
+  }
 }

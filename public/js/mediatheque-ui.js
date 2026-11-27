@@ -1,7 +1,7 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=923';
+import './mediatheque-video-queue.js?v=924';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
@@ -15,6 +15,8 @@ const state = { space: 'public', section: 'home', filters: C.filters(), personal
   localError: '', publicError: '', owner: false, editing: false, preview: false, selected: new Set(), page: 1, busy: false,
   filterOpen: false, topicSearch: '', expanded: new Set(), viewId: '', publicItems: [], localItems: [], prepared: C.prepare(C.empty(), []), publicKnown: false, loading: true };
 let toastTimer, searchTimer, lastDialogFocus = null, loadEpoch = 0, dialogAction = null, dialogRevision = null, dialogCancel = null;
+// Stage M4: a link the phone shared (manifest share_target, or the iPhone shortcut) waits for the owner check.
+let pendingShare = globalThis.MediathequeVideoQueue ? globalThis.MediathequeVideoQueue.sharedLink(new URLSearchParams(location.search)) : null;
 let searchRouteStarted = false;
 let tutorEnabled = false;
 let filterDraft = null, topicParent = '', topicQuery = '';
@@ -252,6 +254,7 @@ async function loadAll() {
     state.owner = result.user?.role === 'owner';
     try { if (result.csrf) localStorage.setItem('cloud.csrf', result.csrf); } catch (_) {}
     paint();
+    offerShare();
     // Owner's unpublished-changes banner is useful, but never gates public reading.
     if (state.owner) {
       const draft = await api('/api/publication/mediatheque').catch(() => null);
@@ -259,7 +262,7 @@ async function loadAll() {
       if (draft && !state.editing && !state.busy && !$('ml-dialog').open) state.draft = draft;
       paint();
     }
-  }).catch(() => { if (isCurrent()) { state.owner = false; paint(); } });
+  }).catch(() => { if (isCurrent()) { state.owner = false; paint(); offerShare(); } });
   await Promise.allSettled([publicTask, localTask]);
   if (!isCurrent()) return;
   if (state.localReady && state.publicReady && !state.editing && !state.busy && !$('ml-dialog').open) {
@@ -891,6 +894,20 @@ async function reorder(type, id, direction, targetId) {
   const from = ids.indexOf(id), to = targetId ? ids.indexOf(targetId) : from + direction;
   if (from < 0 || to < 0 || to >= ids.length || to === from) return;
   ids.splice(to, 0, ids.splice(from, 1)[0]); command[command.type === 'items.order' ? 'keys' : 'ids'] = ids; await mutate(command, t('orderSaved'));
+}
+// The owner gets the queue with the shared link in the field (one tap sends it); anyone else is asked to sign in,
+// and the address keeps the link so it can be opened again after signing in.
+function offerShare() {
+  if (!pendingShare) return;
+  if (!state.owner) { announce(t('videoQueue.shareSignIn'), true); return; }
+  if ($('ml-dialog').open) return;
+  const prefill = pendingShare; pendingShare = null;
+  try {
+    const u = new URL(location.href);
+    for (const k of globalThis.MediathequeVideoQueue.SHARE_KEYS) u.searchParams.delete(k);
+    history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+  } catch (_) {}
+  return globalThis.MediathequeVideoQueue.open({ api, t, esc, showDialog, announce, errorText, dialog: $('ml-dialog'), body: $('ml-dialog-body') }, { prefill });
 }
 async function onAction(action, node) {
   if (state.busy && action !== 'cancel-dialog') return;

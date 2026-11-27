@@ -291,3 +291,12 @@ test('dot candidate routes: the owner may look but not pick; the relay key and a
     assert.equal((await call('POST', '/api/media-queue/editor/candidates', { headers, json: { picks: [] } })).status, 401);
   }
 });
+
+// ---- M4 Task 1 -----------------------------------------------------------------------------------------------------
+test('the worker lease reports its yt-dlp version; the owner list shows the PC', async t => {
+  const { call, owner, key } = await setup(t);
+  assert.equal((await call('GET', '/api/media-queue/jobs', { headers: owner })).body.worker, null);
+  await call('POST', '/api/media-queue/worker/lease', { headers: bearer(key), json: { ytdlp_version: '2026.11.23' } });
+  const w = (await call('GET', '/api/media-queue/jobs', { headers: owner })).body.worker;
+  assert.equal(w.ytdlp_version, '2026.11.23'); assert.ok(w.seen_at);
+});

@@ -51,7 +51,7 @@ function mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit = () 
   });
   app.get('/api/media-queue/jobs', read, noStore, async (req, res) => {
     const actor = await ownerFor(req, res); if (!actor) return;
-    try { res.json({ ok: true, jobs: await queue.list() }); } catch (e) { send(res, e); }
+    try { res.json({ ok: true, jobs: await queue.list(), worker: await queue.workerStatus() }); } catch (e) { send(res, e); }
   });
   for (const action of ['retry', 'cancel']) {
     app.post('/api/media-queue/jobs/:id/' + action, write, json, noStore, async (req, res) => {
@@ -206,7 +206,7 @@ function mountMediaQueueRoutes(app, { queue, relayAuth, resolveUser, audit = () 
   // ---- home PC (relay key only) ----
   app.post('/api/media-queue/worker/lease', worker, json, noStore, async (req, res) => {
     const k = await workerFor(req, res); if (!k) return;
-    try { res.json({ ok: true, job: await queue.lease(k.key_id) }); } catch (e) { send(res, e); }
+    try { res.json({ ok: true, job: await queue.lease(k.key_id, { ytdlpVersion: req.body && req.body.ytdlp_version }) }); } catch (e) { send(res, e); }
   });
   app.post('/api/media-queue/worker/jobs/:id/step', worker, json, noStore, async (req, res) => {
     const k = await workerFor(req, res); if (!k) return;

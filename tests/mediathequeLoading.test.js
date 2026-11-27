@@ -7,7 +7,7 @@ const turn=()=>new Promise(r=>setImmediate(r));
 test('public catalogue is usable while local data, tutor and owner draft are pending',async()=>{
   const local=deferred(),tutor=deferred(),draft=deferred(),renders=[];
   const state={space:'public',personal:{structure:C.empty()},published:{items:[]},publicReady:false,localReady:false};
-  const context={state,C,loadEpoch:0,tutorEnabled:false,pendingPosition:null,externalRefreshDirty:false,
+  const context={state,C,loadEpoch:0,tutorEnabled:false,pendingPosition:null,externalRefreshDirty:false,offerShare(){},
     performance:{now:()=>1,measure(){}},$:()=>({open:false}),localStorage:{setItem(){}},render:()=>renders.push({ready:state.publicReady,loading:state.loading,draft:state.draft}),
     loadPublic:async()=>{state.publicReady=true;},loadLocal:()=>local.promise,
     api:url=>url.includes('capabilities')?tutor.promise:url.includes('publication')?draft.promise:Promise.resolve({user:{role:'owner'}})};

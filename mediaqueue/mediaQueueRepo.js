@@ -137,7 +137,16 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
       WHERE status IN ('acquiring','asr') AND lease_until IS NOT NULL AND lease_until<?`, [MAX_ATTEMPTS, t, t]);
   }
 
-  async function lease(keyId) {
+  // Every lease, with work or without, is the PC saying «I am on»: the owner sees when it last came (stage M4).
+  async function markSeen(keyId, ytdlpVersion) {
+    const v = typeof ytdlpVersion === 'string' && ytdlpVersion.trim() ? ytdlpVersion.trim().slice(0, 40) : null;
+    await dbRun(db, `INSERT INTO media_worker_seen(key_id,seen_at,ytdlp_version) VALUES(?,?,?)
+      ON CONFLICT(key_id) DO UPDATE SET seen_at=excluded.seen_at, ytdlp_version=excluded.ytdlp_version`, [String(keyId), iso(), v]);
+  }
+  const workerStatus = async () => (await dbGet(db, 'SELECT seen_at, ytdlp_version FROM media_worker_seen ORDER BY seen_at DESC LIMIT 1')) || null;
+
+  async function lease(keyId, { ytdlpVersion = null } = {}) {
+    await markSeen(keyId, ytdlpVersion);
     await reclaimExpired();
     // A conditional update hands each job to one key even if two leases race.
     for (let i = 0; i < 5; i++) {
@@ -292,7 +301,7 @@ function createMediaQueue({ db, dataDir, now = () => Date.now() } = {}) {
   const retireCandidates = beforeIso => dbAll(db, `SELECT job_id, published_slug, published_work_id FROM media_jobs
     WHERE status='published' AND published_at<? ORDER BY published_at`, [String(beforeIso)]);
 
-  return { enqueue, dotQuota, list, get, lease, step, fail: failJob, acceptAsrZip, asrZipPath, retry, cancel,
+  return { enqueue, dotQuota, workerStatus, list, get, lease, step, fail: failJob, acceptAsrZip, asrZipPath, retry, cancel,
     nextForDot, takeForDot, beginPublish, publishFailed, markPublished, dotFail, withdraw, retireCandidates };
 }
 

@@ -493,3 +493,18 @@ test('the owner\'s retry of a too-long dot pick makes it the owner\'s order', as
   const again = await queue.lease('k1');
   assert.equal((await queue.step(again.job_id, 'k1', { status: 'acquiring', meta: { duration_sec: 9000 } })).status, 'acquiring');
 });
+
+// ---- M4 Task 1: when the PC last asked for work ------------------------------------------------------------------
+test('a lease marks the PC as seen even with nothing to do; the version is clipped', async t => {
+  const { clock, queue } = await setup(t);
+  assert.equal(await queue.workerStatus(), null);
+  assert.equal(await queue.lease('k1', { ytdlpVersion: '2026.11.23' }), null);
+  assert.deepEqual(await queue.workerStatus(), { seen_at: '2026-11-27T08:00:00.000Z', ytdlp_version: '2026.11.23' });
+  clock.now += 60000;
+  await queue.lease('k2', { ytdlpVersion: 'x'.repeat(100) });
+  const w = await queue.workerStatus();
+  assert.equal(w.seen_at, '2026-11-27T08:01:00.000Z'); assert.equal(w.ytdlp_version.length, 40);
+  clock.now += 60000;
+  await queue.lease('k2');
+  assert.equal((await queue.workerStatus()).ytdlp_version, null, 'an old worker without a version');
+});

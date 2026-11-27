@@ -19,7 +19,13 @@
     'MEDIA_TOO_LONG', 'MEDIA_DOT_DAILY_LIMIT', 'MEDIA_CHANNEL_URL_INVALID', 'MEDIA_CHANNEL_NOT_FOUND', 'MEDIA_CHANNELS_FULL', 'MEDIA_CHANNEL_FETCH_FAILED'];
   // Stage M3: the candidates and channels tabs.
   const M3_KEYS = ['tabQueue', 'tabCandidates', 'tabChannels', 'channelsIntro', 'channelUrl', 'channelAdd', 'channelAdded', 'channelAlready', 'channelRemove',
-    'channelRemoved', 'channelsEmpty', 'channelOk', 'channelError', 'channelNever', 'quota', 'noCandidates', 'byDot', 'candidatesIntro'];
+    'channelRemoved', 'channelsEmpty', 'channelOk', 'channelError', 'channelNever', 'quota', 'noCandidates', 'byDot', 'candidatesIntro',
+    // Stage M4: «Поделиться» and the PC line.
+    'pcSeen', 'pcAway', 'pcNever', 'shared', 'sharedNoLink', 'shareSignIn'];
+  // What a phone's «Поделиться» (share_target in the manifests) and the iPhone shortcut put into the page address.
+  const SHARE_KEYS = ['share_url', 'share_text', 'share_title', 'url', 'text'];
+  const PC_AWAY_MS = 25 * 60 * 1000;
+  const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
   // A candidate whose last job ended this way may be queued again.
   const REQUEUE = ['cancelled', 'withdrawn'];
   const TABS = ['queue', 'candidates', 'channels'];
@@ -44,6 +50,39 @@
   // «26.11» from an ISO time, as the Mediatheque shows dates in lists.
   const shortDate = iso => { const s = String(iso || ''); return s.length >= 10 ? s.slice(8, 10) + '.' + s.slice(5, 7) : ''; };
   const clock = iso => { try { return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch (_) { return ''; } };
+
+  // One video of youtube.com/watch or youtu.be → its plain address, as the server accepts it; anything else → null.
+  function youtubeVideo(s) {
+    let u; try { u = new URL(s); } catch (_) { return null; }
+    const host = u.hostname.toLowerCase();
+    let id = null;
+    if (['www.youtube.com', 'youtube.com', 'm.youtube.com'].includes(host) && u.pathname === '/watch') id = u.searchParams.get('v');
+    else if (host === 'youtu.be') id = u.pathname.slice(1);
+    return id && VIDEO_ID.test(id) ? 'https://www.youtube.com/watch?v=' + id : null;
+  }
+  // → { url } | { raw } | null (not a share). The YouTube app puts the link inside the shared text.
+  function sharedLink(params) {
+    const values = SHARE_KEYS.map(k => params.get(k)).filter(v => v && String(v).trim());
+    if (!values.length) return null;
+    for (const v of values) for (const token of String(v).match(/https?:\/\/[^\s"'<>]+/g) || []) {
+      const url = youtubeVideo(token.replace(/[.,!?)»]+$/, ''));
+      if (url) return { url };
+    }
+    return { raw: String(values[0]).trim().slice(0, 300) };
+  }
+  const when = (iso, now) => {
+    const d = new Date(iso), n = new Date(now);
+    const time = clock(iso);
+    return d.toDateString() === n.toDateString() ? time : shortDate(d.toISOString()) + ' ' + time;
+  };
+  // «ПК на связи: 10:20 · yt-dlp 2026.11.23», or a warning when it has been away 25+ minutes while videos wait.
+  function workerLineHtml(worker, jobs, { t, esc, now = Date.now() }) {
+    const waiting = (jobs || []).filter(j => j.status === 'queued').length;
+    if (!worker || !worker.seen_at) return waiting ? `<span class="ml-vq-pc-away">⏸ ${esc(t('videoQueue.pcNever', { count: waiting }))}</span>` : '';
+    if (waiting && now - Date.parse(worker.seen_at) > PC_AWAY_MS)
+      return `<span class="ml-vq-pc-away">⏸ ${esc(t('videoQueue.pcAway', { time: when(worker.seen_at, now), count: waiting }))}</span>`;
+    return esc(t('videoQueue.pcSeen', { time: when(worker.seen_at, now) })) + (worker.ytdlp_version ? ` · <bdi dir="ltr">yt-dlp ${esc(worker.ytdlp_version)}</bdi>` : '');
+  }
 
   function candidateRowHtml(c, { t, esc }) {
     const url = 'https://www.youtube.com/watch?v=' + c.video_id;
@@ -95,7 +134,7 @@
   }
 
   // ctx: { api, t, esc, showDialog, formActions, announce, dialog, body }
-  function open(ctx) {
+  function open(ctx, { prefill = null } = {}) {
     const { api, t, esc } = ctx;
     if (current) current.stop();
     let timer = null, tab = 'queue';
@@ -110,7 +149,8 @@
       try {
         let html;
         if (shown === 'queue') {
-          const { jobs } = await api('/api/media-queue/jobs');
+          const { jobs, worker } = await api('/api/media-queue/jobs');
+          const pc = q('#ml-vq-pc'); if (pc) pc.innerHTML = workerLineHtml(worker, jobs, { t, esc });
           html = jobs.length ? jobs.map(j => rowHtml(j, { t, esc })).join('') : empty('videoQueue.empty');
         } else if (shown === 'candidates') {
           const { candidates, quota } = await api('/api/media-queue/candidates');
@@ -161,7 +201,7 @@
       + `<section data-vq-panel="queue"><p>${esc(t('videoQueue.intro'))}</p>`
       + `<div class="ml-vq-add"><label>${esc(t('videoQueue.url'))}<input name="url" type="url" inputmode="url" autocomplete="off" dir="ltr" placeholder="https://youtu.be/…"></label>`
       + `<button type="submit" class="ml-primary">${esc(t('videoQueue.add'))}</button></div>`
-      + `<ul class="ml-vq-list" id="ml-vq-list" aria-live="polite"></ul></section>`
+      + `<p class="ml-vq-pc" id="ml-vq-pc"></p><ul class="ml-vq-list" id="ml-vq-list" aria-live="polite"></ul></section>`
       + `<section data-vq-panel="candidates" hidden><p>${esc(t('videoQueue.candidatesIntro'))}</p><p class="ml-vq-quota" id="ml-vq-quota"></p>`
       + `<ul class="ml-vq-list" id="ml-vq-cands" aria-live="polite"></ul></section>`
       + `<section data-vq-panel="channels" hidden><p>${esc(t('videoQueue.channelsIntro'))}</p>`
@@ -175,9 +215,18 @@
         if (!url) throw Object.assign(new Error('MEDIA_URL_INVALID'), { code: 'MEDIA_URL_INVALID' });
         const r = await api('/api/media-queue/jobs', { url });
         const input = q('input[name=url]'); if (input) input.value = '';
+        const note = q('.ml-vq-shared'); if (note) note.remove();
         ctx.announce(t(r.existing ? 'videoQueue.already' : 'videoQueue.added'));
         await refresh();
       }, stop);
+    // A link from «Поделиться»: it waits in the field, one tap on «В очередь» sends it (nothing is queued unseen).
+    if (prefill) {
+      const input = q('input[name=url]'), add = q('[data-vq-panel="queue"] button[type=submit]');
+      if (input) input.value = prefill.url || prefill.raw || '';
+      const note = q('.ml-vq-add');
+      if (note && note.insertAdjacentHTML) note.insertAdjacentHTML('beforebegin', `<p class="ml-vq-shared${prefill.url ? '' : ' ml-vq-shared-bad'}" dir="auto">${esc(t(prefill.url ? 'videoQueue.shared' : 'videoQueue.sharedNoLink'))}</p>`);
+      if (add && add.focus) add.focus();
+    }
     ctx.body.addEventListener('click', onClick);
     // Closing the dialog stops the poll however it closes (the form's cancel hook is not called after a successful add).
     ctx.dialog.addEventListener('close', stop, { once: true });
@@ -186,5 +235,5 @@
     return refresh();
   }
 
-  return { STATUSES, HINT_CODES, FINAL_HINT_CODES, M3_KEYS, statusLabelKey, hintKey, canRetry, canCancel, canWithdraw, rowHtml, candidateRowHtml, channelRowHtml, open };
+  return { STATUSES, HINT_CODES, FINAL_HINT_CODES, M3_KEYS, SHARE_KEYS, sharedLink, workerLineHtml, statusLabelKey, hintKey, canRetry, canCancel, canWithdraw, rowHtml, candidateRowHtml, channelRowHtml, open };
 });

@@ -2,13 +2,13 @@
 'use strict';
 // The home PC worker of the Mediatheque video queue (docs/superpowers/specs/2026-11-27-mediatheque-video-pipeline-design.md §5.3).
 // Takes jobs one by one until the queue is empty: yt-dlp downloads the audio only, the ASR tool runs on the GPU
-// (windowed-review), the ASR ZIP goes to the server. The audio stays in --work.
+// (windowed-review), the ASR ZIP goes to the server. The audio stays in --work for 14 days; yt-dlp updates itself daily.
 //   node scripts/media/home-worker.js --push https://linguistpro.kolosei.com --key-file <file with the lpr_ key>
 //        --work F:\LinguistPro_MediaQueue --asr-root F:\datasets_models\LinguistPro_ASR_Tool [--max-jobs 20]
 // The key is the same relay key as the news harvest («Сбор с ПК» in /news-editor.html).
 const fs = require('node:fs'), path = require('node:path');
 const { spawn } = require('node:child_process');
-const { runOnce } = require('../../mediaqueue/homeWorkerCore');
+const { runOnce, maintain } = require('../../mediaqueue/homeWorkerCore');
 
 const stamp = () => new Date().toISOString().replace('T', ' ').slice(0, 19);
 const log = m => console.log(stamp() + ' ' + m);
@@ -42,10 +42,14 @@ async function main() {
   // --yt-dlp: the full path of yt-dlp.exe (the installer resolves it; a .cmd/.ps1 shim cannot be spawned directly).
   const ytDlp = opt('--yt-dlp') || 'yt-dlp';
   const run = (cmd, a, o = {}) => exec(cmd, a, { ...o, echo: cmd !== ytDlp });
+  // Stage M4: old audio goes (14 days), yt-dlp updates itself once a day; a failure here never stops the run.
+  let ytdlpVersion = null;
+  try { ({ ytdlpVersion } = await maintain({ workDir, exec: run, ytDlp, log })); }
+  catch (e) { log('обслуживание ПК не удалось: ' + (e && e.message)); }
   let failed = 0;
   for (let i = 0; i < maxJobs; i++) {
     let r;
-    try { r = await runOnce({ origin, key, workDir, asrRoot, exec: run, log, ytDlp }); }
+    try { r = await runOnce({ origin, key, workDir, asrRoot, exec: run, log, ytDlp, ytdlpVersion }); }
     catch (e) { log('ошибка связи с сервером: ' + (e && e.message)); failed++; break; }
     if (r === 'idle') { if (!i) log('очередь пуста'); break; }
     if (r === 'busy') { log('ASR занят другим запуском — задание вернулось в очередь'); break; }

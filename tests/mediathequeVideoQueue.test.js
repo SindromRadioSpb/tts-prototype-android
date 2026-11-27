@@ -128,3 +128,35 @@ test('a job row shows dot translation and who picked it; too-long has a hint', (
   const h = Q.rowHtml({ job_id: 'mj_0123456789abcdef', video_id: 'aaaaaaaaaaa', url: 'https://www.youtube.com/watch?v=aaaaaaaaaaa', status: 'failed_acquire', source: 'dot', title: 'א', title_ru: 'Перевод', error_code: 'MEDIA_TOO_LONG' }, ctxT);
   assert.ok(h.includes('Перевод')); assert.ok(h.includes('videoQueue.byDot')); assert.ok(h.includes('videoQueue.hint.MEDIA_TOO_LONG'));
 });
+
+// ---- M4 Task 3: «Поделиться» and the PC line -----------------------------------------------------------------------
+const P = o => new URLSearchParams(o);
+test('sharedLink finds the YouTube video in what the phone shared', () => {
+  assert.equal(Q.sharedLink(P({})), null);
+  assert.equal(Q.sharedLink(P({ section: 'catalog' })), null, 'an ordinary visit is not a share');
+  assert.deepEqual(Q.sharedLink(P({ share_url: 'https://youtu.be/z4NTzVuLp9U?si=abc' })), { url: 'https://www.youtube.com/watch?v=z4NTzVuLp9U' });
+  // The YouTube app puts the link inside the text.
+  assert.deepEqual(Q.sharedLink(P({ share_title: 'לגייס את טוראי זוננפלד', share_text: 'Смотри: https://m.youtube.com/watch?v=z4NTzVuLp9U&feature=share !' })), { url: 'https://www.youtube.com/watch?v=z4NTzVuLp9U' });
+  assert.deepEqual(Q.sharedLink(P({ url: 'https://www.youtube.com/watch?v=z4NTzVuLp9U' })), { url: 'https://www.youtube.com/watch?v=z4NTzVuLp9U' }, 'the iPhone shortcut form');
+  assert.deepEqual(Q.sharedLink(P({ share_text: 'просто текст без ссылки' })), { raw: 'просто текст без ссылки' });
+  assert.deepEqual(Q.sharedLink(P({ share_url: 'https://www.youtube.com/shorts/z4NTzVuLp9U' })), { raw: 'https://www.youtube.com/shorts/z4NTzVuLp9U' });
+  assert.deepEqual(Q.sharedLink(P({ share_url: 'https://evil.example/watch?v=z4NTzVuLp9U' })), { raw: 'https://evil.example/watch?v=z4NTzVuLp9U' });
+});
+test('SHARE_KEYS names every parameter sharedLink reads, so the page can drop them', () => {
+  assert.deepEqual(Q.SHARE_KEYS, ['share_url', 'share_text', 'share_title', 'url', 'text']);
+});
+
+const NOW = Date.parse('2026-11-27T08:30:00Z');
+test('the PC line: seen recently with its yt-dlp version', () => {
+  const h = Q.workerLineHtml({ seen_at: '2026-11-27T08:20:00Z', ytdlp_version: '2026.11.23' }, [{ status: 'queued' }], { ...ctxT, now: NOW });
+  assert.ok(h.includes('videoQueue.pcSeen')); assert.ok(h.includes('2026.11.23')); assert.ok(!h.includes('pcAway'));
+});
+test('the PC line: away for 25+ minutes while videos wait', () => {
+  const h = Q.workerLineHtml({ seen_at: '2026-11-27T08:00:00Z', ytdlp_version: null }, [{ status: 'queued' }, { status: 'queued' }, { status: 'published' }], { ...ctxT, now: NOW });
+  assert.ok(h.includes('videoQueue.pcAway')); assert.ok(h.includes('count&quot;:2')); assert.ok(h.includes('⏸'));
+});
+test('the PC line: away but nothing waits is calm; never seen and something waits says so', () => {
+  assert.ok(Q.workerLineHtml({ seen_at: '2026-11-27T06:00:00Z' }, [{ status: 'published' }], { ...ctxT, now: NOW }).includes('videoQueue.pcSeen'));
+  assert.ok(Q.workerLineHtml(null, [{ status: 'queued' }], { ...ctxT, now: NOW }).includes('videoQueue.pcNever'));
+  assert.equal(Q.workerLineHtml(null, [], { ...ctxT, now: NOW }), '');
+});

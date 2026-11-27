@@ -59,7 +59,7 @@ test('classifyYtDlpError', () => {
 function zipBytes() { const z = new AdmZip(); z.addFile('manifest.json', Buffer.from('{"completed":true}')); return z.toBuffer(); }
 function harness(t, { lease = { job_id: 'mj_0123456789abcdef', video_id: ID, url: 'https://www.youtube.com/watch?v=' + ID, attempts: 0 },
   ytMeta = { code: 0, stdout: JSON.stringify({ title: 'Сюжет', duration: 754.3, channel: 'Kan 11' }), stderr: '' },
-  ytDl = null, asr = { code: 0 }, asrOutput = 'zip', putStatus = 200, metaStepJob = null } = {}) {
+  ytDl = null, asr = { code: 0 }, asrOutput = 'zip', putStatus = 200, metaStepJob = null, ytdlpVersion = null, heartbeatMs = 0, ytDlDelayMs = 0 } = {}) {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-worker-'));
   t.after(() => fs.rmSync(workDir, { recursive: true, force: true }));
   const calls = [], execs = [], written = {};
@@ -76,6 +76,7 @@ function harness(t, { lease = { job_id: 'mj_0123456789abcdef', video_id: ID, url
     execs.push({ cmd, args, opts });
     if (cmd === 'yt-dlp' && args[0] === '-J') return ytMeta;
     if (cmd === 'yt-dlp') {
+      if (ytDlDelayMs) await new Promise(r => setTimeout(r, ytDlDelayMs));
       if (ytDl) return ytDl;
       const out = path.dirname(args[args.indexOf('-o') + 1]), file = path.join(out, ID + '.m4a');
       fs.mkdirSync(out, { recursive: true }); fs.writeFileSync(file, 'audio');
@@ -88,7 +89,7 @@ function harness(t, { lease = { job_id: 'mj_0123456789abcdef', video_id: ID, url
     return { code: asr.code, stdout: '', stderr: asr.code ? 'boom' : '' };
   };
   const run = () => W.runOnce({ origin: ORIGIN, key: KEY, workDir, asrRoot: ROOT, exec, fetch: fetchImpl, log: () => {},
-    readFile: () => JSON.stringify({ venv: 'F:\\venv' }), heartbeatMs: 0 });
+    readFile: () => JSON.stringify({ venv: 'F:\\venv' }), heartbeatMs, ytdlpVersion });
   return { run, calls, execs, workDir, written };
 }
 const steps = calls => calls.map(c => c.path.replace(/mj_[0-9a-f]+/, ':id') + (c.body && c.body.status ? ':' + c.body.status : '') + (c.body && c.body.code ? ':' + c.body.code : ''));
@@ -196,4 +197,101 @@ test('runOnce stops before the download when the server closed the job at the me
   assert.equal(await h.run(), 'failed');
   assert.equal(h.execs.length, 1, 'no download');
   assert.ok(!h.calls.some(c => c.path.endsWith('/fail')), 'the server already closed it');
+});
+
+// ---- M4 Task 2: yt-dlp updates itself, audio is kept 14 days and reused, heartbeat while downloading ----------------
+const DAY = 24 * 3600 * 1000, T0 = Date.parse('2026-11-27T08:00:00Z');
+const stampOf = ms => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+function tmpWork(t) { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-maint-')); t.after(() => fs.rmSync(d, { recursive: true, force: true })); return d; }
+function attempt(work, id, n, ms, files = { [id + '.m4a']: 'audio' }) {
+  const d = path.join(work, id, 'a' + n + '-' + stampOf(ms));
+  fs.mkdirSync(d, { recursive: true });
+  for (const [f, b] of Object.entries(files)) fs.writeFileSync(path.join(d, f), b);
+  return d;
+}
+
+test('pruneAudio removes attempts older than 14 days and leaves young ones and foreign folders', t => {
+  const work = tmpWork(t), A = 'aaaaaaaaaaa', B = 'bbbbbbbbbbb';
+  const oldA = attempt(work, A, 1, T0 - 15 * DAY), youngA = attempt(work, A, 2, T0 - 2 * DAY), oldB = attempt(work, B, 1, T0 - 20 * DAY);
+  fs.mkdirSync(path.join(work, 'notes')); fs.writeFileSync(path.join(work, 'worker.log'), 'log');
+  fs.mkdirSync(path.join(work, A, 'keep-me'));
+  const removed = W.pruneAudio(work, T0);
+  assert.equal(removed.length, 2);
+  assert.ok(!fs.existsSync(oldA) && fs.existsSync(youngA) && fs.existsSync(path.join(work, A, 'keep-me')));
+  assert.ok(!fs.existsSync(oldB) && !fs.existsSync(path.join(work, B)), 'an emptied video folder goes too');
+  assert.ok(fs.existsSync(path.join(work, 'notes')) && fs.existsSync(path.join(work, 'worker.log')));
+});
+
+test('findCachedAudio takes the newest finished audio younger than 14 days, never a .part', t => {
+  const work = tmpWork(t), A = 'aaaaaaaaaaa';
+  assert.equal(W.findCachedAudio(work, A, T0), null);
+  attempt(work, A, 1, T0 - 15 * DAY);
+  assert.equal(W.findCachedAudio(work, A, T0), null, 'too old');
+  const good = attempt(work, A, 2, T0 - 3 * DAY, { [A + '.webm']: 'audio', [A + '_ASR.zip']: 'zip' });
+  attempt(work, A, 3, T0 - DAY, { [A + '.m4a.part']: 'half' });
+  assert.equal(W.findCachedAudio(work, A, T0), path.join(good, A + '.webm'));
+});
+
+function maintExec(results) {
+  const calls = [];
+  return { calls, exec: async (cmd, args, opts) => { calls.push([cmd, ...args].join(' ')); const r = results[[cmd, ...args].join(' ')]; return typeof r === 'function' ? r() : r || { code: 0, stdout: '', stderr: '' }; } };
+}
+
+test('maintain updates yt-dlp once a day and reports the version', async t => {
+  const work = tmpWork(t);
+  const x = maintExec({ 'yt-dlp --version': { code: 0, stdout: '2026.11.23\n', stderr: '' } });
+  const r = await W.maintain({ workDir: work, exec: x.exec, ytDlp: 'yt-dlp', now: () => T0 });
+  assert.deepEqual(x.calls, ['yt-dlp -U', 'yt-dlp --version']);
+  assert.deepEqual([r.updated, r.ytdlpVersion], [true, '2026.11.23']);
+  x.calls.length = 0;
+  await W.maintain({ workDir: work, exec: x.exec, ytDlp: 'yt-dlp', now: () => T0 + 23 * 3600 * 1000 });
+  assert.deepEqual(x.calls, ['yt-dlp --version'], 'checked less than a day ago');
+  x.calls.length = 0;
+  await W.maintain({ workDir: work, exec: x.exec, ytDlp: 'yt-dlp', now: () => T0 + 25 * 3600 * 1000 });
+  assert.equal(x.calls[0], 'yt-dlp -U');
+});
+
+test('maintain falls back to winget when yt-dlp -U fails, and a failed update never stops the run', async t => {
+  const work = tmpWork(t);
+  const x = maintExec({ 'yt-dlp -U': { code: 1, stdout: '', stderr: 'ERROR: unable to write' }, 'winget upgrade --id yt-dlp.yt-dlp -e --silent --accept-source-agreements --accept-package-agreements --disable-interactivity': { code: -1, stdout: '', stderr: 'not found' }, 'yt-dlp --version': { code: 0, stdout: '2026.03.13', stderr: '' } });
+  const r = await W.maintain({ workDir: work, exec: x.exec, ytDlp: 'yt-dlp', now: () => T0 });
+  assert.equal(x.calls[1].split(' ')[0], 'winget');
+  assert.deepEqual([r.updated, r.ytdlpVersion], [false, '2026.03.13']);
+  assert.ok(fs.existsSync(path.join(work, '.yt-dlp-update.json')), 'the check is recorded so it is not retried every 10 minutes');
+});
+
+test('maintain prunes old audio as part of the run', async t => {
+  const work = tmpWork(t), old = attempt(work, 'aaaaaaaaaaa', 1, T0 - 30 * DAY);
+  await W.maintain({ workDir: work, exec: maintExec({}).exec, ytDlp: 'yt-dlp', now: () => T0 });
+  assert.ok(!fs.existsSync(old));
+});
+
+test('runOnce sends the yt-dlp version with the lease', async t => {
+  const h = harness(t, { lease: null, ytdlpVersion: '2026.11.23' });
+  assert.equal(await h.run(), 'idle');
+  assert.equal(h.calls[0].body.ytdlp_version, '2026.11.23');
+});
+
+test('a 403 from YouTube clears the update mark, so the next run updates yt-dlp first', async t => {
+  const h = harness(t, { ytDl: { code: 1, stdout: '', stderr: 'ERROR: unable to download video data: HTTP Error 403: Forbidden' } });
+  fs.writeFileSync(path.join(h.workDir, '.yt-dlp-update.json'), JSON.stringify({ checked_at: new Date().toISOString() }));
+  assert.equal(await h.run(), 'stop');
+  assert.ok(!fs.existsSync(path.join(h.workDir, '.yt-dlp-update.json')));
+});
+
+test('a retry reuses the audio of the last attempt instead of downloading again', async t => {
+  const h = harness(t, { lease: { job_id: 'mj_0123456789abcdef', video_id: ID, url: 'https://www.youtube.com/watch?v=' + ID, attempts: 1 } });
+  const prev = attempt(h.workDir, ID, 1, Date.now() - DAY, { [ID + '.m4a']: 'old audio' });
+  assert.equal(await h.run(), 'done');
+  assert.ok(!h.execs.some(e => e.cmd === 'yt-dlp' && e.args[0] !== '-J'), 'no download');
+  const audio = h.execs.at(-1).args[h.execs.at(-1).args.indexOf('--audio') + 1];
+  assert.notEqual(path.dirname(audio), prev, 'a fresh folder');
+  assert.equal(fs.readFileSync(audio, 'utf8'), 'old audio');
+});
+
+test('the lease is kept alive while the audio downloads', async t => {
+  const h = harness(t, { heartbeatMs: 5, ytDlDelayMs: 60 });
+  assert.equal(await h.run(), 'done');
+  const beats = steps(h.calls).filter(s => s.endsWith('step:acquiring')).length;
+  assert.ok(beats >= 4, 'beats: ' + beats);
 });
