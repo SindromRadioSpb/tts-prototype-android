@@ -1351,8 +1351,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
-  "/css/mediatheque.css?v=695",
-  "/js/mediatheque-ui.js?v=837",
+  "/css/mediatheque.css?v=921",
+  "/js/mediatheque-ui.js?v=921",
+  "/js/mediatheque-video-queue.js?v=921",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1542,9 +1543,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=920",
-  "/i18n/locales/en.js?v=920",
-  "/i18n/locales/he.js?v=920",
+  "/i18n/locales/ru.js?v=921",
+  "/i18n/locales/en.js?v=921",
+  "/i18n/locales/he.js?v=921",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
@@ -4648,6 +4649,20 @@ require("./news/newsRoutes").mountNewsRoutes(app, {
   readLimiter: makeRateLimiter({ windowMs: 60_000, max: 300, name: "news-read" }), writeLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "news-editor-write" }),
   // The home PC's harvest (cards + photos of one hourly run); each relay key also has a daily byte quota.
   relayLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "news-relay" }),
+});
+// Mediatheque video queue, stage M1 (docs/superpowers/specs/2026-11-27-mediatheque-video-pipeline-design.md §5.1):
+// the owner orders a YouTube video, the home PC (the same lpr_ relay key as the news harvest) downloads the audio,
+// runs ASR and hands in the ASR ZIP. The server never downloads from YouTube.
+let _mediaQueue = null;
+const mediaQueue = () => _mediaQueue || (_mediaQueue = require("./mediaqueue/mediaQueueRepo").createMediaQueue({ db: require("./db/sqlite").getDb(), dataDir: DATA_DIR }));
+require("./mediaqueue/mediaQueueRoutes").mountMediaQueueRoutes(app, {
+  queue: new Proxy({}, { get: (_, key) => { const q = mediaQueue(); return typeof q[key] === "function" ? q[key].bind(q) : q[key]; } }),
+  relayAuth: lazyMember(s => s.relayAuth),
+  resolveUser: req => identityRepo.validateSession(getSessionCookie(req)),
+  audit: (type, actorId, detail, ip) => { Promise.resolve(identityRepo.audit(type, actorId, detail, ip)).catch(() => {}); },
+  readLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "media-queue-read" }),
+  writeLimiter: makeRateLimiter({ windowMs: 60_000, max: 30, name: "media-queue-write" }),
+  workerLimiter: makeRateLimiter({ windowMs: 60_000, max: 120, name: "media-worker" }),
 });
 const _newsLifecycle = setInterval(() => {
   newsStore().repo.runLifecycle(Date.now()).catch(e => console.error("[news] lifecycle failed:", e && e.message));

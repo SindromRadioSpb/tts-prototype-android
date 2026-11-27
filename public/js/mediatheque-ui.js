@@ -1,6 +1,7 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
+import './mediatheque-video-queue.js?v=921';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
@@ -85,7 +86,8 @@ function errorText(error) {
   if (/MATERIAL_ARCHIVE_NO_MATERIAL/.test(code)) return t('archiveNoMaterial');
   // The package verifier's own codes (GRAPH_EDGE_DUPLICATE, MANIFEST_…) name the defect: show it.
   if (/MATERIAL_ARCHIVE|PACKAGE_|ZIP_|GRAPH_|MANIFEST_|CANONICAL_|PLAYBACK_SOURCE_INVALID/.test(code)) return t('archiveInvalid') + withCode(code);
-  if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF/.test(code)) return t('signInOwner');
+  if (/^MEDIA_(URL_INVALID|QUEUE_FULL)$/.test(code)) return t('videoQueue.hint.' + code);
+  if (/UNAUTHENTICATED|PUBLISHER_FORBIDDEN|BAD_CSRF|OWNER_ONLY/.test(code)) return t('signInOwner');
   return t('failed') + withCode(code);
 }
 async function api(path, body, idempotencyKey) {
@@ -574,7 +576,7 @@ function catalogHtml() {
 }
 function emptyCatalogHtml(context) {
   const scoped = C.query(structure(), state.prepared, C.filters({category:state.filters.category,collection:state.filters.collection}));
-  if (state.space === 'public' && scoped.length === 0) return `<div class="ml-empty"><h2>${esc(t('noPublishedEpisodes'))}</h2><p>${esc(t('noPublishedEpisodesHelp'))}</p>${state.owner && !state.preview ? button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}${context ? button('search-all',t('searchAll')) : ''}</div>`;
+  if (state.space === 'public' && scoped.length === 0) return `<div class="ml-empty"><h2>${esc(t('noPublishedEpisodes'))}</h2><p>${esc(t('noPublishedEpisodesHelp'))}</p>${state.owner && !state.preview ? button('video-queue',t('videoQueue.open')) + button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}${context ? button('search-all',t('searchAll')) : ''}</div>`;
   return `<div class="ml-empty"><h2>${esc(t('noResults'))}</h2><p>${esc(t('noResultsBody'))}</p>${button('search-all',t('searchAll'))}${button('reset-filters',t('reset'),'','ml-quiet')}</div>`;
 }
 function pager(pages) {
@@ -633,7 +635,7 @@ function render() {
   $('ml-root').innerHTML = `<div class="ml-heading"><div class="ml-heading-copy"><h1>${esc(t('title'))}</h1><p>${esc(d.home.title || t(state.space === 'public' ? 'publicSubtitle' : 'personalSubtitle'))}</p></div>
     <div class="ml-actions">${canEdit() && !organizeMode() && documentState().canUndo ? button('undo', t('undo')) : ''}${state.preview ? '' : state.space === 'personal' && state.localReady ? button('organize', t(state.editing ? 'finishEditing' : 'organize'))
       : state.owner ? button('organize', t(state.editing ? 'closeEditor' : 'editPublic')) : ''}
-      ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : state.owner && !state.preview ? button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}</div></div>
+      ${state.space === 'personal' ? `<a class="ml-textlink" href="/">${esc(t('addMaterial'))}</a>` : state.owner && !state.preview ? button('video-queue',t('videoQueue.open')) + button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}</div></div>
 
     ${state.preview ? `<div class="ml-banner"><div><strong>${esc(t('previewTitle'))}</strong><p>${esc(t('previewHelp'))}</p></div><div class="ml-actions">${button('publish', t('publish'), '', 'ml-primary')}${button('exit-preview', t('backToDraft'))}</div></div>`
       : state.editing && state.space === 'public' ? `<div class="ml-banner"><span>${esc(t('draftNotice'))} · ${esc(t('revision', { count: state.draft?.revision || 0 }))}</span><div class="ml-actions">${pendingShowcaseChanges() ? button('publish-pending', t('publishNow'), '', 'ml-primary') : ''}${button('preview', t('preview'))}</div></div>`
@@ -894,6 +896,10 @@ async function onAction(action, node) {
   if (state.busy && action !== 'cancel-dialog') return;
   const id = node.dataset.id;
   if (action === 'cancel-dialog') return closeDialog();
+  // Spec 2026-11-27 §5.6: YouTube link → home PC → ASR ZIP, owner only.
+  if (action === 'video-queue' && state.owner) {
+    return globalThis.MediathequeVideoQueue.open({ api, t, esc, showDialog, announce, errorText, dialog: $('ml-dialog'), body: $('ml-dialog-body') });
+  }
   if (action === 'publish-material' && state.owner && state.space === 'public') {
     state.draft = await api('/api/publication/mediatheque'); state.editing = true; render();
     return openPublisher({api,t,esc,showDialog,formActions,C,structure,save,

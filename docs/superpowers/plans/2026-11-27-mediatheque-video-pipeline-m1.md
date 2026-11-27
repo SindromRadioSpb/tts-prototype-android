@@ -58,7 +58,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
 
 ---
 
-### Задача 1: Таблица очереди
+### Task 1: Таблица очереди
 
 **Файлы:**
 - Создать: `migrations/099_media_queue.sql`, `migrations/down/099_media_queue.sql`
@@ -86,7 +86,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
 - [ ] **Шаг 4.** Тест → PASS; `npm test` целиком → без новых падений.
 - [ ] **Шаг 5.** Коммит `feat(media-queue): migration 099 media_jobs`.
 
-### Задача 2: Репозиторий очереди
+### Task 2: Репозиторий очереди
 
 **Файлы:**
 - Создать: `mediaqueue/mediaQueueRepo.js`
@@ -142,7 +142,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
 - [ ] **Шаг 4.** Тесты → PASS.
 - [ ] **Шаг 5.** Коммит `feat(media-queue): queue repository (enqueue, lease, steps, ASR zip intake)`.
 
-### Задача 3: Маршруты и подключение к серверу
+### Task 3: Маршруты и подключение к серверу
 
 **Файлы:**
 - Создать: `mediaqueue/mediaQueueRoutes.js`
@@ -187,7 +187,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
 - [ ] **Шаг 4.** Тесты → PASS; `npm test` целиком зелёный.
 - [ ] **Шаг 5.** Коммит `feat(media-queue): routes for owner and home PC`.
 
-### Задача 4: Ядро работника ПК
+### Task 4: Ядро работника ПК
 
 **Файлы:**
 - Создать: `mediaqueue/homeWorkerCore.js`
@@ -243,7 +243,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
 - [ ] **Шаг 4.** → PASS.
 - [ ] **Шаг 5.** Коммит `feat(media-queue): home PC worker core (yt-dlp audio + windowed ASR)`.
 
-### Задача 5: CLI работника и установка в Планировщик
+### Task 5: CLI работника и установка в Планировщик
 
 **Файлы:**
 - Создать: `scripts/media/home-worker.js`, `scripts/media/install-home-media-worker.ps1`
@@ -269,7 +269,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
   внутри нет аудио.
 - [ ] **Шаг 3.** Коммит `feat(media-queue): home PC worker CLI and scheduler install`.
 
-### Задача 6: Экран «Видео: очередь» в Медиатеке
+### Task 6: Экран «Видео: очередь» в Медиатеке
 
 **Файлы:**
 - Создать: `public/js/mediatheque-video-queue.js` (диалог, без зависимостей кроме `api()` из
@@ -313,7 +313,7 @@ winget); `F:\datasets_models\LinguistPro_ASR_Tool\asr_tool.py`.
   десктоп, ru и he, светлая и тёмная тема.
 - [ ] **Шаг 5.** Коммит `feat(mediatheque): video queue dialog for the owner`.
 
-### Задача 7: Выпуск М1
+### Task 7: Выпуск М1
 
 **Файлы:** версии и локали по правилам lockstep (`docs/architecture/AGENT_OPERATIONS_GUIDE.md`),
 `CHANGELOG.md`.
