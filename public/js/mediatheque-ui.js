@@ -1,8 +1,8 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=926';
-import './mediatheque-placement.js?v=926';
+import './mediatheque-video-queue.js?v=927';
+import './mediatheque-placement.js?v=927';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
@@ -393,10 +393,7 @@ function itemHtml(item) {
       ${placeBadgeHtml(item)}
     </div>
     <div class="ml-item-footer">${href ? `<a class="ml-open" href="${esc(href)}">${esc(action)}</a>` : ''}
-      ${href && tutorEnabled && !manage ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : ''}
-      ${publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}"`) : ''}
-      ${canPlace() && item.ref.kind === 'public' ? button('place-item', t('place.action'), `data-key="${esc(item.key)}"`, 'ml-place-action')
-        : !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}
+      ${manage ? itemCommandsHtml(item, href) : quietCommandsHtml(item, href)}
       ${manage && state.space === 'personal' && item.ref.kind === 'public' ? button('forget-reference', t('forgetReference'), `data-key="${esc(item.key)}"`) : ''}
       ${manage && state.space === 'public' && item.ref.kind === 'public' ? (managed(item)
         ? button('edit-material', t('editMaterial'), `data-key="${esc(item.key)}"`) + button('download-material', t('downloadArchive'), `data-key="${esc(item.key)}" data-part="package"`)
@@ -407,6 +404,21 @@ function itemHtml(item) {
         ? button('unhide-item', t('unhide'), `data-key="${esc(item.key)}"`) : button('hide-item', t('hideFromMediatheque'), `data-key="${esc(item.key)}"`, 'ml-quiet')) : ''}
       ${order ? orderButtons('item', item.key, index > 0, index < target.items.length - 1) : ''}
     </div></article>`;
+}
+// Outside the editor a card shows «Изучать» (and the owner's «Разложить»); the rest waits behind «⋯».
+function itemCommandsHtml(item, href) {
+  return `${href && tutorEnabled && !organizeMode() ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : ''}
+      ${publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}"`) : ''}
+      ${canPlace() && item.ref.kind === 'public' ? button('place-item', t('place.action'), `data-key="${esc(item.key)}"`, 'ml-place-action')
+        : !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}`;
+}
+function quietCommandsHtml(item, href) {
+  const place = canPlace() && item.ref.kind === 'public';
+  const menu = (href && tutorEnabled ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" role="menuitem" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : '')
+    + (publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}" role="menuitem"`) : '')
+    + (!place && !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}" role="menuitem"`) : '');
+  return (place ? button('place-item', t('place.action'), `data-key="${esc(item.key)}"`, 'ml-place-action') : '')
+    + (menu ? `<details class="ml-more"><summary aria-label="${esc(t('moreActions'))}" title="${esc(t('moreActions'))}">⋯</summary><div class="ml-more-menu" role="menu">${menu}</div></details>` : '');
 }
 function materialsHtml(items, layout = 'cards') { return `<div class="ml-materials" data-layout="${layout}">${items.map(itemHtml).join('')}</div>`; }
 function sectionHead(title, section, filters = {}) {
@@ -440,7 +452,7 @@ function channelCollections(category) {
   if (!category) return '';
   const ids = C.descendants(structure(), category.id);
   const series = browseOrder(structure().collections.filter(c=>ids.has(c.categoryId)), collectionReady);
-  return series.length ? `<section class="ml-channel-series">${sectionHead(t('channelSeries'),'collections',{category:category.id})}<div class="ml-collections">${series.slice(0,12).map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
+  return series.length ? `<section class="ml-channel-rail" aria-label="${esc(t('channelSeries'))}"><div class="ml-section-head"><h2>${esc(t('channelSeries'))}</h2><a data-nav href="${esc(makeHref({ section: 'collections', filters: C.filters({ category: category.id }) }))}">${esc(t('allSeries',{count:series.length}))}</a></div><div class="ml-rail">${series.map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
 }
 function collectionContextHtml(collection) {
   const items = collection.items.map(key=>state.prepared.byKey.get(key)).filter(Boolean), summary=C.durationSummary(items);
@@ -502,6 +514,7 @@ function filterSelect(name, label, values) {
 }
 function filtersHtml(panel = false) {
   const f = state.filters, items = state.prepared.items;
+  const topic = structure().categories.find(c => c.id === (f.category || structure().collections.find(x => x.id === f.collection)?.categoryId));
   const values = field => Array.from(new Set(items.map(i => i[field]).filter(Boolean))).sort((a, b) => a.localeCompare(b)).map(v => [v, v]);
   const fields = `<div class="ml-filter-fields">
     ${panel ? '' : filterSelect('category', t('category'), structure().categories.map(c => [c.id, C.categoryPath(structure(), c.id).map(x => x.title).join(' / ')]))}
@@ -512,7 +525,7 @@ function filtersHtml(panel = false) {
     <label>${esc(t('tags'))}<input id="ml-filter-tags" data-filter="tags" value="${esc(f.tags.join(', '))}" placeholder="${esc(t('tagsHint'))}"></label>
     <div>${[['translation', 'withTranslation'], ['captions', 'withCaptions'], ['uncategorized', 'uncategorized'], ...(state.space === 'personal' ? [['hidden', 'hiddenFilter']] : [])].map(([key,label]) => `<label class="ml-checkbox"><input type="checkbox" data-filter="${key}" ${f[key] ? 'checked' : ''}>${esc(t(label))}</label>`).join('')}</div>
     </div>`;
-  return panel ? fields.replaceAll('id="ml-filter-','id="ml-panel-filter-').replaceAll('id="ml-sources"','id="ml-panel-sources"').replaceAll('list="ml-sources"','list="ml-panel-sources"') : `<div class="ml-mobile-filters">${button('open-filters',t('topicsAndFilters'))}</div><details class="ml-filters" id="ml-filters" ${state.filterOpen ? 'open' : ''}><summary>${esc(t('filters'))}</summary>${fields}</details>`;
+  return panel ? fields.replaceAll('id="ml-filter-','id="ml-panel-filter-').replaceAll('id="ml-sources"','id="ml-panel-sources"').replaceAll('list="ml-sources"','list="ml-panel-sources"') : `<div class="ml-mobile-filters">${button('open-filters',topic ? t('topicButton',{title:topic.title}) : t('topicsAndFilters'))}</div><details class="ml-filters" id="ml-filters" ${state.filterOpen ? 'open' : ''}><summary>${esc(t('filters'))}</summary>${fields}</details>`;
 }
 function filterSummary(raw, d = structure()) {
   const f = C.filters(raw), parts = [];
@@ -568,13 +581,11 @@ function catalogHtml() {
   const pages = Math.max(1, Math.ceil(results.length / size)); state.page = Math.min(state.page, pages);
   const items = results.slice((state.page - 1) * size, state.page * size), collection = d.collections.find(c => c.id === f.collection), category = d.categories.find(c => c.id === f.category);
   const context = collection || category;
-  const path = category ? C.categoryPath(d, category.id) : [];
+  const home = category || (collection?.categoryId ? d.categories.find(c => c.id === collection.categoryId) : null);
+  const path = home ? C.categoryPath(d, home.id) : [];
   const matches = C.navigationMatches(d, f.q).slice(0, 6);
-  return `<div class="ml-catalog-layout"><aside class="ml-side"><h2>${esc(t('topicsHeading'))}</h2>
-    <a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters() }))}">${esc(t('allMaterials'))}</a>
-    ${d.categories.filter(c => !c.parentId).slice(0, 20).map(c => `<a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}" ${path.some(x => x.id === c.id) ? 'aria-current="page"' : ''} dir="auto">${esc(c.title)}</a>`).join('')}
-    <a data-nav href="${esc(makeHref({ section: 'topics', filters: C.filters() }))}">${esc(t('topicMap'))}</a>
-    ${d.views.length ? `<div class="ml-side-views"><h2>${esc(t('savedViews'))}</h2>${d.views.map(v => `<a data-action="use-view" data-id="${esc(v.id)}" href="${esc(makeHref({ section: 'catalog', filters: v.filters, viewId: v.id }))}" ${state.viewId === v.id ? 'aria-current="page"' : ''}>${esc(v.title)}</a>`).join('')}</div>` : ''}</aside>
+  const navMatches = matches.length ? `<div class="ml-navmatches">${matches.map(m => `<a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ [m.type]: m.id }) }))}"><small>${esc(t(m.type))}</small><span dir="auto">${esc(m.path)}</span></a>`).join('')}</div>` : '';
+  return `<div class="ml-catalog-layout">${sideHtml(d, path, collection)}
     <section class="ml-catalog-results"><nav class="ml-breadcrumbs" aria-label="${esc(t('searchScope'))}"><a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters() }))}">${esc(t('allMaterials'))}</a>
       ${path.map(c => `<span aria-hidden="true">/</span><a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ category: c.id }) }))}" dir="auto">${esc(c.title)}</a>`).join('')}
       ${collection ? `<span aria-hidden="true">/</span><span dir="auto">${esc(collection.title)}</span>` : ''}</nav>
@@ -583,24 +594,49 @@ function catalogHtml() {
         <div class="ml-layout-toggle" role="group" aria-label="${esc(t('layout'))}">${['cards','list'].map(l => button('layout', t(l), `data-layout="${l}" aria-pressed="${f.layout === l}"`)).join('')}</div></div></div>
       ${descriptionHtml(context?.description)}
       ${inbox ? `<div class="ml-place-bar">${button('place-unplaced', t('place.onlyUnplaced'), `aria-pressed="${!!state.unplacedOnly}"`)}<p>${esc(t(f.category === P.DAILY_ID ? 'place.keepHint' : 'place.unsortedHint'))}</p></div>` : ''}
-      ${collection ? collectionContextHtml(collection) : ''}
+      ${collection ? collectionContextHtml(collection) : channelCollections(category)}
       ${canEdit() && context ? `<div class="ml-toolbar">${structureActions(collection ? 'collection' : 'category', context.id)}${organizeMode() ? button('assign', t('addSelectedHere'), state.selected.size ? '' : 'disabled') : ''}</div>` : ''}
       ${filtersHtml()}${activeFiltersHtml()}
       <div class="ml-view-controls">${d.views.length ? `<label class="ml-view-select"><span>${esc(t('savedViews'))}</span><select id="ml-view-select" aria-label="${esc(t('savedViews'))}">${option('', t('currentView'), state.viewId)}${d.views.map(v => option(v.id, v.title, state.viewId)).join('')}</select></label>` : ''}
       ${canEdit() ? button('save-view', t('saveView')) : ''}</div>
       ${state.viewId && d.views.some(v=>v.id === state.viewId) ? `<div class="ml-view-state"><span>${esc(t(C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? 'viewUnchanged' : 'viewModified'))}</span>${button('view-rules',t('viewRules'),`data-id="${esc(state.viewId)}"`)}${!C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? button('use-view',t('resetView'),`data-id="${esc(state.viewId)}"`) : ''}</div>` : ''}
-      ${matches.length ? `<div class="ml-navmatches">${matches.map(m => `<a data-nav href="${esc(makeHref({ section: 'catalog', filters: C.filters({ [m.type]: m.id }) }))}"><small>${esc(t(m.type))}</small><span dir="auto">${esc(m.path)}</span></a>`).join('')}</div>` : ''}
-      ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : emptyCatalogHtml(context)}${channelCollections(category)}
-      ${pages > 1 ? `<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page', t('previous'), state.page > 1 ? '' : 'disabled')}<span>${state.page} / ${pages}</span>${button('next-page', t('next'), state.page < pages ? '' : 'disabled')}</nav>` : ''}
+      ${context ? '' : navMatches}
+      <section class="ml-results" id="ml-results" tabindex="-1" aria-label="${esc(t('allMaterials'))}">${context ? `<div class="ml-scope"><input type="search" id="ml-scope-search" class="ml-scope-search" value="${esc(f.q)}" placeholder="${esc(t('searchIn',{title:context.title}))}" aria-label="${esc(t('searchIn',{title:context.title}))}" dir="auto">${f.q ? button('search-all', t('searchAll'), '', 'ml-quiet') : ''}</div>${navMatches}` : ''}${category && !collection || pages > 1 ? `<div class="ml-results-head">${category && !collection ? `<h2>${esc(t('topicMaterials'))}</h2>` : ''}${pager(pages, results.length, size)}</div>` : ''}
+      ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : emptyCatalogHtml(context)}
+      ${pager(pages)}</section>
     </section></div>`;
+}
+// PC side panel: channels apart from topics, counts everywhere, the open topic unfolds into subtopics and collections.
+function sideHtml(d, path, collection) {
+  const href = filters => esc(makeHref({ section: 'catalog', filters: C.filters(filters) }));
+  const link = (filters, title, count, current) => `<a data-nav href="${href(filters)}" ${current ? 'aria-current="page"' : ''}><span dir="auto">${esc(title)}</span><small>${count}</small></a>`;
+  const open = path[0];
+  const sub = root => {
+    const ids = C.descendants(d, root.id);
+    const topics = d.categories.filter(c => c.parentId === root.id && (organizeMode() || state.space !== 'public' || categoryCount(c.id) > 0));
+    const series = d.collections.filter(c => ids.has(c.categoryId));
+    const ready = c => c.items.filter(k => state.prepared.byKey.get(k)?.available).length;
+    return topics.length || series.length ? `<div class="ml-side-sub">${topics.map(c => link({ category: c.id }, c.title, categoryCount(c.id), path.some(x => x.id === c.id) && !collection)).join('')}${series.map(c => link({ collection: c.id }, c.title, ready(c), collection?.id === c.id)).join('')}</div>` : '';
+  };
+  const entry = c => link({ category: c.id }, c.title, categoryCount(c.id), open?.id === c.id && path.length === 1 && !collection) + (open?.id === c.id ? sub(c) : '');
+  const roots = d.categories.filter(c => !c.parentId && (organizeMode() || state.space !== 'public' || categoryCount(c.id) > 0 || open?.id === c.id));
+  const group = (title, list) => list.length ? `<h3 class="ml-side-group">${esc(t(title))}</h3>${list.map(entry).join('')}` : '';
+  const body = state.space === 'public' ? group('sideChannels', roots.filter(c => c.id.startsWith('yt_'))) + group('sideTopics', roots.filter(c => !c.id.startsWith('yt_'))) : roots.map(entry).join('');
+  return `<aside class="ml-side"><h2>${esc(t('topicsHeading'))}</h2>
+    <a data-nav href="${href({})}" ${!path.length && !collection ? 'aria-current="page"' : ''}>${esc(t('allMaterials'))}</a>
+    ${body}
+    <a class="ml-side-map" data-nav href="${esc(makeHref({ section: 'topics', filters: C.filters() }))}">${esc(t('topicMap'))}</a>
+    ${d.views.length ? `<div class="ml-side-views"><h2>${esc(t('savedViews'))}</h2>${d.views.map(v => `<a data-action="use-view" data-id="${esc(v.id)}" href="${esc(makeHref({ section: 'catalog', filters: v.filters, viewId: v.id }))}" ${state.viewId === v.id ? 'aria-current="page"' : ''}>${esc(v.title)}</a>`).join('')}</div>` : ''}</aside>`;
 }
 function emptyCatalogHtml(context) {
   const scoped = C.query(structure(), state.prepared, C.filters({category:state.filters.category,collection:state.filters.collection}));
   if (state.space === 'public' && scoped.length === 0) return `<div class="ml-empty"><h2>${esc(t('noPublishedEpisodes'))}</h2><p>${esc(t('noPublishedEpisodesHelp'))}</p>${state.owner && !state.preview ? button('video-queue',t('videoQueue.open')) + button('publish-material',t('addPublicMaterial'),'','ml-primary') : ''}${context ? button('search-all',t('searchAll')) : ''}</div>`;
   return `<div class="ml-empty"><h2>${esc(t('noResults'))}</h2><p>${esc(t('noResultsBody'))}</p>${button('search-all',t('searchAll'))}${button('reset-filters',t('reset'),'','ml-quiet')}</div>`;
 }
-function pager(pages) {
-  return pages>1?`<nav class="ml-pager" aria-label="${esc(t('pages'))}">${button('previous-page',t('previous'),state.page>1?'':'disabled')}<span>${state.page} / ${pages}</span>${button('next-page',t('next'),state.page<pages?'':'disabled')}</nav>`:'';
+function pageRange(page, size, total) { return { from: Math.min(total, (page - 1) * size + 1), to: Math.min(total, page * size) }; }
+function pager(pages, total, size) {
+  const range = total ? pageRange(state.page, size, total) : null;
+  return pages>1?`<nav class="ml-pager" aria-label="${esc(t('pages'))}">${range ? `<span class="ml-pager-range">${esc(t('pageRange',{ ...range, total }))}</span>` : ''}${button('previous-page',t('previous'),state.page>1?'':'disabled')}<span>${state.page} / ${pages}</span>${button('next-page',t('next'),state.page<pages?'':'disabled')}</nav>`:'';
 }
 function topicsHtml() {
   const d = structure(), tokens = C.normalize(state.topicSearch).split(/\s+/).filter(Boolean), visibleIds = new Set();
@@ -1087,7 +1123,7 @@ async function onAction(action, node) {
   if (action === 'reset-filters') return navigate('catalog', C.filters({ layout: state.filters.layout }));
   if (action === 'clear-filter') { rememberLocation(); const f = node.dataset.field; state.filters[f] = C.filters()[f]; state.page = 1; persist('push'); render(); return; }
   if (action === 'clear-selection') { state.selected.clear(); render(); return; }
-  if (action === 'previous-page' || action === 'next-page') { rememberLocation(); state.page += action === 'next-page' ? 1 : -1; persist('push'); render(); $('ml-content').focus({preventScroll:true}); $('ml-content').scrollIntoView({ block:'start' }); return; }
+  if (action === 'previous-page' || action === 'next-page') { rememberLocation(); state.page += action === 'next-page' ? 1 : -1; persist('push'); render(); const list = $('ml-results') || $('ml-content'); list.focus({preventScroll:true}); list.scrollIntoView({ block:'start' }); return; }
   if (action === 'retry') return loadAll();
   if (action === 'retry-local') { await localDb.recoverLocalDB(); await loadLocal(); render(); return; }
   if (action === 'add-item') return addToCollection(node.dataset.key);
@@ -1204,7 +1240,14 @@ async function onAction(action, node) {
     if (action === 'home-down' && row.nextElementSibling) parent.insertBefore(row.nextElementSibling,row); }
 }
 
+// «⋯» on a card: one menu open at a time; a click elsewhere, a command or Escape closes it.
+function closeMoreMenus(except) {
+  for (const menu of document.querySelectorAll('details.ml-more[open]')) if (menu !== except) { if (menu.contains(document.activeElement)) menu.querySelector('summary')?.focus(); menu.open = false; }
+}
+document.addEventListener('pointerdown', event => { if (!event.target.closest?.('details.ml-more')) closeMoreMenus(); });
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && document.querySelector('details.ml-more[open]')) { const open = document.querySelector('details.ml-more[open]'); closeMoreMenus(); open.querySelector('summary')?.focus(); } });
 document.addEventListener('click', event => {
+  closeMoreMenus(event.target.closest('summary') ? event.target.closest('details.ml-more') : null);
   const reader = event.target.closest('a[href*="from=mediatheque"]');
   if (reader) { const position = rememberLocation(reader); try { sessionStorage.setItem('mediatheque.readerReturn', JSON.stringify({ url:location.pathname + location.search, position })); } catch (_) {} }
   const action = event.target.closest('[data-action]');
@@ -1230,7 +1273,7 @@ document.addEventListener('input', event => {
   if (event.target.closest('#ml-form') && $('ml-form').dataset.conflict !== 'true') $('ml-form-error').hidden = true;
   if (event.target.id === 'ml-picker-search') { topicQuery = event.target.value; $('ml-topic-picker').innerHTML = topicPickerHtml(); }
   if (event.target.dataset.filter === 'source') { const q = C.normalize(event.target.value); $(event.target.getAttribute('list')).innerHTML = Array.from(new Set(state.prepared.items.map(i=>i.source).filter(Boolean))).filter(s=>C.normalize(s).includes(q)).slice(0,80).map(s=>`<option value="${esc(s)}"></option>`).join(''); }
-  if (event.target.id === 'ml-search') { clearTimeout(searchTimer); searchTimer = setTimeout(() => { rememberLocation(); state.filters.q = $('ml-search').value; state.section = 'catalog'; state.page = 1; state.selected.clear(); persist(searchRouteStarted ? 'replace' : 'push'); searchRouteStarted = true; render(); }, 200); }
+  if (event.target.id === 'ml-search' || event.target.id === 'ml-scope-search') { const field = event.target.id; clearTimeout(searchTimer); searchTimer = setTimeout(() => { rememberLocation(); state.filters.q = $(field).value; state.section = 'catalog'; state.page = 1; state.selected.clear(); persist(searchRouteStarted ? 'replace' : 'push'); searchRouteStarted = true; render(); }, 200); }
   if (['ml-topic-search','ml-collection-search'].includes(event.target.id)) { state.topicSearch = event.target.value; state.page=1; render(); }
 });
 document.addEventListener('change', event => {
