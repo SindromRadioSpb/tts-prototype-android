@@ -1,8 +1,8 @@
 import * as localDb from '/db/local-db.js?v=853';
 import './mediatheque-core.js';
 import './mediatheque-editorial-core.js';
-import './mediatheque-video-queue.js?v=927';
-import './mediatheque-placement.js?v=927';
+import './mediatheque-video-queue.js?v=928';
+import './mediatheque-placement.js?v=928';
 import { openPublisher, publisherStep } from './mediatheque-publisher.js';
 import { readPublicationResponse } from './mediatheque-api.js?v=802';
 const C = globalThis.MediathequeCore;
@@ -412,13 +412,15 @@ function itemCommandsHtml(item, href) {
       ${canPlace() && item.ref.kind === 'public' ? button('place-item', t('place.action'), `data-key="${esc(item.key)}"`, 'ml-place-action')
         : !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : ''}`;
 }
+// «⋯» opens upward unless there is no room above and enough below.
+function menuOpensDown(spaceAbove, menuHeight, spaceBelow) { return spaceAbove < menuHeight + 8 && spaceBelow >= menuHeight + 8; }
 function quietCommandsHtml(item, href) {
   const place = canPlace() && item.ref.kind === 'public';
-  const menu = (href && tutorEnabled ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" role="menuitem" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : '')
-    + (publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}" role="menuitem"`) : '')
-    + (!place && !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}" role="menuitem"`) : '');
+  const menu = (href && tutorEnabled ? `<a href="${esc(href+'&tutor=choose')}" class="ml-tutor" title="${esc(t('tutorHint'))}">${esc(t('tutorRead'))}</a>` : '')
+    + (publicMaterialLink(item) ? button('share-link', t('shareLink'), `data-key="${esc(item.key)}"`) : '')
+    + (!place && !state.preview && (state.space === 'personal' || item.ref.kind === 'public') ? button('add-item', t('addToCollection'), `data-key="${esc(item.key)}"`) : '');
   return (place ? button('place-item', t('place.action'), `data-key="${esc(item.key)}"`, 'ml-place-action') : '')
-    + (menu ? `<details class="ml-more"><summary aria-label="${esc(t('moreActions'))}" title="${esc(t('moreActions'))}">⋯</summary><div class="ml-more-menu" role="menu">${menu}</div></details>` : '');
+    + (menu ? `<details class="ml-more"><summary aria-label="${esc(t('moreActions'))}" title="${esc(t('moreActions'))}">⋯</summary><div class="ml-more-menu">${menu}</div></details>` : '');
 }
 function materialsHtml(items, layout = 'cards') { return `<div class="ml-materials" data-layout="${layout}">${items.map(itemHtml).join('')}</div>`; }
 function sectionHead(title, section, filters = {}) {
@@ -452,7 +454,7 @@ function channelCollections(category) {
   if (!category) return '';
   const ids = C.descendants(structure(), category.id);
   const series = browseOrder(structure().collections.filter(c=>ids.has(c.categoryId)), collectionReady);
-  return series.length ? `<section class="ml-channel-rail" aria-label="${esc(t('channelSeries'))}"><div class="ml-section-head"><h2>${esc(t('channelSeries'))}</h2><a data-nav href="${esc(makeHref({ section: 'collections', filters: C.filters({ category: category.id }) }))}">${esc(t('allSeries',{count:series.length}))}</a></div><div class="ml-rail">${series.map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
+  return series.length ? `<section class="ml-channel-rail" aria-label="${esc(t('channelSeries'))}"><div class="ml-section-head"><h2>${esc(t('channelSeries'))}</h2><a data-nav href="${esc(makeHref({ section: 'collections', filters: C.filters({ category: category.id }) }))}">${esc(t('allSeries',{count:series.length}))}</a></div><div class="ml-rail" data-wrap="${organizeMode()}">${series.map(c=>collectionHtml(c,structure().collections.indexOf(c))).join('')}</div></section>` : '';
 }
 function collectionContextHtml(collection) {
   const items = collection.items.map(key=>state.prepared.byKey.get(key)).filter(Boolean), summary=C.durationSummary(items);
@@ -601,9 +603,9 @@ function catalogHtml() {
       ${canEdit() ? button('save-view', t('saveView')) : ''}</div>
       ${state.viewId && d.views.some(v=>v.id === state.viewId) ? `<div class="ml-view-state"><span>${esc(t(C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? 'viewUnchanged' : 'viewModified'))}</span>${button('view-rules',t('viewRules'),`data-id="${esc(state.viewId)}"`)}${!C.sameFilters(d.views.find(v=>v.id===state.viewId).filters,f) ? button('use-view',t('resetView'),`data-id="${esc(state.viewId)}"`) : ''}</div>` : ''}
       ${context ? '' : navMatches}
-      <section class="ml-results" id="ml-results" tabindex="-1" aria-label="${esc(t('allMaterials'))}">${context ? `<div class="ml-scope"><input type="search" id="ml-scope-search" class="ml-scope-search" value="${esc(f.q)}" placeholder="${esc(t('searchIn',{title:context.title}))}" aria-label="${esc(t('searchIn',{title:context.title}))}" dir="auto">${f.q ? button('search-all', t('searchAll'), '', 'ml-quiet') : ''}</div>${navMatches}` : ''}${category && !collection || pages > 1 ? `<div class="ml-results-head">${category && !collection ? `<h2>${esc(t('topicMaterials'))}</h2>` : ''}${pager(pages, results.length, size)}</div>` : ''}
+      <section class="ml-results" id="ml-results" tabindex="-1" aria-label="${esc(context?.title || t('allMaterials'))}">${context ? `<div class="ml-scope"><input type="search" id="ml-scope-search" class="ml-scope-search" value="${esc(f.q)}" placeholder="${esc(t('searchIn',{title:context.title}))}" aria-label="${esc(t('searchIn',{title:context.title}))}" dir="auto">${f.q && results.length ? button('search-all', t('searchAll'), '', 'ml-quiet') : ''}</div>${navMatches}` : ''}${category && !collection || pages > 1 ? `<div class="ml-results-head">${category && !collection ? `<h2>${esc(t('topicMaterials'))}</h2>` : ''}${pager(pages, results.length, size)}</div>` : ''}
       ${bulkHtml(items)}${results.length ? materialsHtml(items, f.layout) : emptyCatalogHtml(context)}
-      ${pager(pages)}</section>
+      ${pager(pages, 0, 0, t('pagesBottom'))}</section>
     </section></div>`;
 }
 // PC side panel: channels apart from topics, counts everywhere, the open topic unfolds into subtopics and collections.
@@ -615,7 +617,7 @@ function sideHtml(d, path, collection) {
     const ids = C.descendants(d, root.id);
     const topics = d.categories.filter(c => c.parentId === root.id && (organizeMode() || state.space !== 'public' || categoryCount(c.id) > 0));
     const series = d.collections.filter(c => ids.has(c.categoryId));
-    const ready = c => c.items.filter(k => state.prepared.byKey.get(k)?.available).length;
+    const ready = c => c.items.filter(k => state.prepared.byKey.has(k)).length;
     return topics.length || series.length ? `<div class="ml-side-sub">${topics.map(c => link({ category: c.id }, c.title, categoryCount(c.id), path.some(x => x.id === c.id) && !collection)).join('')}${series.map(c => link({ collection: c.id }, c.title, ready(c), collection?.id === c.id)).join('')}</div>` : '';
   };
   const entry = c => link({ category: c.id }, c.title, categoryCount(c.id), open?.id === c.id && path.length === 1 && !collection) + (open?.id === c.id ? sub(c) : '');
@@ -634,9 +636,9 @@ function emptyCatalogHtml(context) {
   return `<div class="ml-empty"><h2>${esc(t('noResults'))}</h2><p>${esc(t('noResultsBody'))}</p>${button('search-all',t('searchAll'))}${button('reset-filters',t('reset'),'','ml-quiet')}</div>`;
 }
 function pageRange(page, size, total) { return { from: Math.min(total, (page - 1) * size + 1), to: Math.min(total, page * size) }; }
-function pager(pages, total, size) {
+function pager(pages, total, size, label = t('pages')) {
   const range = total ? pageRange(state.page, size, total) : null;
-  return pages>1?`<nav class="ml-pager" aria-label="${esc(t('pages'))}">${range ? `<span class="ml-pager-range">${esc(t('pageRange',{ ...range, total }))}</span>` : ''}${button('previous-page',t('previous'),state.page>1?'':'disabled')}<span>${state.page} / ${pages}</span>${button('next-page',t('next'),state.page<pages?'':'disabled')}</nav>`:'';
+  return pages>1?`<nav class="ml-pager" aria-label="${esc(label)}">${range ? `<span class="ml-pager-range">${esc(t('pageRange',{ ...range, total }))}</span>` : ''}${button('previous-page',t('previous'),state.page>1?'':'disabled')}<span>${state.page} / ${pages}</span>${button('next-page',t('next'),state.page<pages?'':'disabled')}</nav>`:'';
 }
 function topicsHtml() {
   const d = structure(), tokens = C.normalize(state.topicSearch).split(/\s+/).filter(Boolean), visibleIds = new Set();
@@ -1241,6 +1243,12 @@ async function onAction(action, node) {
 }
 
 // «⋯» on a card: one menu open at a time; a click elsewhere, a command or Escape closes it.
+document.addEventListener('toggle', event => {
+  const menu = event.target;
+  if (!menu.matches?.('details.ml-more') || !menu.open) return;
+  const box = menu.querySelector('summary').getBoundingClientRect(), list = menu.querySelector('.ml-more-menu');
+  menu.toggleAttribute('data-down', menuOpensDown(box.top, list.offsetHeight, innerHeight - box.bottom));
+}, true);
 function closeMoreMenus(except) {
   for (const menu of document.querySelectorAll('details.ml-more[open]')) if (menu !== except) { if (menu.contains(document.activeElement)) menu.querySelector('summary')?.focus(); menu.open = false; }
 }

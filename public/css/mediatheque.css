@@ -112,7 +112,7 @@ input::placeholder,textarea::placeholder{color:var(--ml-muted);opacity:1}
 
 /* Topic page (spec 2026-11-28): collections rail above the list; the pager and its range belong to the list. */
 .ml-channel-rail{margin-block:6px 22px}.ml-channel-rail .ml-section-head{margin-block-end:10px;align-items:baseline}.ml-channel-rail h2{font-size:1rem}
-.ml-rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,230px);gap:14px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:inline mandatory;padding-block:2px 12px;scrollbar-width:thin}
+.ml-rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,230px);gap:14px;overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:inline mandatory;padding:4px 6px 30px;margin:-4px -6px -18px;scroll-padding-inline:6px;scrollbar-width:thin}
 .ml-rail>.ml-collection{scroll-snap-align:start;min-width:0}
 .ml-root[data-space=public] .ml-rail>.ml-collection{padding:12px}.ml-root[data-space=public] .ml-rail .ml-collection-art{max-height:96px;margin-block-end:10px}.ml-root[data-space=public] .ml-rail .ml-collection h3{font-size:.95rem;line-height:1.45;margin-block-end:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.ml-root[data-space=public] .ml-rail .ml-collection small{font-size:.78rem}
 .ml-rail .ml-series-source,.ml-rail .ml-source-link,.ml-rail .ml-tree-description{display:none}
@@ -124,8 +124,9 @@ input::placeholder,textarea::placeholder{color:var(--ml-muted);opacity:1}
 .ml-more{position:relative;margin-inline-start:auto}.ml-more>summary{list-style:none;cursor:pointer;display:grid;place-items:center;min-width:44px;min-height:40px;border-radius:8px;font-size:1.25rem;line-height:1;color:var(--ml-muted)}
 .ml-more>summary::-webkit-details-marker{display:none}.ml-more>summary:hover,.ml-more[open]>summary{background:var(--ml-soft);color:var(--ml-text)}.ml-more>summary:focus-visible{outline:2px solid var(--ml-accent);outline-offset:2px}
 .ml-more-menu{position:absolute;inset-block-end:calc(100% + 6px);inset-inline-end:0;z-index:12;display:grid;gap:2px;min-width:220px;padding:6px;background:var(--ml-paper);border:1px solid var(--ml-line);border-radius:10px;box-shadow:0 10px 28px rgb(0 0 0 / .14)}
-.ml-more-menu>:is(a,button){display:block;width:100%;text-align:start;min-height:42px;padding:9px 12px;border:0 !important;border-radius:7px;background:none !important;box-shadow:none !important;font:inherit;font-size:.9rem;color:var(--ml-text);text-decoration:none;cursor:pointer}
-.ml-more-menu>:is(a,button):hover,.ml-more-menu>:is(a,button):focus-visible{background:var(--ml-soft) !important}
+/* menu rows are one family: same height, weight and ink also under the gouache look, whose card-button rules are !important */
+#ml-root .ml-item .ml-item-footer .ml-more-menu>:is(a,button){display:flex !important;align-items:center;width:100%;text-align:start;min-height:42px !important;padding:9px 12px !important;border:0 !important;border-radius:7px !important;background:none !important;box-shadow:none !important;font:inherit;font-size:.9rem !important;font-weight:500 !important;color:var(--ml-text) !important;text-decoration:none;cursor:pointer;white-space:nowrap}
+#ml-root .ml-item .ml-item-footer .ml-more-menu>:is(a,button):hover,#ml-root .ml-item .ml-item-footer .ml-more-menu>:is(a,button):focus-visible{background:var(--ml-soft) !important}
 /* Side panel: channels apart from topics, counts, the open topic unfolds. */
 .ml-side a{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 0;line-height:1.4}.ml-side a>span{min-width:0}
 .ml-side a>small{display:inline;padding:0;flex-shrink:0;font-size:.75rem;color:var(--ml-muted);font-weight:400;font-variant-numeric:tabular-nums}
@@ -136,3 +137,6 @@ input::placeholder,textarea::placeholder{color:var(--ml-muted);opacity:1}
 .ml-scope{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-block:6px 4px}
 .ml-scope-search{flex:1 1 260px;max-width:460px;min-height:42px;padding:9px 13px;border:1px solid var(--ml-line);border-radius:10px;background:var(--ml-paper);color:var(--ml-text);font-size:.9rem}
 .ml-scope-search:focus-visible{outline:2px solid var(--ml-accent);outline-offset:1px}
+.ml-more[data-down]>.ml-more-menu{inset-block-end:auto;inset-block-start:calc(100% + 6px)}
+/* the editor keeps the rail as a wrapping grid: its order and edit buttons need the width */
+.ml-rail[data-wrap=true]{grid-auto-flow:row;grid-auto-columns:auto;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));overflow:visible;scroll-snap-type:none}

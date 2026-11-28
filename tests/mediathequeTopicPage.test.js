@@ -161,3 +161,41 @@ test('topic search: matches of topics and collections render below the field, no
 test('outside taps close the menu on pointerdown (iOS does not deliver click on plain elements)', () => {
   assert.match(source, /addEventListener\('pointerdown', event => \{[^}]*closeMoreMenus/);
 });
+
+// Polish (2026-11-28, second pass).
+test('the list is labelled by its topic or collection; the two pagers have different labels', () => {
+  const html = ui()('catalogHtml()');
+  assert.match(html, /id="ml-results" tabindex="-1" aria-label="כאן 11"/);
+  const labels = (html.match(/<nav class="ml-pager" aria-label="([^"]*)"/g) || []);
+  assert.equal(labels.length, 2); assert.notEqual(labels[0], labels[1]);
+});
+test('an empty scope search offers «Искать во всей Медиатеке» once', () => {
+  const html = ui({}, { filters: { category: 'yt_kan', q: 'нет такого' } })('catalogHtml()');
+  assert.equal((html.match(/data-action="search-all"/g) || []).length, 1);
+});
+test('«⋯» is a plain disclosure: no menu roles without arrow-key support', () => {
+  const html = ui({ n: 3, series: 0 })('itemHtml(state.prepared.byKey.get(C.refKey(' + JSON.stringify(ref(1)) + ')))');
+  assert.doesNotMatch(html, /role="menu(item)?"/);
+});
+test('menuOpensDown: opens down only when there is no room above', () => {
+  const run = ui({ n: 3, series: 0 });
+  assert.equal(run('menuOpensDown(80, 150, 900)'), true);
+  assert.equal(run('menuOpensDown(400, 150, 900)'), false);
+  assert.equal(run('menuOpensDown(80, 150, 100)'), false, 'no room below either: keep upward');
+});
+test('side panel counts a collection the way its card does', () => {
+  const run = ui({}, { owner: true, editing: true }); // the editor keeps withdrawn episodes as unavailable items
+  run("state.draft = state.published; state.published.items = state.published.items.filter(r => r.ref.workId !== 'w2'); projectionInputs = []; rebuild()");
+  assert.equal(run("state.prepared.byKey.get(C.refKey(" + JSON.stringify(ref(2)) + ")).available"), false);
+  const html = run('catalogHtml()'), s = side(html);
+  const card = html.slice(html.indexOf('ml-channel-rail'), html.indexOf('id="ml-results"'));
+  const sideCount = s.match(/Подборка 2<\/span><small>(\d+)<\/small>/)[1];
+  const cardCount = card.slice(card.indexOf('Подборка 2')).match(/materialCount\{&quot;count&quot;:(\d+)\}/)[1];
+  assert.equal(sideCount, cardCount);
+});
+test('in the editor the rail wraps into a grid', () => {
+  const run = ui({}, { owner: true, editing: true });
+  run('state.draft = state.published');
+  assert.match(run('catalogHtml()'), /class="ml-rail" data-wrap="true"/);
+  assert.match(ui()('catalogHtml()'), /class="ml-rail" data-wrap="false"/);
+});

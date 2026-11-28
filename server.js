@@ -1351,10 +1351,10 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/xlsx-core.js?v=753",
   "/js/dictionary-workbook.js?v=763",
   "/js/dictionary-ui.js?v=815",
-  "/css/mediatheque.css?v=927",
-  "/js/mediatheque-ui.js?v=927",
-  "/js/mediatheque-video-queue.js?v=927",
-  "/js/mediatheque-placement.js?v=927",
+  "/css/mediatheque.css?v=928",
+  "/js/mediatheque-ui.js?v=928",
+  "/js/mediatheque-video-queue.js?v=928",
+  "/js/mediatheque-placement.js?v=928",
   "/js/mediatheque-core.js",
   "/js/mediatheque-editorial-core.js",
   "/js/mediatheque-publisher.js",
@@ -1544,9 +1544,9 @@ const SHELL_INTEGRITY_PATHS = [
   "/js/lesson-artifact.js",
   "/js/table-niqqud-normalizer.js?v=735",
   "/js/product-telemetry.js?v=669",
-  "/i18n/locales/ru.js?v=927",
-  "/i18n/locales/en.js?v=927",
-  "/i18n/locales/he.js?v=927",
+  "/i18n/locales/ru.js?v=928",
+  "/i18n/locales/en.js?v=928",
+  "/i18n/locales/he.js?v=928",
 ];
 let shellIntegrityCache = null;
 function shellIntegrity() {
